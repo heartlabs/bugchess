@@ -7,17 +7,16 @@ use amethyst::{
         RenderingBundle,
         rendy::mesh::{Normal, Position, TexCoord},
     },
-    ui::{RenderUi, UiBundle, UiCreator, UiEvent, UiFinder, UiText, UiEventType},
+    ui::{RenderUi, UiBundle},
     utils::{
         application_root_dir,
-        fps_counter::{FpsCounter, FpsCounterBundle},
+        fps_counter::{FpsCounterBundle},
         scene::BasicScenePrefab,
     },
     input::{InputBundle, StringBindings},
     ecs::*,
-    derive::SystemDesc,
-    shrev::{EventChannel, ReaderId},
-    assets::{PrefabLoader, PrefabLoaderSystemDesc, Processor, RonFormat},
+    shrev::{ReaderId},
+    assets::{PrefabLoaderSystemDesc},
 };
 
 

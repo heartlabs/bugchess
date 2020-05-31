@@ -1,7 +1,7 @@
 [package]
-name = "amethyst-starter-2d"
+name = "megachess"
 version = "0.1.0"
-authors = ["Hilmar Wiegand <me@hwgnd.de>"]
+authors = ["Neidhart Orlich <neidhart.orlich@gmail.com>"]
 edition = "2018"
 
 [dependencies]
