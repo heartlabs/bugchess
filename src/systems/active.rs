@@ -3,7 +3,6 @@ use amethyst::{
         resources::Tint,
         palette::Srgba,
     },
-    core::Transform,
     ecs::{Join, ReadStorage, System, WriteStorage, Entities},
 };
 use crate::components::{Activatable};

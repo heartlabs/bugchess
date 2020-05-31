@@ -12,16 +12,16 @@ use amethyst::{
     ui::UiEvent,
 };
 
-use amethyst::core::math::{Vector3, Point2};
-use ncollide3d::shape::Cuboid;
+use amethyst::core::math::{Vector3};
+
 
 use crate::components::{Activatable, Bounded, Mouse, Board, Cell, Piece};
 
 use log::info;
-use crate::components::board::{BoardEvent, Team};
-use crate::states::load::Sprites;
+use crate::components::board::{BoardEvent};
+
 use crate::states::PiecePlacementState;
-use std::borrow::BorrowMut;
+
 
 pub struct PieceMovementState {
     pub from_x: usize,
@@ -33,7 +33,7 @@ impl SimpleState for PieceMovementState {
     // On start will run when this state is initialized. For more
     // state lifecycle hooks, see:
     // https://book.amethyst.rs/stable/concepts/state.html#life-cycle
-    fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
+    fn on_start(&mut self, _data: StateData<'_, GameData<'_, '_>>) {
 
     }
 
@@ -57,7 +57,7 @@ impl SimpleState for PieceMovementState {
                 );
                 Trans::None
             }
-            StateEvent::Input(input) => {
+            StateEvent::Input(_input) => {
                 Trans::None
             }
         }
@@ -65,7 +65,7 @@ impl SimpleState for PieceMovementState {
 
     }
 
-    fn update(&mut self, mut data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans  {
+    fn update(&mut self, data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans  {
         let mut board = data.world.write_resource::<Board>();
 
         if let Some(event) = board.poll_event()
@@ -103,7 +103,7 @@ impl SimpleState for PieceMovementState {
 }
 
 impl PieceMovementState {
-    fn move_piece(&mut self, world: &mut World, mut board: &mut Board, x: usize, y: usize) -> SimpleTrans {
+    fn move_piece(&mut self, world: &mut World, board: &mut Board, x: usize, y: usize) -> SimpleTrans {
         let mut transforms = world.write_storage::<Transform>();
 
         let transform = &mut transforms.get(board.get_cell(x, y)).unwrap().clone();

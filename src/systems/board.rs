@@ -10,8 +10,8 @@ use amethyst::{
     core::math::Vector3,
 };
 use crate::components::{Cell, Activatable, Piece, Board};
-use crate::components::board::Team;
-use std::borrow::BorrowMut;
+
+
 use crate::states::load::Sprites;
 
 pub struct BoardSystem;
@@ -29,7 +29,7 @@ impl<'a> System<'a> for BoardSystem {
         WriteStorage<'a, Tint>,
     );
 
-    fn run(&mut self, (cells, mut activatables, mut pieces, sprites, mut board, entities, mut transforms, mut sprite_renders, mut tints): Self::SystemData) {
+    fn run(&mut self, (_cells, _activatables, _pieces, _sprites, _board, _entities, _transforms, _sprite_renders, _tints): Self::SystemData) {
 
     }
 }

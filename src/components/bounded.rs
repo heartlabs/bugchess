@@ -1,5 +1,5 @@
 use amethyst::ecs::{Component, DenseVecStorage};
-use amethyst::core::math::{Vector3, Point2};
+use amethyst::core::math::{Vector3};
 
 use ncollide3d::shape::Cuboid;
 

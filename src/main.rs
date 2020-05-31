@@ -19,7 +19,7 @@ use amethyst::{
     shrev::{EventChannel, ReaderId},
     assets::{PrefabLoader, PrefabLoaderSystemDesc, Processor, RonFormat},
 };
-use crate::components::{Board, Activatable};
+
 
 
 mod states;

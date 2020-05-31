@@ -59,7 +59,7 @@ impl<'s> System<'s> for MouseHandler {
                     for (activatable, transform, bounded) in (&mut activatables, &mut transforms, &boundings).join() {
                         let inside = bounded.bounds.contains_point(transform.isometry(), &Point3::new(x, y, 0.0));
 
-                        if (inside){
+                        if inside {
                             board.set_event(activatable.event);
                         }
 

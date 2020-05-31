@@ -1,7 +1,7 @@
 use amethyst::core::math::{Point2};
-use amethyst::ecs::{Component, DenseVecStorage, Entity, WriteStorage};
+use amethyst::ecs::{Component, DenseVecStorage, Entity};
 use amethyst::renderer::palette::Srgba;
-use ncollide3d::narrow_phase::EventPool;
+
 
 pub const BOARD_WIDTH: usize = 5;
 pub const BOARD_HEIGHT: usize = 5;
@@ -62,9 +62,9 @@ pub struct Board {
 impl Board {
     pub fn new(cells: Vec<Vec<Entity>>, teams: Vec<Team>) -> Board {
         let pieces = (0..BOARD_WIDTH)
-            .map(|i| {
+            .map(|_i| {
                 (0..BOARD_HEIGHT)
-                    .map(|j| {
+                    .map(|_j| {
                         Option::None
                     })
                     .collect()
@@ -109,7 +109,7 @@ impl Board {
 
     pub fn next_team(&mut self) -> Team {
         self.current_team_index += 1;
-        if (self.current_team_index >= self.teams.len()){
+        if self.current_team_index >= self.teams.len() {
             self.current_team_index = 0;
         }
 

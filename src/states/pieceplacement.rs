@@ -12,16 +12,16 @@ use amethyst::{
     ecs::Entity,
 };
 
-use amethyst::core::math::{Vector3, Point2};
-use ncollide3d::shape::Cuboid;
+use amethyst::core::math::{Vector3};
+
 
 use crate::components::{Activatable, Bounded, Mouse, Board, Cell, Piece};
 
-use log::info;
+
 use crate::components::board::{BoardEvent, Team};
 use crate::states::load::Sprites;
 use crate::states::PieceMovementState;
-use std::borrow::Cow::Borrowed;
+
 
 pub struct PiecePlacementState {
     current_team_text: Option<Entity>,
@@ -39,13 +39,13 @@ impl PiecePlacementState {
 
 impl SimpleState for PiecePlacementState {
 
-    fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
+    fn on_start(&mut self, _data: StateData<'_, GameData<'_, '_>>) {
 
     }
 
     fn handle_event(
         &mut self,
-        mut data: StateData<'_, GameData<'_, '_>>,
+        _data: StateData<'_, GameData<'_, '_>>,
         event: StateEvent,
     ) -> SimpleTrans {
         match &event {
@@ -56,17 +56,17 @@ impl SimpleState for PiecePlacementState {
                     Trans::None
                 }
             }
-            StateEvent::Ui(UiEvent{target, event_type: UiEventType::ClickStart}) => {
+            StateEvent::Ui(UiEvent{target: _, event_type: UiEventType::ClickStart}) => {
                 Trans::None
             }
-            StateEvent::Input(input) => {
+            StateEvent::Input(_input) => {
                 Trans::None
             }
             _ => Trans::None
         }
     }
 
-    fn update(&mut self, mut data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans  {
+    fn update(&mut self, data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans  {
 
         if self.current_team_text.is_none() {
             data.world.exec(|finder: UiFinder| {
@@ -82,7 +82,7 @@ impl SimpleState for PiecePlacementState {
             });
 
             let mut activatables = data.world.write_storage::<Activatable>();
-            if (self.next_button.is_some()) {
+            if self.next_button.is_some() {
                 activatables.insert(self.next_button.unwrap(), Activatable { active: false, event: BoardEvent::Next });
             }
         }
@@ -107,7 +107,7 @@ impl SimpleState for PiecePlacementState {
                     if let Some(piece) = board.get_piece(x, y) {
                         //board.remove_piece(x, y);
                         //data.world.entities().delete(piece);
-                        if (teams.get(piece).unwrap().id == board.current_team().id) {
+                        if teams.get(piece).unwrap().id == board.current_team().id {
                             println!("Moving piece");
                             Trans::Replace(Box::new(PieceMovementState { from_x: x, from_y: y, piece }))
                         } else {

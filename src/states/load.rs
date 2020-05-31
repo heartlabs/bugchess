@@ -14,12 +14,12 @@ use amethyst::{
 use amethyst::core::math::{Vector3, Point2};
 use ncollide3d::shape::Cuboid;
 
-use crate::components::{Activatable, Bounded, Mouse, Board, Cell, Piece};
+use crate::components::{Activatable, Bounded, Mouse, Board, Cell};
 
-use log::info;
+
 use crate::components::board::{BoardEvent, Team};
 use crate::states::PiecePlacementState;
-use std::any::Any;
+
 
 pub struct LoadingState;
 
@@ -91,7 +91,7 @@ impl SimpleState for LoadingState {
         Trans::Replace(Box::new(PiecePlacementState::new()))
     }
 
-    fn update(&mut self, mut data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans  {
+    fn update(&mut self, _data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans  {
         Trans::None
     }
 }
