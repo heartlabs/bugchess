@@ -2,16 +2,19 @@ use amethyst::core::math::{Point2};
 use amethyst::ecs::{Component, DenseVecStorage, Entity};
 use amethyst::renderer::palette::Srgba;
 
+use std::iter::successors;
+use std::vec::IntoIter;
+use ncollide3d::query::algorithms::gjk::directional_distance;
 
-pub const BOARD_WIDTH: usize = 5;
-pub const BOARD_HEIGHT: usize = 5;
+pub const BOARD_WIDTH: u8 = 5;
+pub const BOARD_HEIGHT: u8 = 5;
 
 
 #[derive(Debug, Copy, Clone)]
 pub enum BoardEvent {
     Cell {
-        x: usize,
-        y: usize
+        x: u8,
+        y: u8
     },
     Next,
     None,
@@ -23,109 +26,217 @@ impl Default for BoardEvent {
     }
 }
 
-#[derive(Component, Clone, Copy)]
-#[storage(DenseVecStorage)]
+#[derive(Clone, Copy)]
 pub struct Team {
     pub id: usize,
     pub color: Srgba,
-    pub name: &'static str
+    pub name: &'static str,
+    pub lost: bool,
+}
+
+#[derive(Component, Clone, Copy)]
+#[storage(DenseVecStorage)]
+pub struct TeamAssignment {
+    pub id: usize,
+//    pub color: Srgba,
 }
 
 #[derive(Component, Clone, Copy)]
 #[storage(DenseVecStorage)]
 pub struct Piece {
-    //pub team: &'static Team
+    pub attack: bool
+}
+
+impl Piece {
+    pub fn new() -> Piece {
+        Piece {attack: true}
+    }
+}
+
+#[derive(Component, Clone, Copy)]
+#[storage(DenseVecStorage)]
+pub struct Dying {
+
+}
+#[derive(Component, Clone, Copy)]
+#[storage(DenseVecStorage)]
+pub struct Exhausted {
+
 }
 
 #[derive(Component)]
 #[storage(DenseVecStorage)]
+pub struct Move {
+    pub range: Range,
+}
+
+impl Move {
+    pub fn new(direction: Direction, steps: u8) -> Move {
+        Move {
+            range: Range {direction, steps}
+        }
+    }
+}
+
+pub struct Range {
+    pub direction: Direction,
+    pub steps: u8,
+}
+
+impl Range {
+    pub fn reaches(&self, from_x: u8, from_y: u8, to_x: u8, to_y: u8) -> bool {
+        self.direction.reaches(from_x, from_y, to_x, to_y)
+            && (from_y as i16 - to_y as i16).abs() as u8 <= self.steps
+            && (from_x as i16 - to_x as i16).abs() as u8 <= self.steps
+    }
+
+    pub fn paths(&self, from_x: u8, from_y: u8) -> Box<dyn Iterator<Item=Box<dyn Iterator<Item=(i16,i16)>>>> {
+        Box::new(self.direction.paths().into_iter().map(move |i| {
+            let x: Box<Iterator<Item=(i16,i16)>> = Box::new(successors(
+                Some((from_x as i16, from_y as i16)),
+                move |&x| Some(i(x)))
+                    .skip(1)
+                    .take(self.steps as usize));
+            x
+        }).collect::<Vec<Box<dyn Iterator<Item=(i16,i16)>>>>().into_iter())
+
+    }
+}
+
+impl Direction {
+    fn reaches(&self, from_x: u8, from_y: u8, to_x: u8, to_y: u8) -> bool{
+        match &self {
+            Direction::Vertical => from_x == to_x,
+            Direction::Horizontal => from_y == to_y,
+            Direction::Diagonal => (from_y as i16 - to_y as i16).abs() == (from_x as i16 - to_x as i16).abs(),
+            Direction::Straight => from_x == to_x || from_y == to_y,
+            Direction::Star =>(from_y as i16 - to_y as i16).abs() == (from_x as i16 - to_x as i16).abs() || from_x == to_x || from_y == to_y,
+            Direction::Anywhere => true
+        }
+    }
+
+    fn paths(&self) -> Vec<Box<dyn Fn((i16,i16)) -> (i16,i16)>>{
+        match &self {
+            Direction::Vertical => vec![
+                Box::new(|(x,y)| (x,y+1)),
+                Box::new(|(x,y)| (x,y-1))
+            ],
+            Direction::Horizontal => vec![
+                Box::new(|(x,y)| (x+1,y)),
+                Box::new(|(x,y)| (x-1,y))
+            ],
+            Direction::Diagonal => vec![
+                Box::new(|(x,y)| (x+1,y+1)),
+                Box::new(|(x,y)| (x-1,y-1)),
+                Box::new(|(x,y)| (x+1,y-1)),
+                Box::new(|(x,y)| (x-1,y+1)),
+            ],
+            Direction::Straight => vec![
+                Box::new(|(x,y)| (x+1,y)),
+                Box::new(|(x,y)| (x-1,y)),
+                Box::new(|(x,y)| (x,y+1)),
+                Box::new(|(x,y)| (x,y-1))
+            ],
+            Direction::Star => vec![
+                Box::new(|(x,y)| (x+1,y+1)),
+                Box::new(|(x,y)| (x-1,y-1)),
+                Box::new(|(x,y)| (x+1,y-1)),
+                Box::new(|(x,y)| (x-1,y+1)),
+                Box::new(|(x,y)| (x+1,y)),
+                Box::new(|(x,y)| (x-1,y)),
+                Box::new(|(x,y)| (x,y+1)),
+                Box::new(|(x,y)| (x,y-1))
+            ],
+            Direction::Anywhere => Vec::new()
+        }
+    }
+}
+
+pub enum Direction {
+    Vertical,
+    Horizontal,
+    Diagonal,
+    Straight,
+    Star,
+    Anywhere
+}
+
+#[derive(Component, Debug)]
+#[storage(DenseVecStorage)]
 pub struct Cell {
-    pub coords: Point2<usize>,
-    pub piece: Option<&'static mut Piece>,
+
 }
 
-impl Cell {
-    pub const width: usize = 64;
-    pub const height: usize = 64;
+#[derive(Component, Debug)]
+#[storage(DenseVecStorage)]
+pub struct BoardPosition {
+    pub coords: Point2<u8>,
 }
 
-pub struct Board {
-    cells: Vec<Vec<Entity>>,
-    pieces: Vec<Vec<Option<Entity>>>,
-    teams: Vec<Team>,
-    current_team_index: usize,
-    pub w: usize,
-    pub h: usize,
-    event: Option<BoardEvent>,
+impl BoardPosition {
+    pub fn new(x: u8, y: u8) -> BoardPosition {
+        BoardPosition {
+            coords: Point2::<u8>::new(x,y)
+        }
+    }
 }
 
-impl Board {
-    pub fn new(cells: Vec<Vec<Entity>>, teams: Vec<Team>) -> Board {
-        let pieces = (0..BOARD_WIDTH)
-            .map(|_i| {
-                (0..BOARD_HEIGHT)
-                    .map(|_j| {
-                        Option::None
-                    })
-                    .collect()
-            })
-            .collect();
+#[derive(Component, Debug)]
+#[storage(DenseVecStorage)]
+pub struct Target {
+    possible_target_of: Vec<Entity>,
+}
 
-        Board {
-            cells,
-            pieces,
-            teams,
-            current_team_index: 0,
-            w: BOARD_WIDTH,
-            h: BOARD_HEIGHT,
-            event: Option::None,
+impl Target {
+    pub fn new() -> Target {
+        Target {
+            possible_target_of: Vec::new(),
         }
     }
 
-    pub fn placePiece(&mut self, piece: Entity, x: usize, y: usize){
-        self.pieces[x][y] = Some(piece);
+    pub fn clear(&mut self){
+        self.possible_target_of.clear();
     }
 
-    pub fn remove_piece(&mut self, x: usize, y: usize){
-        self.pieces[x][y] = None;
+    pub fn add(&mut self, entity: Entity){
+        self.possible_target_of.push(entity);
     }
 
-    pub fn get_piece(&self, x: usize, y: usize) -> Option<Entity> {
-        self.pieces[x][y]
+    pub fn is_possible_target_of(&self, entity: Entity) -> bool {
+        self.possible_target_of.contains(&entity)
     }
+}
 
-    pub fn move_piece(&mut self, piece: Entity, from_x: usize, from_y: usize, to_x: usize, to_y: usize){
-        self.remove_piece(from_x, from_y);
-        self.placePiece(piece, to_x, to_y);
+#[derive(Component, Debug)]
+#[storage(DenseVecStorage)]
+pub struct Highlight {
+    pub types: Vec<HighlightType>,
+}
+
+impl Highlight {
+    pub fn new() -> Highlight {
+        Highlight{types: Vec::new()}
     }
+}
 
-    pub fn get_cell(&self, x: usize, y: usize) -> Entity {
-        self.cells[x][y]
-    }
+#[derive(Debug)]
+pub enum HighlightType {
+    Selected,
+    Hovered,
+    TargetOfSelected,
+    TargetOfHovered
+}
 
-    pub fn current_team(&mut self) -> Team {
-        self.teams[self.current_team_index]
-    }
+#[derive(Clone, Copy, Debug)]
+pub enum PieceKind {
+    Simple,
+    HorizontalBar,
+    VerticalBar,
+    Cross,
+}
 
-    pub fn next_team(&mut self) -> Team {
-        self.current_team_index += 1;
-        if self.current_team_index >= self.teams.len() {
-            self.current_team_index = 0;
-        }
-
-        self.current_team()
-    }
-
-    pub fn set_event(&mut self, event: BoardEvent) {
-        self.event = Some(event);
-    }
-    pub fn poll_event(&mut self) -> Option<BoardEvent> {
-
-        let event = self.event.take();
-        if event.is_some() {
-            println!("Handling event {:?}", event);
-        }
-        event
-    }
-
+#[derive(Component, Debug)]
+#[storage(DenseVecStorage)]
+pub struct TurnInto {
+    pub kind: PieceKind,
 }

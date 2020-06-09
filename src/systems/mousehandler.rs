@@ -1,10 +1,12 @@
 use amethyst::{
     input::{InputHandler, StringBindings},
-    core::SystemDesc,
     derive::SystemDesc,
-    ecs::{Read, ReadStorage, ReadExpect, Write, WriteStorage, WriteExpect, System, SystemData, Join, Entity},
+    ecs::{Read, ReadStorage, ReadExpect, Write, WriteStorage, WriteExpect, Entities, System, SystemData, Join},
     winit::MouseButton,
-    core::Transform,
+    core::{
+        Transform,
+        math::{Point3, Point2},
+    },
     window::ScreenDimensions,
     renderer::{
         palette::Srgba,
@@ -12,10 +14,11 @@ use amethyst::{
     },
 };
 
-use amethyst::core::math::{Point3, Point2};
 use ncollide3d::query::PointQuery;
 
-use crate::components::{Activatable, Bounded, Mouse, Board};
+use crate::components::{Activatable, Bounded, Mouse};
+use crate::components::active::{Hovered, Selected};
+use crate::resources::board::Board;
 
 
 #[derive(SystemDesc)]
@@ -46,34 +49,41 @@ impl<'s> System<'s> for MouseHandler {
         ReadStorage<'s, Bounded>,
         ReadStorage<'s, Mouse>,
         WriteStorage<'s, Activatable>,
+        WriteStorage<'s, Hovered>,
         Write<'s, DebugLines>,
         WriteExpect<'s, Board>,
+        Entities<'s>,
     );
 
-    fn run(&mut self, (input, screen, mut transforms, boundings, mouses, mut activatables, mut debug_lines_resource, mut board): Self::SystemData) {
+    fn run(&mut self, (input, screen, mut transforms, boundings, mouses, mut activatables, mut hovereds, mut debug_lines_resource, mut board, entities): Self::SystemData) {
 
         if let Some((x, y)) = MouseHandler::mouse_pos(&*input, &*screen) {
-            if input.mouse_button_is_down(MouseButton::Left) {
-                if !self.mouse_button_was_already_handled{
-                    self.mouse_button_was_already_handled = true;
-                    for (activatable, transform, bounded) in (&mut activatables, &mut transforms, &boundings).join() {
-                        let inside = bounded.bounds.contains_point(transform.isometry(), &Point3::new(x, y, 0.0));
+            for (activatable, transform, bounded, e) in (&mut activatables, &mut transforms, &boundings, &entities).join() {
+                let inside = bounded.bounds.contains_point(transform.isometry(), &Point3::new(x, y, -0.1));
 
-                        if inside {
+                if inside {
+                    hovereds.insert(e, Hovered{});
+
+                    if input.mouse_button_is_down(MouseButton::Left) {
+                        if !self.mouse_button_was_already_handled {
+                            self.mouse_button_was_already_handled = true;
                             board.set_event(activatable.event);
                         }
-
-                        activatable.active = inside;
-                        //println!("DIMENSIONS: {:?}",*screen);
-                        //println!("transform {:?}", transform);
-                        //println!("isometry {}", transform.isometry());
-                        //println!("Activated at {} {} {}", x, y, inside);
-
+                    } else {
+                        self.mouse_button_was_already_handled = false;
                     }
+                } else {
+                    hovereds.remove(e);
                 }
-            } else {
-                self.mouse_button_was_already_handled = false;
+
+                // activatable.active = inside;
+                //println!("DIMENSIONS: {:?}",*screen);
+                //println!("transform {:?}", transform);
+                //println!("isometry {}", transform.isometry());
+                //println!("Activated at {} {} {}", x, y, inside);
+
             }
+
 
             for (_mouse, transform) in (&mouses, &mut transforms).join() {
                 transform.set_translation_x(x);

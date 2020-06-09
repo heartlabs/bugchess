@@ -1,25 +1,11 @@
 use amethyst::{
-    core::transform::TransformBundle,
-    prelude::*,
-    renderer::{
-        plugins::{RenderFlat2D, RenderToWindow, RenderDebugLines},
-        types::DefaultBackend,
-        RenderingBundle,
-        rendy::mesh::{Normal, Position, TexCoord},
-    },
-    ui::{RenderUi, UiBundle, UiCreator, UiEvent, UiFinder, UiText, UiEventType},
-    utils::{
-        application_root_dir,
-        fps_counter::{FpsCounter, FpsCounterBundle},
-        scene::BasicScenePrefab,
-    },
-    input::{InputBundle, StringBindings},
+    ui::{UiEvent, UiEventType},
     ecs::*,
     derive::SystemDesc,
     shrev::{EventChannel, ReaderId},
-    assets::{PrefabLoader, PrefabLoaderSystemDesc, Processor, RonFormat},
 };
-use crate::components::{Board, Activatable};
+use crate::components::{Activatable};
+use crate::resources::board::Board;
 
 /// This shows how to handle UI events.
 #[derive(SystemDesc)]
@@ -45,7 +31,6 @@ impl<'a> System<'a> for UiEventHandlerSystem {
     fn run(&mut self, (activatables, events, mut board): Self::SystemData) {
         // Reader id was just initialized above if empty
         for event in events.read(&mut self.reader_id) {
-            println!("[SYSTEM] You just interacted with a ui element: {:?}", event);
 
             if let UiEvent{target, event_type: UiEventType::ClickStart} = event {
 

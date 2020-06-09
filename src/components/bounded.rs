@@ -1,5 +1,5 @@
 use amethyst::ecs::{Component, DenseVecStorage};
-use amethyst::core::math::{Vector3};
+use amethyst::core::math::{Vector3, Point2};
 
 use ncollide3d::shape::Cuboid;
 
@@ -13,4 +13,11 @@ impl Bounded {
     pub fn new(width: f32, height: f32) -> Bounded {
         Bounded{bounds: Cuboid::new(Vector3::new(width/2., height/2., 0.0))}
     }
+}
+
+
+#[derive(Component)]
+#[storage(DenseVecStorage)]
+pub struct MovingTowards {
+    pub screen_pos: Vector3<f32>,
 }

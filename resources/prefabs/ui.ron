@@ -8,16 +8,32 @@ Container(
         height: 20.,
     ),
     children: [
-
         Label(
             transform: (
-                id: "current_team",
-                x: 200.,
-                y: -350,
+                id: "current_state",
+                x: 150.,
+                y: -100,
                 width: 400.,
                 height: 200.,
                 tab_order: 1,
-                anchor: MiddleLeft,
+                anchor: TopLeft,
+            ),
+            text: (
+                text: "Loading...",
+                font_size: 30.,
+                color: (0.1, 0.1, 0.1, 1.0),
+                align: Middle,
+            )
+        ),
+        Label(
+            transform: (
+                id: "current_team",
+                x: 150.,
+                y: -50,
+                width: 400.,
+                height: 200.,
+                tab_order: 1,
+                anchor: TopLeft,
             ),
             text: (
                 text: "Loading...",
@@ -30,13 +46,13 @@ Container(
         Button(
             transform: (
                 id: "next_button",
-                x: 250.,
-                y: -40.,
+                x: -50.,
+                y: 40.,
                 z: 11.,
                 width: 128.,
                 height: 64.,
                 tab_order: 9,
-                anchor: TopLeft,
+                anchor: BottomRight,
                 mouse_reactive: true,
             ),
             button: (

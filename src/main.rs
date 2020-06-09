@@ -14,13 +14,11 @@ use amethyst::{
         scene::BasicScenePrefab,
     },
     input::{InputBundle, StringBindings},
-    ecs::*,
-    shrev::{ReaderId},
     assets::{PrefabLoaderSystemDesc},
 };
 
 
-
+mod resources;
 mod states;
 mod components;
 mod systems;
@@ -40,9 +38,11 @@ fn main() -> amethyst::Result<()> {
     let game_data = GameDataBuilder::default()
         .with_system_desc(PrefabLoaderSystemDesc::<MyPrefabData>::default(), "", &[])
         .with_bundle(input_bundle)?
-        .with(crate::systems::active::ShowAsActive, "show_as_active", &[])
         .with(crate::systems::mousehandler::MouseHandler::new(), "mouse_handler", &["input_system"])
-        .with(crate::systems::board::BoardSystem, "board_system", &[])
+        .with(crate::systems::target_highlighter::TargetHighlightingSystem, "th_system", &[])
+        .with(crate::systems::piece_movement_indicator::PieceMovement, "piece_movement_indicator", &["th_system"])
+        .with(crate::systems::dying::DyingSystem, "dying_system", &[])
+        .with(crate::systems::move_to_position::MoveToPosition, "movement_system", &[])
         .with_bundle(TransformBundle::new())?
         .with_bundle(UiBundle::<StringBindings>::new())?
         .with_system_desc(crate::systems::ui_event_handling::UiEventHandlerSystemDesc::default(), "ui_event_handler", &[])

@@ -10,7 +10,8 @@ log = { version = "0.4.8", features = ["serde"] }
 ncollide3d = "0.21.0"
 
 [features]
-default = ["vulkan"]
+default = ["vulkan", "fast"]
 empty = ["amethyst/empty"]
 metal = ["amethyst/metal"]
 vulkan = ["amethyst/vulkan"]
+fast = ["amethyst/no-slow-safety-checks"]
