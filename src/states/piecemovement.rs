@@ -4,22 +4,26 @@ use amethyst::{
         math::{Vector3},
     },
     ui::UiText,
-    ecs::Entity,
+    ecs::{ReadStorage, WriteStorage, Entity},
     input::{is_close_requested, is_key_down, VirtualKeyCode},
     prelude::*,
 };
 
-use crate::components::{Activatable, Piece};
+use crate::{
+    components::{Activatable, Piece,
+                 active::Selected,
+                 board::{BoardEvent, BoardPosition, Target, Team, Dying, TeamAssignment, Exhausted, ActivatablePower, Power},
+    },
+    states::{
+        PiecePlacementState,
+        load::UiElements,
+        next_turn::NextTurnState,
+    },
+    resources::board::Board,
+};
 
 use log::info;
-use crate::components::board::{BoardEvent, BoardPosition, Target, Team, Dying, TeamAssignment, Exhausted};
-
-use crate::states::PiecePlacementState;
-use crate::states::load::UiElements;
-use crate::components::active::Selected;
-use crate::resources::board::Board;
-use crate::states::next_turn::NextTurnState;
-
+use crate::states::target_for_power::TargetForPowerState;
 
 pub struct PieceMovementState {
     pub from_x: u8,
@@ -98,11 +102,17 @@ impl SimpleState for PieceMovementState {
 
                     let piece_at_target = board.get_piece(x, y);
 
+                    let mut dyings = data.world.write_storage::<Dying>();
+                    let mut exhausted = data.world.write_storage::<Exhausted>();
+                    let mut targets = data.world.write_storage::<Target>();
+
                     if let Some(new_piece) = piece_at_target {
                         let teams = data.world.read_storage::<TeamAssignment>();
                         if let Some(new_piece_team) = teams.get(new_piece) {
-                            if (new_piece_team.id == board.current_team().id) {
-                                return Trans::Replace(Box::new(PieceMovementState { from_x: x, from_y: y, piece: new_piece }))
+                            let activatable_powers = data.world.read_storage::<ActivatablePower>();
+                            if new_piece_team.id == board.current_team().id {
+                                return self.handle_own_piece_at_target(x, y, new_piece,
+                                                 &mut board, &teams, &mut dyings, &mut exhausted, &targets, &activatable_powers);
                             }
                         }
                     }
@@ -110,7 +120,6 @@ impl SimpleState for PieceMovementState {
                     let self_piece_component = pieces.get(self.piece).unwrap();
                     let invalid_attack = piece_at_target.is_some() && !self_piece_component.attack;
 
-                    let mut targets = data.world.write_storage::<Target>();
 
                     let cell = board.get_cell(x,y);
                     let target = targets.get(cell).unwrap();
@@ -122,22 +131,12 @@ impl SimpleState for PieceMovementState {
                     if invalid_attack || invalid_target_cell {
                         return Trans::Replace(Box::new(PiecePlacementState::new()))
                     } else if let Some(attacked_piece) = piece_at_target {
-                        let mut dying_storage = data.world.write_storage::<Dying>();
-                        dying_storage.insert(attacked_piece, Dying{});
+                        dyings.insert(attacked_piece, Dying{});
                     }
 
-                    let mut exhausted = data.world.write_storage::<Exhausted>();
                     let mut positions = data.world.write_storage::<BoardPosition>();
 
                     exhausted.insert(self.piece, Exhausted{});
-
-                    /*let transform = &mut transforms.get(board.get_cell(x, y)).unwrap().clone();
-                    transform.set_scale(Vector3::new(0.5, 0.5, 1.));
-
-                    transforms.get_mut(self.piece).unwrap().set_translation_xyz(
-                        transform.translation().x,
-                        transform.translation().y,
-                        transform.translation().z);*/
 
                     let mut pos = positions.get_mut(self.piece).unwrap();
 
@@ -158,18 +157,58 @@ impl SimpleState for PieceMovementState {
 }
 
 impl PieceMovementState {
-    fn move_piece(&mut self, world: &mut World, board: &mut Board, x: u8, y: u8) -> SimpleTrans {
-        let mut transforms = world.write_storage::<Transform>();
 
-        let transform = &mut transforms.get(board.get_cell(x, y)).unwrap().clone();
-        transform.set_scale(Vector3::new(0.5, 0.5, 1.));
+    fn handle_own_piece_at_target(&mut self, x: u8, y: u8, piece_at_target: Entity,
+                                  mut board: &mut Board,
+                                  teams: &ReadStorage<TeamAssignment>,
+                                  mut dyings: &mut WriteStorage<Dying>,
+                                  mut exhausted: &mut WriteStorage<Exhausted>,
+                                  targets: &WriteStorage<Target>,
+                                  mut activatable_powers: &ReadStorage<ActivatablePower>) -> SimpleTrans{
+        if self.piece == piece_at_target{
+            if let Some(power) = activatable_powers.get(self.piece) {
+                return match power.kind {
+                    Power::Blast => {
+                        self.activate_blast(x,y,power, &mut board, &teams, &mut dyings, &mut exhausted, targets);
+                        Trans::Replace(Box::new(PiecePlacementState::new()))
+                    },
+                    Power::TargetedShoot => {
+                        Trans::Replace(Box::new(TargetForPowerState {
+                            from_x: self.from_x,
+                            from_y: self.from_y,
+                            piece: self.piece
+                        }))
+                    },
+                }
+            }
+        }
+        else {
+            return Trans::Replace(Box::new(PieceMovementState { from_x: x, from_y: y, piece: piece_at_target }));
+        }
 
-        transforms.get_mut(self.piece).unwrap().set_translation_xyz(
-            transform.translation().x,
-            transform.translation().y,
-            transform.translation().z);
+        return Trans::None;
+    }
 
-        board.move_piece(self.piece, self.from_x, self.from_y, x, y);
-        Trans::Replace(Box::new(PiecePlacementState::new()))
+    fn activate_blast(&mut self, x: u8, y: u8, power: &ActivatablePower,
+                      board: &mut Board,
+                      teams: &ReadStorage<TeamAssignment>,
+                      dyings: &mut WriteStorage<Dying>,
+                      exhausted: &mut WriteStorage<Exhausted>,
+                      targets: &WriteStorage<Target>) {
+        power.range.for_each(x,y, &board, |power_x, power_y, cell| {
+            if targets.get(cell).unwrap().protected {
+                return false;
+            }
+
+            if let Some(target_piece) = board.get_piece(power_x as u8, power_y as u8){
+                let target_piece_team = teams.get(target_piece).unwrap();
+                if target_piece_team.id != board.current_team().id {
+                    dyings.insert(target_piece, Dying {});
+                    exhausted.insert(self.piece, Exhausted{});
+                }
+            }
+
+            return true;
+        });
     }
 }

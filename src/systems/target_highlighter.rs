@@ -47,14 +47,14 @@ impl<'a> System<'a> for TargetHighlightingSystem {
         for (target, mut highlight, target_entity) in (&targets, &mut highlights, &*entities).join() {
             if let Some(selected_piece) = s {
 
-                if (target.is_possible_target_of(selected_piece)){
+                if target.is_possible_target_of(selected_piece) || target.is_possible_special_target_of(selected_piece){
                     highlight.types.push(HighlightType::TargetOfSelected);
                     //tints.insert(target_entity, Tint(Srgba::new(0.1, 0.9, 0.1, 0.5)));
                 }
             }
             if let Some(hovered_piece) = h {
 
-                if (target.is_possible_target_of(hovered_piece)){
+                if target.is_possible_target_of(hovered_piece) || target.is_possible_special_target_of(hovered_piece){
                     highlight.types.push(HighlightType::TargetOfHovered);
                     //tints.insert(target_entity, Tint(Srgba::new(0.4, 0.9, 0.7, 0.3)));
                 }

@@ -51,7 +51,7 @@ impl<'a> System<'a> for MoveToPosition {
 
             //if let Some(normalized_distance) = distance.try_normalize(Vector3::new(0.1 as f32,0.1 as f32,0.1 as f32).norm()) {
             let length = distance.norm();
-            let scaled_distance = distance.scale(20./length);
+            let scaled_distance = distance.scale(50./length);
 
             if length > scaled_distance.norm() {
                 transform.append_translation(scaled_distance);

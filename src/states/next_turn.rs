@@ -136,7 +136,7 @@ impl SimpleState for NextTurnState {
             board.current_team()
         };
 
-        let new_pieces_per_turn = 1;
+        let new_pieces_per_turn = 2;
 
         for _ in 0..new_pieces_per_turn {
             data.world

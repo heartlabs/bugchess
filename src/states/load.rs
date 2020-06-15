@@ -18,7 +18,7 @@ use ncollide3d::shape::Cuboid;
 
 use crate::components::{Activatable, Bounded, Mouse, Cell, board::{BoardEvent, Team}, Piece};
 use crate::states::PiecePlacementState;
-use crate::components::board::{Move, BoardPosition, Target, Highlight, TeamAssignment, TurnInto, Exhausted};
+use crate::components::board::{Move, BoardPosition, Target, Highlight, TeamAssignment, TurnInto, Exhausted, ActivatablePower, BOARD_WIDTH, BOARD_HEIGHT, Effect};
 use crate::resources::board::Board;
 use crate::states::next_turn::{NextTurnState, TurnCounter};
 use crate::components::board::PieceKind::Simple;
@@ -31,6 +31,9 @@ pub struct Sprites {
     pub sprite_horizontal_bar: SpriteRender,
     pub sprite_vertical_bar: SpriteRender,
     pub sprite_cross: SpriteRender,
+    pub sprite_queen: SpriteRender,
+    pub sprite_protect: SpriteRender,
+    pub sprite_sniper: SpriteRender
 }
 
 #[derive(Clone)]
@@ -52,7 +55,9 @@ impl SimpleState for LoadingState {
         world.register::<Target>();
         world.register::<Piece>();
         world.register::<Exhausted>();
+        world.register::<ActivatablePower>();
         world.register::<Tint>();
+        world.register::<Effect>();
 
         // Get the screen dimensions so we can initialize the camera and
         // place our sprites correctly later. We'll clone this since we'll
@@ -82,13 +87,16 @@ impl SimpleState for LoadingState {
             creator.create("prefabs/ui.ron", ());
         });
 
-        let s_vec= load_sprites(world, "pieces", 4);
+        let s_vec= load_sprites(world, "pieces", 8);
 
         world.insert(Sprites{
             sprite_piece: s_vec[0].to_owned(),
             sprite_horizontal_bar: s_vec[1].to_owned(),
             sprite_vertical_bar: s_vec[2].to_owned(),
             sprite_cross: s_vec[3].to_owned(),
+            sprite_queen: s_vec[4].to_owned(),
+            sprite_protect: s_vec[5].to_owned(),
+            sprite_sniper: s_vec[6].to_owned(),
         });
     }
 
@@ -154,14 +162,14 @@ impl SimpleState for LoadingState {
 
 fn init_board(world: &mut World, sprites: &[SpriteRender]) {
 
-    let cells = (0..5)
+    let cells = (0..BOARD_WIDTH as usize)
         .map(|x| {
-            (0..5)
+            (0..BOARD_HEIGHT as usize)
                 .map(|y| {
-                    let scale: f32 = 1.9;
-                    let shift_x: f32 = 32. * scale;
-                    let shift_y: f32 = 32. * scale;
+                    let scale: f32 = 1.2;
                     let cell_size = 64;
+                    let shift_x: f32 = cell_size as f32/2. * scale;
+                    let shift_y: f32 = cell_size as f32/2. * scale;
 
                     let x_pos = ((x * cell_size) as f32) * scale + shift_x;
                     let y_pos = ((y * cell_size) as f32) * scale + shift_y;

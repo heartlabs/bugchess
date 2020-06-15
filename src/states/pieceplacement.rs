@@ -12,21 +12,17 @@ use amethyst::{
 
 use crate::{
     components::{
-        Activatable, Piece,
-        board::{BoardEvent, Team},
+        Activatable, Piece, Cell,
+        board::{BoardEvent, Team, Move, Range, Direction, BoardPosition, Target, TurnInto, Dying, PieceKind, TeamAssignment, Exhausted, ActivatablePower, Power},
     },
     states::{
-        load::Sprites,
+        load::{UiElements,Sprites},
+        next_turn::NextTurnState,
         PieceMovementState,
-    }
+    },
+    resources::board::{Board, Pattern, PatternComponent},
 };
-use crate::states::load::UiElements;
-use crate::components::board::{Move, Range, Direction, BoardPosition, Target, TurnInto, Dying, PieceKind, TeamAssignment, Exhausted};
-use crate::components::Cell;
-use crate::resources::board::{Board, Pattern, PatternComponent};
-use crate::components::board::PieceKind::{HorizontalBar, Simple};
-use crate::states::next_turn::NextTurnState;
-
+use crate::components::board::{Effect, EffectKind};
 
 pub struct PiecePlacementState {
 
@@ -44,41 +40,56 @@ impl PiecePlacementState {
         }
     }
 
-    pub fn update_targets((pieces, cells, positions, moves, mut targets, entities, board):(
+    pub fn update_targets((pieces, cells, positions, moves, powers, effects, teams, mut targets, entities, board):(
         ReadStorage<Piece>,
         ReadStorage<Cell>,
         ReadStorage<BoardPosition>,
         ReadStorage<Move>,
+        ReadStorage<ActivatablePower>,
+        ReadStorage<Effect>,
+        ReadStorage<TeamAssignment>,
         WriteStorage<Target>,
         Entities,
         WriteExpect<Board>,
     )){
         for (_cell, cell_pos, mut target) in (&cells, &positions, &mut targets).join() {
             target.clear();
-
-            /*for (movement, _piece, piece_pos, e) in (&moves, &pieces, &positions, &entities).join() {
-                if movement.range.reaches(piece_pos.coords.x, piece_pos.coords.y, cell_pos.coords.x, cell_pos.coords.y) {
-                    target.add(e);
-                }
-            }*/
         }
 
-        for (movement, _piece, piece_pos, e) in (&moves, &pieces, &positions, &entities).join() {
-            for direction in movement.range.paths(piece_pos.coords.x, piece_pos.coords.y) {
-                for (x_i16,y_i16) in direction {
-                    let (x,y) = (x_i16 as u8, y_i16 as u8);
-                    if let Some(cell) = board.get_cell_safe(x_i16,y_i16) {
-                        let target = targets.get_mut(cell).unwrap();
-                        target.add(e);
 
-                        if board.get_piece(x, y).is_some() {
-                            break;
-                        }
-                    } else {
-                        break;
+
+        for (movement, _piece, piece_pos, e) in (&moves, &pieces, &positions, &entities).join() {
+            movement.range.for_each(piece_pos.coords.x, piece_pos.coords.y, &board, |x,y,cell| {
+                let target = targets.get_mut(cell).unwrap();
+                target.add(e);
+                true
+            });
+        }
+
+        for (effect, _piece, piece_pos, e) in (&effects, &pieces, &positions, &entities).join() {
+            effect.range.for_each(piece_pos.coords.x, piece_pos.coords.y, &board, |x,y,cell| {
+                let target = targets.get_mut(cell).unwrap();
+                if effect.kind == EffectKind::Protection {
+                    target.protected = true;
+                }
+                true
+            });
+        }
+
+        for (power, _piece, piece_pos, team, e) in (&powers, &pieces, &positions, &teams, &entities).join() {
+            power.range.for_each(piece_pos.coords.x, piece_pos.coords.y, &board, |x,y,cell| {
+                let target = targets.get_mut(cell).unwrap();
+
+                if target.protected {
+                    return false;
+                } else if let Some(target_piece) = board.get_piece(x,y) {
+                    if teams.get(target_piece).unwrap().id != team.id {
+                        target.add_special(e);
                     }
                 }
-            }
+
+                true
+            });
         }
 
     }
@@ -105,7 +116,8 @@ impl PiecePlacementState {
                             && !dyings.contains(x)) {
                         matched_entities.iter_mut().for_each(|&mut matched_piece| {
                             dyings.insert(matched_piece, Dying {});
-                            board.remove_piece(x as u8,y as u8);
+                            let pos = positions.get(matched_piece).unwrap();
+                            board.remove_piece(pos.coords.x,pos.coords.y);
                         });
                         let new_piece = entities.create();
                         turn_intos.insert(new_piece, TurnInto { kind: pattern.turn_into });
@@ -125,12 +137,13 @@ impl PiecePlacementState {
         }
     }
 
-    pub fn init_new_pieces(( mut board, sprites, mut moves, mut pieces, mut positions,
-                             mut turn_intos, mut teams, mut sprite_renders, mut tints, mut exhausted, entities):
+    pub fn init_new_pieces(( mut board, sprites, mut moves, mut activatable_powers, mut pieces, mut positions,
+                             mut turn_intos, mut teams, mut sprite_renders, mut tints, mut exhausted, mut effects, entities):
                          (
                           WriteExpect<Board>,
                           ReadExpect<Sprites>,
                           WriteStorage<Move>,
+                          WriteStorage<ActivatablePower>,
                           WriteStorage<Piece>,
                           WriteStorage<BoardPosition>,
                           WriteStorage<TurnInto>,
@@ -138,6 +151,7 @@ impl PiecePlacementState {
                           WriteStorage<SpriteRender>,
                           WriteStorage<Tint>,
                           WriteStorage<Exhausted>,
+                          WriteStorage<Effect>,
                           Entities,
                          )) {
 
@@ -152,11 +166,19 @@ impl PiecePlacementState {
                     moves.insert(e, Move::new(Direction::Horizontal, 255));
                     sprite_renders.insert(e, sprites.sprite_horizontal_bar.clone());
                     exhausted.insert(e, Exhausted{});
+                    activatable_powers.insert(e, ActivatablePower{
+                        range: Range::new_unlimited(Direction::Horizontal),
+                        kind: Power::Blast,
+                    });
                 }
                 PieceKind::VerticalBar => {
                     moves.insert(e, Move::new(Direction::Vertical, 255));
                     sprite_renders.insert(e, sprites.sprite_vertical_bar.clone());
                     exhausted.insert(e, Exhausted{});
+                    activatable_powers.insert(e, ActivatablePower{
+                        range: Range::new_unlimited(Direction::Vertical),
+                        kind: Power::Blast,
+                    });
                 }
                 PieceKind::Cross => {
                     moves.insert(e, Move::new(Direction::Straight, 255));
@@ -165,6 +187,35 @@ impl PiecePlacementState {
                 PieceKind::Simple => {
                     moves.insert(e, Move::new(Direction::Star, 1));
                     sprite_renders.insert(e, sprites.sprite_piece.clone());
+                }
+                PieceKind::Queen => {
+                    moves.insert(e, Move::new(Direction::Star, 255));
+                    sprite_renders.insert(e, sprites.sprite_queen.clone());
+                    exhausted.insert(e, Exhausted{});
+                    activatable_powers.insert(e, ActivatablePower{
+                        range: Range::new(Direction::Star, 1),
+                        kind: Power::Blast,
+                    });
+                }
+                PieceKind::Castle => {
+                    sprite_renders.insert(e, sprites.sprite_protect.clone());
+                    effects.insert(e, Effect{
+                        kind: EffectKind::Protection,
+                        range: Range {
+                            direction: Direction::Star,
+                            steps: 1,
+                            jumps: true,
+                            include_self: true
+                        }
+                    });
+                }
+                PieceKind::Sniper => {
+                    sprite_renders.insert(e, sprites.sprite_sniper.clone());
+                    exhausted.insert(e, Exhausted{});
+                    activatable_powers.insert(e, ActivatablePower{
+                        range: Range::anywhere(),
+                        kind: Power::TargetedShoot,
+                    });
                 }
             }
         }
@@ -230,7 +281,7 @@ impl SimpleState for PiecePlacementState {
                         if let Some(piece) = board.get_unused_piece() {
                             println!("Placed new piece");
                             positions.insert(piece, BoardPosition::new(x,y));
-                            turn_intos.insert(piece, TurnInto{kind: Simple});
+                            turn_intos.insert(piece, TurnInto{kind: PieceKind::Simple});
                             exhausted.insert(piece, Exhausted{});
                             Trans::Replace(Box::new(PiecePlacementState::new()))
                         } else {
