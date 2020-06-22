@@ -34,36 +34,44 @@ pub struct Team {
     pub name: &'static str,
     pub lost: bool,
 }
-
-#[derive(Component, Clone, Copy)]
-#[storage(DenseVecStorage)]
-pub struct TeamAssignment {
-    pub id: usize,
-//    pub color: Srgba,
-}
+//
+// #[derive(Component, Clone, Copy)]
+// #[storage(DenseVecStorage)]
+// pub struct TeamAssignment {
+//     pub id: usize,
+// //    pub color: Srgba,
+// }
 
 #[derive(Component, Clone, Copy)]
 #[storage(DenseVecStorage)]
 pub struct Piece {
-    pub attack: bool
+    pub attack: bool,
+    pub dying: bool,
+    pub exhausted: bool,
+    pub team_id: usize,
 }
 
 impl Piece {
-    pub fn new() -> Piece {
-        Piece {attack: true}
+    pub fn new(team_id: usize) -> Piece {
+        Piece {
+            attack: true,
+            dying: false,
+            exhausted: false,
+            team_id}
     }
 }
 
-#[derive(Component, Clone, Copy)]
-#[storage(DenseVecStorage)]
-pub struct Dying {
-
-}
-#[derive(Component, Clone, Copy)]
-#[storage(DenseVecStorage)]
-pub struct Exhausted {
-
-}
+// #[derive(Component, Clone, Copy)]
+// #[storage(DenseVecStorage)]
+// pub struct Dying {
+//
+// }
+//
+// #[derive(Component, Clone, Copy)]
+// #[storage(DenseVecStorage)]
+// pub struct Exhausted {
+//
+// }
 
 #[derive(Component)]
 #[storage(DenseVecStorage)]
@@ -283,7 +291,8 @@ pub enum HighlightType {
     Selected,
     Hovered,
     TargetOfSelected,
-    TargetOfHovered
+    TargetOfHovered,
+    Protected,
 }
 
 #[derive(Clone, Copy, Debug)]

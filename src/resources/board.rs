@@ -1,4 +1,4 @@
-use crate::components::board::{Team, BoardEvent, BOARD_WIDTH, BOARD_HEIGHT, PieceKind, TeamAssignment};
+use crate::components::board::{Team, BoardEvent, BOARD_WIDTH, BOARD_HEIGHT, PieceKind};
 use amethyst::ecs::{Entity};
 use amethyst::core::math::{Point2};
 use crate::components::board::PieceKind::{HorizontalBar, VerticalBar, Cross, Queen, Sniper, Castle};
@@ -86,12 +86,12 @@ impl Board {
         self.teams[self.current_team_index]
     }
 
-    pub fn is_current_team(&self, team: &TeamAssignment) -> bool {
-        self.current_team_index == team.id
+    pub fn is_current_team(&self, team_id: usize) -> bool {
+        self.current_team_index == team_id
     }
 
-    pub fn get_team(&self, team: &TeamAssignment) -> Team {
-        self.teams[team.id]
+    pub fn get_team(&self, team_id: usize) -> Team {
+        self.teams[team_id]
     }
 
     pub fn num_teams(&self) -> usize {

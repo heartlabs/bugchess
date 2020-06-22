@@ -21,7 +21,7 @@ use crate::{
     }
 };
 use crate::states::load::UiElements;
-use crate::components::board::{Move, Range, Direction, BoardPosition, Target, TurnInto, Dying, PieceKind};
+use crate::components::board::{Move, Range, Direction, BoardPosition, Target, TurnInto, PieceKind};
 use crate::components::{Cell, Bounded};
 use crate::resources::board::{Board, Pattern, PatternComponent};
 use crate::components::board::PieceKind::{HorizontalBar, Simple};

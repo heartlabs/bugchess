@@ -21,7 +21,7 @@ use crate::{
     }
 };
 use crate::states::load::UiElements;
-use crate::components::board::{Move, Range, Direction, BoardPosition, Target, TurnInto, Dying, PieceKind, TeamAssignment, Exhausted};
+use crate::components::board::{Move, Range, Direction, BoardPosition, Target, TurnInto, PieceKind};
 use crate::components::{Cell, Bounded};
 use crate::resources::board::{Board, Pattern, PatternComponent};
 use crate::components::board::PieceKind::{HorizontalBar, Simple};
@@ -52,8 +52,7 @@ impl NextTurnState {
         }
     }
 
-    fn new_unused_pieces((teams, pieces, board_positions, mut transforms, mut sprite_renders, mut board, sprites, entities): (
-        ReadStorage<TeamAssignment>,
+    fn new_unused_pieces((pieces, board_positions, mut transforms, mut sprite_renders, mut board, sprites, entities): (
         ReadStorage<Piece>,
         ReadStorage<BoardPosition>,
         WriteStorage<Transform>,
@@ -62,13 +61,13 @@ impl NextTurnState {
         WriteExpect<Sprites>,
         Entities,
     )) {
-        for (team, _piece, _b, e) in (&teams, &pieces, !&board_positions, &*entities).join() {
-            if team.id == board.current_team().id && !transforms.contains(e){
+        for (piece, _b, e) in (&pieces, !&board_positions, &*entities).join() {
+            if piece.team_id == board.current_team().id && !transforms.contains(e){
 
                 let mut transform = Transform::default();
 
                 // 2 rows with 10 pieces each per team
-                let row: usize = team.id * 2 + board.num_unused_pieces()/10;
+                let row: usize = piece.team_id * 2 + board.num_unused_pieces()/10;
                 let column: usize = board.num_unused_pieces()%10;
 
                 let x_offset = 650;
@@ -91,8 +90,7 @@ impl NextTurnState {
         }
     }
 
-    fn identify_losing_teams((teams, pieces, board_positions, mut board, entities): (
-        ReadStorage<TeamAssignment>,
+    fn identify_losing_teams((pieces, board_positions, mut board, entities): (
         ReadStorage<Piece>,
         ReadStorage<BoardPosition>,
         WriteExpect<Board>,
@@ -104,8 +102,8 @@ impl NextTurnState {
             team_index.push(false);
         }
 
-        for (team, _piece, b) in (&teams, &pieces, &board_positions).join() {
-            team_index[team.id] = true;
+        for (piece, b) in (&pieces, &board_positions).join() {
+            team_index[piece.team_id] = true;
         }
 
         for (i, has_pieces_left) in team_index.iter().enumerate() {
@@ -121,7 +119,7 @@ impl SimpleState for NextTurnState {
 
     fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
         data.world.exec(NextTurnState::identify_losing_teams);
-        data.world.write_storage::<Exhausted>().clear();
+        data.world.exec(|mut pieces: WriteStorage<Piece>| for mut p in (&mut pieces).join() {p.exhausted = false;});
 
         let team = {
             let mut board = data.world.write_resource::<Board>();
@@ -141,8 +139,7 @@ impl SimpleState for NextTurnState {
         for _ in 0..new_pieces_per_turn {
             data.world
                 .create_entity()
-                .with(Piece::new())
-                .with(TeamAssignment{id: team.id })
+                .with(Piece::new(team.id))
                 .with(Tint(team.color))
                 .build();
         }

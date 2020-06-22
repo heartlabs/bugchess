@@ -59,6 +59,9 @@ impl<'a> System<'a> for TargetHighlightingSystem {
                     //tints.insert(target_entity, Tint(Srgba::new(0.4, 0.9, 0.7, 0.3)));
                 }
             }
+            if target.protected {
+                highlight.types.push(HighlightType::Protected);
+            }
         }
     }
 }

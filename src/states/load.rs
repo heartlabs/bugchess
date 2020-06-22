@@ -18,7 +18,7 @@ use ncollide3d::shape::Cuboid;
 
 use crate::components::{Activatable, Bounded, Mouse, Cell, board::{BoardEvent, Team}, Piece};
 use crate::states::PiecePlacementState;
-use crate::components::board::{Move, BoardPosition, Target, Highlight, TeamAssignment, TurnInto, Exhausted, ActivatablePower, BOARD_WIDTH, BOARD_HEIGHT, Effect};
+use crate::components::board::{Move, BoardPosition, Target, Highlight, TurnInto, ActivatablePower, BOARD_WIDTH, BOARD_HEIGHT, Effect};
 use crate::resources::board::Board;
 use crate::states::next_turn::{NextTurnState, TurnCounter};
 use crate::components::board::PieceKind::Simple;
@@ -48,13 +48,11 @@ impl SimpleState for LoadingState {
         let world = data.world;
 
         world.register::<TurnInto>();
-        world.register::<TeamAssignment>();
         world.register::<Move>();
         world.register::<BoardPosition>();
         world.register::<Cell>();
         world.register::<Target>();
         world.register::<Piece>();
-        world.register::<Exhausted>();
         world.register::<ActivatablePower>();
         world.register::<Tint>();
         world.register::<Effect>();
@@ -224,9 +222,8 @@ fn init_board(world: &mut World, sprites: &[SpriteRender]) {
 
     for team_id in 0..team_count {
         world.create_entity()
-            .with(Piece::new())
+            .with(Piece::new(team_id))
             .with(BoardPosition::new((1 + team_id * 2) as u8, (1 + team_id * 2) as u8))
-            .with(TeamAssignment{id: team_id})
             .with(TurnInto{kind: Simple})
             .build();
     }

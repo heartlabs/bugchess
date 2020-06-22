@@ -12,7 +12,7 @@ use amethyst::{
 use crate::{
     components::{Activatable, Piece,
                  active::Selected,
-                 board::{BoardEvent, BoardPosition, Target, Team, Dying, TeamAssignment, Exhausted, ActivatablePower, Power},
+                 board::{BoardEvent, BoardPosition, Target, Team, ActivatablePower, Power},
     },
     states::{
         PiecePlacementState,
@@ -97,15 +97,17 @@ impl SimpleState for TargetForPowerState {
                 BoardEvent::Cell { x, y } => {
                     println!("Cell Event {},{}", x, y);
 
-                    let piece_at_target = board.get_piece(x, y);
+                    let mut pieces = data.world.write_storage::<Piece>();
 
-                    if let Some(new_piece) = piece_at_target {
-                        let teams = data.world.read_storage::<TeamAssignment>();
-                        if let Some(new_piece_team) = teams.get(new_piece) {
-                            if new_piece_team.id == board.current_team().id {
-                                return Trans::None;
-                            }
+                    let mut piece_at_target = board.get_piece(x, y).and_then(|e| pieces.get_mut(e));
+
+                    if let Some(new_piece) = piece_at_target
+                    {
+                        if new_piece.team_id == board.current_team().id {
+                            return Trans::None;
                         }
+
+                        piece_at_target = Some(new_piece);
                     }
 
                     let mut targets = data.world.write_storage::<Target>();
@@ -115,11 +117,8 @@ impl SimpleState for TargetForPowerState {
 
                     if target.is_possible_special_target_of(self.piece) {
                         if let Some(attacked_piece) = piece_at_target {
-                            let mut exhausted = data.world.write_storage::<Exhausted>();
-                            let mut dyings = data.world.write_storage::<Dying>();
-
-                            dyings.insert(attacked_piece, Dying {});
-                            exhausted.insert(self.piece, Exhausted{});
+                            attacked_piece.dying = true;
+                            pieces.get_mut(self.piece).unwrap().exhausted = true;
                         }
                     }
 

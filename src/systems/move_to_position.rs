@@ -11,7 +11,7 @@ use amethyst::{
 };
 use crate::components::{Activatable, Cell};
 use crate::components::active::{Selected, Hovered};
-use crate::components::board::{Dying, BoardPosition};
+use crate::components::board::{BoardPosition};
 
 use std::ops::Sub;
 use crate::components::bounded::MovingTowards;

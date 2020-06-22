@@ -30,6 +30,7 @@ impl<'a> System<'a> for PieceMovement {
                     HighlightType::Hovered => Srgba::new(0.4, 1., 1., 0.5),
                     HighlightType::TargetOfHovered => Srgba::new(0.4, 1., 1., 0.5),
                     HighlightType:: TargetOfSelected => Srgba::new(1.0, 0.4, 0.4, 0.5),
+                    HighlightType::Protected => Srgba::new(0.8, 0.4, 1., 0.5),
                 };
 
                 tint_color = Some(h);

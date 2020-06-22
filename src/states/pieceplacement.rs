@@ -13,7 +13,7 @@ use amethyst::{
 use crate::{
     components::{
         Activatable, Piece, Cell,
-        board::{BoardEvent, Team, Move, Range, Direction, BoardPosition, Target, TurnInto, Dying, PieceKind, TeamAssignment, Exhausted, ActivatablePower, Power},
+        board::{BoardEvent, Team, Move, Range, Direction, BoardPosition, Target, TurnInto, PieceKind, ActivatablePower, Power},
     },
     states::{
         load::{UiElements,Sprites},
@@ -40,14 +40,13 @@ impl PiecePlacementState {
         }
     }
 
-    pub fn update_targets((pieces, cells, positions, moves, powers, effects, teams, mut targets, entities, board):(
+    pub fn update_targets((pieces, cells, positions, moves, powers, effects, mut targets, entities, board):(
         ReadStorage<Piece>,
         ReadStorage<Cell>,
         ReadStorage<BoardPosition>,
         ReadStorage<Move>,
         ReadStorage<ActivatablePower>,
         ReadStorage<Effect>,
-        ReadStorage<TeamAssignment>,
         WriteStorage<Target>,
         Entities,
         WriteExpect<Board>,
@@ -55,8 +54,6 @@ impl PiecePlacementState {
         for (_cell, cell_pos, mut target) in (&cells, &positions, &mut targets).join() {
             target.clear();
         }
-
-
 
         for (movement, _piece, piece_pos, e) in (&moves, &pieces, &positions, &entities).join() {
             movement.range.for_each(piece_pos.coords.x, piece_pos.coords.y, &board, |x,y,cell| {
@@ -69,6 +66,11 @@ impl PiecePlacementState {
         for (effect, _piece, piece_pos, e) in (&effects, &pieces, &positions, &entities).join() {
             effect.range.for_each(piece_pos.coords.x, piece_pos.coords.y, &board, |x,y,cell| {
                 let target = targets.get_mut(cell).unwrap();
+
+                let board_piece = board.get_piece(piece_pos.coords.x, piece_pos.coords.y);
+                if (board_piece.is_none() || board_piece.unwrap() != e){
+                    println!("Something is rotten at {:?}", piece_pos);
+                }
                 if effect.kind == EffectKind::Protection {
                     target.protected = true;
                 }
@@ -76,14 +78,14 @@ impl PiecePlacementState {
             });
         }
 
-        for (power, _piece, piece_pos, team, e) in (&powers, &pieces, &positions, &teams, &entities).join() {
+        for (power, piece, piece_pos, e) in (&powers, &pieces, &positions, &entities).join() {
             power.range.for_each(piece_pos.coords.x, piece_pos.coords.y, &board, |x,y,cell| {
                 let target = targets.get_mut(cell).unwrap();
 
                 if target.protected {
                     return false;
                 } else if let Some(target_piece) = board.get_piece(x,y) {
-                    if teams.get(target_piece).unwrap().id != team.id {
+                    if pieces.get(target_piece).unwrap().team_id != piece.team_id {
                         target.add_special(e);
                     }
                 }
@@ -94,13 +96,28 @@ impl PiecePlacementState {
 
     }
 
-    pub fn merge_piece_patterns((mut board, mut teams, mut turn_intos, mut pieces, mut positions, mut dyings, entities):(
+    // pub fn clean_up_dead_pieces((dyings, board_positions, mut board, entities):
+    // (
+    //     ReadStorage<Dying>,
+    //     ReadStorage<BoardPosition>,
+    //     WriteExpect<Board>,
+    //     Entities,
+    // )) {
+    //     for (_dying, pos, e) in (&dyings, &board_positions, &*entities).join() {
+    //         entities.delete(e);
+    //         if let Some(piece_at_pos) = board.get_piece(pos.coords.x, pos.coords.y) {
+    //             if piece_at_pos == e {
+    //                 board.remove_piece(pos.coords.x, pos.coords.y);
+    //             }
+    //         }
+    //     }
+    // }
+
+    pub fn merge_piece_patterns((mut board, mut turn_intos, mut pieces, mut positions, entities):(
         WriteExpect<Board>,
-        WriteStorage<TeamAssignment>,
         WriteStorage<TurnInto>,
         WriteStorage<Piece>,
         WriteStorage<BoardPosition>,
-        WriteStorage<Dying>,
         Entities
     )){
 
@@ -108,14 +125,15 @@ impl PiecePlacementState {
         for x in 0..board.w as usize - pattern.components[0].len() + 1 {
             for y in 0..board.h as usize - pattern.components.len() + 1 {
                 if let Some(mut matched_entities) = board.match_pattern(&pattern, x as u8, y as u8) {
-                    let any_entities_team = teams.get(matched_entities[0]).unwrap();
+                    let any_team_id = {pieces.get(matched_entities[0]).unwrap().team_id};
                     println!("Pattern matched!");
                     if matched_entities.iter().all(|&x|
-                        teams.get(x).unwrap().id == any_entities_team.id
+                        pieces.get(x).unwrap().team_id == any_team_id
                             && !turn_intos.contains(x)
-                            && !dyings.contains(x)) {
+                            && !pieces.get(x).unwrap().dying) {
                         matched_entities.iter_mut().for_each(|&mut matched_piece| {
-                            dyings.insert(matched_piece, Dying {});
+                            println!("Going to remove matched piece {:?}", matched_piece);
+                            pieces.get_mut(matched_piece).unwrap().dying = true;
                             let pos = positions.get(matched_piece).unwrap();
                             board.remove_piece(pos.coords.x,pos.coords.y);
                         });
@@ -126,8 +144,7 @@ impl PiecePlacementState {
                         let new_piece_y = y as u8 + pattern.new_piece_relative_position.coords.y;
                         positions.insert(new_piece, BoardPosition { coords: Point2::new(new_piece_x, new_piece_y) });
 
-                        teams.insert(new_piece, *any_entities_team);
-                        pieces.insert(new_piece, Piece::new());
+                        pieces.insert(new_piece, Piece::new(any_team_id));
 
                         println!("Matched pattern at {}:{}; new piece at {}:{}", x, y, new_piece_x, new_piece_y);
                     }
@@ -138,7 +155,7 @@ impl PiecePlacementState {
     }
 
     pub fn init_new_pieces(( mut board, sprites, mut moves, mut activatable_powers, mut pieces, mut positions,
-                             mut turn_intos, mut teams, mut sprite_renders, mut tints, mut exhausted, mut effects, entities):
+                             mut turn_intos, mut sprite_renders, mut tints, mut effects, entities):
                          (
                           WriteExpect<Board>,
                           ReadExpect<Sprites>,
@@ -147,25 +164,23 @@ impl PiecePlacementState {
                           WriteStorage<Piece>,
                           WriteStorage<BoardPosition>,
                           WriteStorage<TurnInto>,
-                          WriteStorage<TeamAssignment>,
                           WriteStorage<SpriteRender>,
                           WriteStorage<Tint>,
-                          WriteStorage<Exhausted>,
                           WriteStorage<Effect>,
                           Entities,
                          )) {
 
 
-        for (turn_into, pos, team, _piece, e) in (&mut turn_intos, &positions, &teams, &pieces, &*entities).join() {
+        for (turn_into, pos, mut piece, e) in (&mut turn_intos, &positions, &mut pieces, &*entities).join() {
             board.place_piece(e, pos.coords.x, pos.coords.y);
 
-            tints.insert(e, Tint(board.get_team(team).color));
+            tints.insert(e, Tint(board.get_team(piece.team_id).color));
 
             match turn_into.kind {
                 PieceKind::HorizontalBar => {
                     moves.insert(e, Move::new(Direction::Horizontal, 255));
                     sprite_renders.insert(e, sprites.sprite_horizontal_bar.clone());
-                    exhausted.insert(e, Exhausted{});
+                    piece.exhausted = true;
                     activatable_powers.insert(e, ActivatablePower{
                         range: Range::new_unlimited(Direction::Horizontal),
                         kind: Power::Blast,
@@ -174,7 +189,7 @@ impl PiecePlacementState {
                 PieceKind::VerticalBar => {
                     moves.insert(e, Move::new(Direction::Vertical, 255));
                     sprite_renders.insert(e, sprites.sprite_vertical_bar.clone());
-                    exhausted.insert(e, Exhausted{});
+                    piece.exhausted = true;
                     activatable_powers.insert(e, ActivatablePower{
                         range: Range::new_unlimited(Direction::Vertical),
                         kind: Power::Blast,
@@ -191,7 +206,7 @@ impl PiecePlacementState {
                 PieceKind::Queen => {
                     moves.insert(e, Move::new(Direction::Star, 255));
                     sprite_renders.insert(e, sprites.sprite_queen.clone());
-                    exhausted.insert(e, Exhausted{});
+                    piece.exhausted = true;
                     activatable_powers.insert(e, ActivatablePower{
                         range: Range::new(Direction::Star, 1),
                         kind: Power::Blast,
@@ -211,7 +226,7 @@ impl PiecePlacementState {
                 }
                 PieceKind::Sniper => {
                     sprite_renders.insert(e, sprites.sprite_sniper.clone());
-                    exhausted.insert(e, Exhausted{});
+                    piece.exhausted = true;
                     activatable_powers.insert(e, ActivatablePower{
                         range: Range::anywhere(),
                         kind: Power::TargetedShoot,
@@ -227,6 +242,7 @@ impl PiecePlacementState {
 impl SimpleState for PiecePlacementState {
 
     fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
+        data.world.maintain(); // This makes sure that deleted entities are actually deleted
         data.world.exec(PiecePlacementState::update_ui);
         data.world.exec(PiecePlacementState::init_new_pieces);
         data.world.exec(PiecePlacementState::merge_piece_patterns);
@@ -262,27 +278,27 @@ impl SimpleState for PiecePlacementState {
             match event {
                 BoardEvent::Cell { x, y } => {
                     println!("Cell Event {},{}", x, y);
-                    let mut teams = data.world.write_storage::<TeamAssignment>();
+                    let mut pieces = data.world.write_storage::<Piece>();
 
                     if let Some(piece) = board.get_piece(x, y) {
-                        let exhausted = data.world.read_storage::<Exhausted>();
-                        if teams.get(piece).unwrap().id == board.current_team().id && !exhausted.contains(piece){
+                        let piece_component = pieces.get_mut(piece).unwrap();
+                        if piece_component.team_id == board.current_team().id && !piece_component.exhausted {
                             println!("Moving piece");
                             Trans::Replace(Box::new(PieceMovementState { from_x: x, from_y: y, piece }))
                         } else {
                             Trans::None
                         }
                     } else {
-
                         let mut positions = data.world.write_storage::<BoardPosition>();
                         let mut turn_intos = data.world.write_storage::<TurnInto>();
-                        let mut exhausted = data.world.write_storage::<Exhausted>();
 
                         if let Some(piece) = board.get_unused_piece() {
+                            let piece_component = pieces.get_mut(piece).unwrap();
+
                             println!("Placed new piece");
                             positions.insert(piece, BoardPosition::new(x,y));
                             turn_intos.insert(piece, TurnInto{kind: PieceKind::Simple});
-                            exhausted.insert(piece, Exhausted{});
+                            piece_component.exhausted = true;
                             Trans::Replace(Box::new(PiecePlacementState::new()))
                         } else {
                             Trans::None
