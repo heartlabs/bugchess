@@ -1,19 +1,17 @@
 use amethyst::{
-    core::{
-        transform::Transform,
-        math::{Vector3},
-    },
     ui::UiText,
-    ecs::{ReadStorage, WriteStorage, Entity},
+    ecs::{ Entity},
     input::{is_close_requested, is_key_down, VirtualKeyCode},
     prelude::*,
 };
 
 use crate::{
-    components::{Activatable, Piece,
+    components::{Activatable,
                  active::Selected,
-                 board::{BoardEvent, BoardPosition, Target, Team, ActivatablePower, Power},
+                 board::{BoardEvent, BoardPosition, Target, Team},
+                 piece::{Piece, ActivatablePower, Power},
     },
+
     states::{
         PiecePlacementState,
         load::UiElements,
@@ -118,7 +116,7 @@ impl SimpleState for TargetForPowerState {
                     if target.is_possible_special_target_of(self.piece) {
                         if let Some(attacked_piece) = piece_at_target {
                             attacked_piece.dying = true;
-                            pieces.get_mut(self.piece).unwrap().exhausted = true;
+                            pieces.get_mut(self.piece).unwrap().exhaustion.on_attack();
                         }
                     }
 

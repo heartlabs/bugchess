@@ -1,8 +1,11 @@
-use crate::components::board::{Team, BoardEvent, BOARD_WIDTH, BOARD_HEIGHT, PieceKind};
+use crate::{
+    components::{
+        board::{Team, BoardEvent, BOARD_WIDTH, BOARD_HEIGHT, BoardPosition},
+        piece::{PieceKind}
+    }
+};
 use amethyst::ecs::{Entity};
 use amethyst::core::math::{Point2};
-use crate::components::board::PieceKind::{HorizontalBar, VerticalBar, Cross, Queen, Sniper, Castle};
-use std::slice::IterMut;
 
 pub struct Board {
     cells: Vec<Vec<Entity>>,
@@ -27,7 +30,7 @@ impl Board {
             })
             .collect();
 
-        let mut unused_pieces = teams.iter().map(|t| Vec::new()).collect();
+        let unused_pieces = teams.iter().map(|_| Vec::new()).collect();
 
         Board {
             cells,
@@ -48,6 +51,9 @@ impl Board {
     pub fn get_unused_piece(&mut self) -> Option<Entity> {
         self.unused_pieces[self.current_team_index].pop()
     }
+    pub fn discard_unused_piece(&mut self) -> Option<Entity> {
+        self.get_unused_piece()
+    }
 
     pub fn num_unused_pieces(&self) -> usize {
         self.unused_pieces[self.current_team_index].len()
@@ -57,21 +63,36 @@ impl Board {
         self.placed_pieces[x as usize][y as usize] = Some(piece);
     }
 
+    pub fn place_piece_at(&mut self, piece: Entity, pos: &BoardPosition){
+        self.place_piece(piece, pos.coords.x, pos.coords.y);
+    }
+
     pub fn remove_piece(&mut self, x: u8, y: u8){
         self.placed_pieces[x as usize][y as usize] = None;
+    }
+    pub fn remove_piece_at(&mut self, pos: &BoardPosition){
+        self.remove_piece(pos.coords.x, pos.coords.y);
     }
 
     pub fn get_piece(&self, x: u8, y: u8) -> Option<Entity> {
         self.placed_pieces[x as usize][y as usize]
     }
 
+    pub fn get_piece_at(&self, pos: &BoardPosition) -> Option<Entity> {
+        self.get_piece(pos.coords.x, pos.coords.y)
+    }
+
     pub fn move_piece(&mut self, piece: Entity, from_x: u8, from_y: u8, to_x: u8, to_y: u8){
         self.remove_piece(from_x, from_y);
         self.place_piece(piece, to_x, to_y);
     }
+    pub fn move_piece_at(&mut self, piece: Entity, from_pos: &BoardPosition, to_pos: &BoardPosition){
+        self.remove_piece_at(from_pos);
+        self.place_piece_at(piece, to_pos);
+    }
 
     pub fn get_cell_safely(&self, x: i16, y: i16) -> Option<Entity> {
-        if (x >= 0 && y >=0 && x < self.w as i16 && y < self.h as i16){
+        if x >= 0 && y >=0 && x < self.w as i16 && y < self.h as i16{
             Some(self.get_cell(x as u8,y as u8))
         } else {
             None
@@ -178,12 +199,14 @@ impl Pattern {
         [
             Pattern {
                 components: vec![
-                    vec![PatternComponent::Any,     PatternComponent::OwnPiece, PatternComponent::OwnPiece, PatternComponent::OwnPiece, PatternComponent::Any],
-                    vec![PatternComponent::OwnPiece,PatternComponent::Free,     PatternComponent::Free,     PatternComponent::Free,     PatternComponent::OwnPiece],
-                    vec![PatternComponent::Any,     PatternComponent::OwnPiece, PatternComponent::OwnPiece, PatternComponent::OwnPiece, PatternComponent::Any],
+                    vec![PatternComponent::Any,     PatternComponent::Any, PatternComponent::OwnPiece,  PatternComponent::Any,      PatternComponent::Any],
+                    vec![PatternComponent::Any,     PatternComponent::OwnPiece, PatternComponent::Free, PatternComponent::OwnPiece, PatternComponent::Any],
+                    vec![PatternComponent::OwnPiece,PatternComponent::Free,     PatternComponent::Free, PatternComponent::Free,     PatternComponent::OwnPiece],
+                    vec![PatternComponent::Any,     PatternComponent::OwnPiece, PatternComponent::Free, PatternComponent::OwnPiece, PatternComponent::Any],
+                    vec![PatternComponent::Any,     PatternComponent::Any, PatternComponent::OwnPiece,  PatternComponent::Any,      PatternComponent::Any],
                 ],
-                turn_into: Queen,
-                new_piece_relative_position: Point2::new(2, 1)
+                turn_into: PieceKind::Queen,
+                new_piece_relative_position: Point2::new(2, 2)
             },
             Pattern {
                 components: vec![
@@ -191,7 +214,7 @@ impl Pattern {
                     vec![PatternComponent::OwnPiece,PatternComponent::OwnPiece, PatternComponent::OwnPiece],
                     vec![PatternComponent::Any,     PatternComponent::OwnPiece, PatternComponent::Any],
                 ],
-                turn_into: Cross,
+                turn_into: PieceKind::Cross,
                 new_piece_relative_position: Point2::new(1, 1)
             },
             Pattern {
@@ -200,7 +223,7 @@ impl Pattern {
                     vec![PatternComponent::OwnPiece, PatternComponent::OwnPiece, PatternComponent::OwnPiece],
                     vec![PatternComponent::Free, PatternComponent::Free, PatternComponent::Free],
                 ],
-                turn_into: HorizontalBar,
+                turn_into: PieceKind::HorizontalBar,
                 new_piece_relative_position: Point2::new(1, 1)
             },
             Pattern {
@@ -209,7 +232,7 @@ impl Pattern {
                     vec![PatternComponent::Free,PatternComponent::OwnPiece,PatternComponent::Free],
                     vec![PatternComponent::Free,PatternComponent::OwnPiece,PatternComponent::Free],
                 ],
-                turn_into: VerticalBar,
+                turn_into: PieceKind::VerticalBar,
                 new_piece_relative_position: Point2::new(1, 1)
             },
             Pattern {
@@ -218,7 +241,7 @@ impl Pattern {
                     vec![PatternComponent::Any,PatternComponent::OwnPiece,PatternComponent::Any],
                     vec![PatternComponent::OwnPiece,PatternComponent::Any,PatternComponent::OwnPiece],
                 ],
-                turn_into: Sniper,
+                turn_into: PieceKind::Sniper,
                 new_piece_relative_position: Point2::new(1, 1)
             },
             Pattern {
@@ -227,7 +250,7 @@ impl Pattern {
                     vec![PatternComponent::OwnPiece,PatternComponent::Free,PatternComponent::OwnPiece],
                     vec![PatternComponent::Any,PatternComponent::OwnPiece,PatternComponent::Any],
                 ],
-                turn_into: Castle,
+                turn_into: PieceKind::Castle,
                 new_piece_relative_position: Point2::new(1, 1)
             },
 

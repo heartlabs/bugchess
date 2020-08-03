@@ -17,7 +17,7 @@ use amethyst::{
 use ncollide3d::query::PointQuery;
 
 use crate::components::{Activatable, Bounded, Mouse};
-use crate::components::active::{Hovered, Selected};
+use crate::components::active::{Hovered};
 use crate::resources::board::Board;
 
 

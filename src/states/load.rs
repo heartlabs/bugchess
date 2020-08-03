@@ -2,9 +2,9 @@ use amethyst::{
     assets::{AssetStorage, Loader},
     core::{
         transform::Transform,
-        math::{Vector3, Point2},
+        math::{Vector3},
     },
-    ecs::Entity,
+    ecs::{Entity,RunNow},
     input::{is_close_requested, is_key_down, VirtualKeyCode},
     prelude::*,
     renderer::{Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture,
@@ -16,12 +16,20 @@ use amethyst::{
 
 use ncollide3d::shape::Cuboid;
 
-use crate::components::{Activatable, Bounded, Mouse, Cell, board::{BoardEvent, Team}, Piece};
-use crate::states::PiecePlacementState;
-use crate::components::board::{Move, BoardPosition, Target, Highlight, TurnInto, ActivatablePower, BOARD_WIDTH, BOARD_HEIGHT, Effect};
-use crate::resources::board::Board;
-use crate::states::next_turn::{NextTurnState, TurnCounter};
-use crate::components::board::PieceKind::Simple;
+use crate::{
+    components::{
+        Activatable, Bounded, Mouse, Cell,
+        board::{BoardPosition, Target, Highlight, BOARD_WIDTH, BOARD_HEIGHT, BoardEvent, Team},
+        piece::{Piece, PieceKind, TurnInto, Effect}
+    },
+    resources::board::Board,
+    states::{
+        next_turn::{NextTurnState, TurnCounter},
+    },
+
+};
+use crate::systems::actions::common::UpdateUi;
+use crate::systems::actions::during_turn::{InitNewPieces, MergePiecePatterns, UpdateTargets};
 
 pub struct LoadingState;
 
@@ -43,17 +51,35 @@ pub struct UiElements {
     pub next_button: Entity,
 }
 
+pub struct Actions {
+    pub(crate) on_start: Ax,
+}
+
+pub struct Ax {
+
+}
+
+impl Ax {
+    pub fn get_actions<'a>(&self) -> Vec<Box<dyn RunNow<'a> + 'a>>{
+        vec![
+            Box::new(UpdateUi{text: "Place your Piece"}),
+            Box::new(InitNewPieces{}),
+            Box::new(MergePiecePatterns{}),
+            Box::new(InitNewPieces{}),
+            Box::new(UpdateTargets{}),
+        ]
+    }
+}
+
 impl SimpleState for LoadingState {
     fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
         let world = data.world;
 
         world.register::<TurnInto>();
-        world.register::<Move>();
         world.register::<BoardPosition>();
         world.register::<Cell>();
         world.register::<Target>();
         world.register::<Piece>();
-        world.register::<ActivatablePower>();
         world.register::<Tint>();
         world.register::<Effect>();
 
@@ -95,6 +121,10 @@ impl SimpleState for LoadingState {
             sprite_queen: s_vec[4].to_owned(),
             sprite_protect: s_vec[5].to_owned(),
             sprite_sniper: s_vec[6].to_owned(),
+        });
+
+        world.insert(Actions {
+            on_start: Ax{}
         });
     }
 
@@ -218,13 +248,13 @@ fn init_board(world: &mut World, sprites: &[SpriteRender]) {
 
     let team_count = teams.len();
 
-    let mut board = Board::new(cells, teams);
+    let board = Board::new(cells, teams);
 
     for team_id in 0..team_count {
         world.create_entity()
             .with(Piece::new(team_id))
             .with(BoardPosition::new((1 + team_id * 2) as u8, (1 + team_id * 2) as u8))
-            .with(TurnInto{kind: Simple})
+            .with(TurnInto{kind: PieceKind::Simple})
             .build();
     }
 

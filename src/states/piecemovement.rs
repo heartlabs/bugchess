@@ -1,29 +1,26 @@
 use amethyst::{
-    core::{
-        transform::Transform,
-        math::{Vector3},
-    },
     ui::UiText,
-    ecs::{ReadStorage, WriteStorage, Entity},
+    ecs::{WriteStorage, Entity},
     input::{is_close_requested, is_key_down, VirtualKeyCode},
     prelude::*,
 };
 
 use crate::{
-    components::{Activatable, Piece,
+    components::{
                  active::Selected,
-                 board::{BoardEvent, BoardPosition, Target, Team, ActivatablePower, Power},
+                 board::{BoardEvent, BoardPosition, Target},
+                piece::{Piece, ActivatablePower, Power}
     },
     states::{
         PiecePlacementState,
         load::UiElements,
         next_turn::NextTurnState,
+        target_for_power::TargetForPowerState,
     },
     resources::board::Board,
 };
 
 use log::info;
-use crate::states::target_for_power::TargetForPowerState;
 
 pub struct PieceMovementState {
     pub from_x: u8,
@@ -107,17 +104,20 @@ impl SimpleState for PieceMovementState {
 
                     if let Some(new_piece) = piece_at_target {
                         if let Some(new_piece_component) = pieces.get_mut(new_piece) {
-                            let activatable_powers = data.world.read_storage::<ActivatablePower>();
                             if new_piece_component.team_id == board.current_team().id {
                                 return self.handle_own_piece_at_target(x, y, new_piece,
-                                                 &mut board, &mut pieces, &targets, &activatable_powers);
+                                                 &mut board, &mut pieces, &targets);
                             }
                         }
                     }
 
-                    let invalid_attack = {
-                        let self_piece_component = pieces.get_mut(self.piece).unwrap();
-                        piece_at_target.is_some() && !self_piece_component.attack
+                    let (invalid_attack, cant_move) = {
+                        let self_piece_component = pieces.get(self.piece).unwrap();
+                        let target_piece_shielded = piece_at_target.and_then(|e| pieces.get(e)).filter(|p| p.shield).is_some();
+                        (
+                            piece_at_target.is_some() && (!self_piece_component.attack || (target_piece_shielded && !self_piece_component.pierce)),
+                            !self_piece_component.exhaustion.can_move()
+                        )
                     };
 
                     let cell = board.get_cell(x,y);
@@ -127,7 +127,7 @@ impl SimpleState for PieceMovementState {
 
                     println!("target piece: {:?} ; invalid attack: {} ; invalid target cell: {}", piece_at_target, invalid_attack, invalid_target_cell);
 
-                    if invalid_attack || invalid_target_cell {
+                    if cant_move || invalid_attack || invalid_target_cell {
                         return Trans::Replace(Box::new(PiecePlacementState::new()))
                     } else if let Some(attacked_piece) = piece_at_target {
                         pieces.get_mut(attacked_piece).unwrap().dying = true;
@@ -136,7 +136,7 @@ impl SimpleState for PieceMovementState {
                     let mut positions = data.world.write_storage::<BoardPosition>();
 
                     {
-                        pieces.get_mut(self.piece).unwrap().exhausted = true;
+                        pieces.get_mut(self.piece).unwrap().exhaustion.on_move();
                     }
 
                     let mut pos = positions.get_mut(self.piece).unwrap();
@@ -162,13 +162,15 @@ impl PieceMovementState {
     fn handle_own_piece_at_target(&mut self, x: u8, y: u8, piece_at_target: Entity,
                                   mut board: &mut Board,
                                   mut pieces: &mut WriteStorage<Piece>,
-                                  targets: &WriteStorage<Target>,
-                                  mut activatable_powers: &ReadStorage<ActivatablePower>) -> SimpleTrans{
+                                  targets: &WriteStorage<Target>) -> SimpleTrans{
         if self.piece == piece_at_target{
-            if let Some(power) = activatable_powers.get(self.piece) {
+            let p = {
+                pieces.get(self.piece).and_then(|x| x.activatable.as_ref()).map(|&x| x.clone())
+            };
+            if let Some(power) = p {
                 return match power.kind {
                     Power::Blast => {
-                        self.activate_blast(x,y,power, &mut board, &mut pieces, targets);
+                        self.activate_blast(x,y,&power, &mut board, &mut pieces, targets);
                         Trans::Replace(Box::new(PiecePlacementState::new()))
                     },
                     Power::TargetedShoot => {
@@ -203,7 +205,7 @@ impl PieceMovementState {
 
                 if pieces.get(target_piece).unwrap().team_id != board.current_team().id {
                     pieces.get_mut(target_piece).unwrap().dying = true;
-                    pieces.get_mut(self.piece).unwrap().exhausted = true;
+                    pieces.get_mut(self.piece).unwrap().exhaustion.on_attack();
                 }
             }
 

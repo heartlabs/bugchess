@@ -1,40 +1,37 @@
 use amethyst::{
     core::{
         transform::Transform,
-        math::{Vector3, Point2},
+        math::{Vector3},
     },
-    input::{is_close_requested, is_key_down, VirtualKeyCode},
     prelude::*,
+    ui::{UiText},
     renderer::{SpriteRender, resources::Tint},
-    ui::{UiText, UiFinder, UiEventType, UiEvent},
-    ecs::{WriteStorage, ReadStorage, ReadExpect, WriteExpect, Entity, Entities, Join},
+    ecs::{WriteStorage, ReadStorage, WriteExpect, Entities, Join, System, RunNow}
 };
 
 use crate::{
     components::{
-        Activatable, Piece,
-        board::{BoardEvent, Team},
+        board::{BoardPosition,},
+        piece::{Piece, }
     },
     states::{
-        load::Sprites,
-        PieceMovementState,
+        load::{Sprites,UiElements,},
+        PiecePlacementState,
+        game_over::GameOverState,
     }
 };
-use crate::states::load::UiElements;
-use crate::components::board::{Move, Range, Direction, BoardPosition, Target, TurnInto, PieceKind};
-use crate::components::{Cell, Bounded};
-use crate::resources::board::{Board, Pattern, PatternComponent};
-use crate::components::board::PieceKind::{HorizontalBar, Simple};
-use crate::states::PiecePlacementState;
-use crate::states::game_over::GameOverState;
+use crate::resources::board::{Board,};
+use crate::systems::actions::moving::Move;
+use crate::systems::actions::place::Place;
+use crate::systems::actions::next_turn::*;
 
 pub struct TurnCounter {
     pub num_turns: u32,
 }
 
 pub struct NextTurnState {
-    first_turn: bool,
-    no_teams_left: bool,
+    pub(crate) first_turn: bool,
+    pub(crate) no_teams_left: bool,
 }
 
 impl NextTurnState {
@@ -51,105 +48,23 @@ impl NextTurnState {
             no_teams_left: false
         }
     }
-
-    fn new_unused_pieces((pieces, board_positions, mut transforms, mut sprite_renders, mut board, sprites, entities): (
-        ReadStorage<Piece>,
-        ReadStorage<BoardPosition>,
-        WriteStorage<Transform>,
-        WriteStorage<SpriteRender>,
-        WriteExpect<Board>,
-        WriteExpect<Sprites>,
-        Entities,
-    )) {
-        for (piece, _b, e) in (&pieces, !&board_positions, &*entities).join() {
-            if piece.team_id == board.current_team().id && !transforms.contains(e){
-
-                let mut transform = Transform::default();
-
-                // 2 rows with 10 pieces each per team
-                let row: usize = piece.team_id * 2 + board.num_unused_pieces()/10;
-                let column: usize = board.num_unused_pieces()%10;
-
-                let x_offset = 650;
-                let y_offset = 100;
-
-                let piece_width = 32;
-
-                let screen_x = (x_offset + column * piece_width) as f32;
-                let screen_y = (y_offset + row * piece_width) as f32;
-                //println!("New unused piece at {}:{}", screen_x, screen_y);
-
-                transform.set_translation_xyz(screen_x, screen_y, 0.1);
-                transform.set_scale(Vector3::new(0.5,0.5,1.));
-                transforms.insert(e, transform);
-
-                sprite_renders.insert(e, sprites.sprite_piece.clone());
-
-                board.add_unused_piece(e);
-            }
-        }
-    }
-
-    fn identify_losing_teams((pieces, board_positions, mut board, entities): (
-        ReadStorage<Piece>,
-        ReadStorage<BoardPosition>,
-        WriteExpect<Board>,
-        Entities,
-    )) {
-        let mut team_index = Vec::new();
-
-        for _ in 0..board.num_teams() {
-            team_index.push(false);
-        }
-
-        for (piece, b) in (&pieces, &board_positions).join() {
-            team_index[piece.team_id] = true;
-        }
-
-        for (i, has_pieces_left) in team_index.iter().enumerate() {
-            if !has_pieces_left {
-                println!("team {} lost", i);
-                board.mark_team_as_lost(i);
-            }
-        }
-    }
 }
 
 impl SimpleState for NextTurnState {
 
     fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
-        data.world.exec(NextTurnState::identify_losing_teams);
-        data.world.exec(|mut pieces: WriteStorage<Piece>| for mut p in (&mut pieces).join() {p.exhausted = false;});
-
-        let team = {
-            let mut board = data.world.write_resource::<Board>();
-            if !self.first_turn {
-
-                if board.next_team().is_none() {
-                    self.no_teams_left = true;
-                    return;
-                }
-            }
-
-            board.current_team()
-        };
-
-        let new_pieces_per_turn = 2;
-
-        for _ in 0..new_pieces_per_turn {
-            data.world
-                .create_entity()
-                .with(Piece::new(team.id))
-                .with(Tint(team.color))
-                .build();
-        }
 
         {
             let mut turn_counter = data.world.write_resource::<TurnCounter>();
             turn_counter.num_turns += 1;
         }
+        let mut systems: Vec<Box<dyn RunNow>> = Vec::new();
+        systems.push(Box::new(IdentifyLosingTeams {}));
+        systems.push(Box::new(NextTeam { state: self }));
 
-        data.world.exec(NextTurnState::new_unused_pieces);
+        for mut s in systems {
+            s.run_now(&data.world);
+        }
     }
 
     fn update(&mut self, data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans  {

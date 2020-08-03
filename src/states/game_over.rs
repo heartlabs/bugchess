@@ -1,32 +1,19 @@
 use amethyst::{
-    core::{
-        transform::Transform,
-        math::{Vector3, Point2},
-    },
-    input::{is_close_requested, is_key_down, VirtualKeyCode},
     prelude::*,
-    renderer::{SpriteRender, resources::Tint},
-    ui::{UiText, UiFinder, UiEventType, UiEvent},
-    ecs::{WriteStorage, ReadStorage, ReadExpect, WriteExpect, Entity, Entities, Join},
+    ui::{UiText},
+
 };
 
 use crate::{
     components::{
-        Activatable, Piece,
-        board::{BoardEvent, Team},
+
+        board::{Team},
     },
     states::{
-        load::Sprites,
-        PieceMovementState,
-    }
+        load::{UiElements},
+    },
+    resources::board::{Board,},
 };
-use crate::states::load::UiElements;
-use crate::components::board::{Move, Range, Direction, BoardPosition, Target, TurnInto, PieceKind};
-use crate::components::{Cell, Bounded};
-use crate::resources::board::{Board, Pattern, PatternComponent};
-use crate::components::board::PieceKind::{HorizontalBar, Simple};
-use crate::states::PiecePlacementState;
-
 
 pub struct GameOverState {
     winning_team: Team,
@@ -56,7 +43,7 @@ impl SimpleState for GameOverState {
         }
     }
 
-    fn update(&mut self, data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans  {
+    fn update(&mut self, _data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans  {
         Trans::None
     }
 }

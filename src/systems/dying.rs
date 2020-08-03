@@ -1,14 +1,13 @@
 use amethyst::{
-    renderer::{
-        resources::Tint,
-        palette::Srgba,
-    },
-    ecs::{Join, ReadStorage, System, WriteStorage, WriteExpect, Entities},
+    ecs::{Join, ReadStorage, System, WriteExpect, Entities},
 };
-use crate::components::{Activatable, Piece};
-use crate::components::active::{Selected, Hovered};
-use crate::components::board::{BoardPosition};
-use crate::resources::board::Board;
+use crate::{
+    components::{
+        piece::Piece,
+        board::{BoardPosition},
+    },
+    resources::board::Board,
+};
 
 pub struct DyingSystem;
 

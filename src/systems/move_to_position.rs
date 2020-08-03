@@ -1,16 +1,11 @@
 use amethyst::{
-    renderer::{
-        resources::Tint,
-        palette::Srgba,
-    },
     core::{
         transform::Transform,
         math::Vector3,
     },
     ecs::{Join, ReadStorage, System, WriteStorage, ReadExpect, Entities},
 };
-use crate::components::{Activatable, Cell};
-use crate::components::active::{Selected, Hovered};
+use crate::components::{Cell};
 use crate::components::board::{BoardPosition};
 
 use std::ops::Sub;
