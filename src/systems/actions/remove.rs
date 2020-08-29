@@ -22,11 +22,11 @@ impl<'a> System<'a> for Remove {
     }
 }
 
-impl<'a> Action<'a> for Remove {
-    fn get_anti_action(&self) -> Box<dyn Action<'a> + 'a> {
-        Box::new(Place {
-            entity: self.entity,
-            pos: self.pos
-        })
-    }
-}
+// impl<'a> Action<'a> for Remove {
+//     fn get_anti_action(&self) -> Box<dyn Action<'a> + 'a> {
+//         Box::new(Place {
+//             entity: self.entity,
+//             pos: self.pos
+//         })
+//     }
+// }

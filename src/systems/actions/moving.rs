@@ -20,13 +20,13 @@ impl<'a> System<'a> for Move {
         board.move_piece_at(self.entity, &self.from_pos, &self.to_pos);
     }
 }
-impl<'a> Action<'a> for Move {
-
-    fn get_anti_action(&self) -> Box<dyn Action<'a> + 'a> {
-        Box::new(Move {
-            entity: self.entity,
-            from_pos: self.to_pos,
-            to_pos: self.from_pos
-        })
-    }
-}
+// impl<'a> Action<'a> for Move {
+//
+//     fn get_anti_action(&self) -> Box<dyn Action<'a> + 'a> {
+//         Box::new(Move {
+//             entity: self.entity,
+//             from_pos: self.to_pos,
+//             to_pos: self.from_pos
+//         })
+//     }
+// }

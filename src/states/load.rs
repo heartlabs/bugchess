@@ -30,6 +30,7 @@ use crate::{
 };
 use crate::systems::actions::common::UpdateUi;
 use crate::systems::actions::during_turn::{InitNewPieces, MergePiecePatterns, UpdateTargets};
+use crate::systems::actions::actions::{Action, HasRunNow};
 
 pub struct LoadingState;
 
@@ -52,7 +53,21 @@ pub struct UiElements {
 }
 
 pub struct Actions {
-    pub(crate) on_start: Ax,
+    pub(crate) on_start: Vec<Box<dyn HasRunNow + Sync + Send>>,
+}
+
+impl Actions {
+    pub fn new() -> Actions {
+        Actions {
+            on_start: vec![
+                Box::new(UpdateUi{text: "Place your Piece"}),
+                Box::new(InitNewPieces{}),
+                Box::new(MergePiecePatterns{}),
+                Box::new(InitNewPieces{}),
+                Box::new(UpdateTargets{}),
+            ]
+        }
+    }
 }
 
 pub struct Ax {
@@ -123,9 +138,7 @@ impl SimpleState for LoadingState {
             sprite_sniper: s_vec[6].to_owned(),
         });
 
-        world.insert(Actions {
-            on_start: Ax{}
-        });
+        world.insert(Actions::new());
     }
 
     fn handle_event(

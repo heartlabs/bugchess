@@ -6,23 +6,45 @@ use crate::{
     resources::board::Board,
 };
 
-pub trait Action<'a>: RunNow<'a> {
-    fn get_anti_action(&self) -> Box<dyn Action<'a>  + 'a>;
+pub trait Action : HasRunNow {
+    fn get_anti_action(&self) -> Box<dyn Action>;
 }
 
+pub trait HasRunNow {
+    fn get_run_now<'a> (&self) -> Box<dyn RunNow<'a>  + 'a>;
+}
 
-
-
+#[derive(Copy,Clone)]
 pub struct AddUnusedPiece {
     entity: Entity,
     remove: bool
 }
 
-pub struct CompoundAction<'a> {
-    components: Vec<Box<dyn Action<'a> + 'a>>,
+pub struct CompoundAction {
+    components: Vec<Box<dyn Action>>,
 }
 
-impl<'a, 'b> RunNow<'a> for CompoundAction<'a> {
+pub struct CompoundRunnable<'a> {
+    components: Vec<Box<dyn RunNow<'a> + 'a>>,
+}
+
+impl Action for CompoundAction {
+    fn get_anti_action(&self) -> Box<dyn Action> {
+        let anti_components: Vec<Box<dyn Action>> = self.components.iter().map(|a| a.get_anti_action()).collect();
+
+        Box::new(CompoundAction {
+            components: anti_components
+        })
+    }
+}
+
+impl HasRunNow for CompoundAction {
+    fn get_run_now<'a>(&self) -> Box<dyn RunNow<'a> + 'a> {
+        Box::new(CompoundRunnable{ components: self.components.iter().map(|a| a.get_run_now()).collect() })
+    }
+}
+
+impl<'a> RunNow<'a> for CompoundRunnable<'a> {
     fn run_now(&mut self, world: &'a World) {
         self.components.iter_mut().for_each(|a|a.run_now(world));
     }
@@ -31,13 +53,19 @@ impl<'a, 'b> RunNow<'a> for CompoundAction<'a> {
     }
 }
 
-impl<'a> Action<'a> for CompoundAction<'a> {
-    fn get_anti_action(&self) -> Box<dyn Action<'a> + 'a> {
-        let anti_components: Vec<Box<dyn Action<'a> + 'a>> = self.components.iter().map(|a| a.get_anti_action()).collect();
+impl Action for AddUnusedPiece {
 
-        Box::new(CompoundAction {
-            components: anti_components
+    fn get_anti_action(&self) -> Box<dyn Action> {
+        Box::new(AddUnusedPiece {
+            entity: self.entity,
+            remove: !self.remove,
         })
+    }
+}
+
+impl HasRunNow for AddUnusedPiece {
+    fn get_run_now<'a>(&self) -> Box<dyn RunNow<'a> + 'a> {
+        Box::new(AddUnusedPiece { entity: self.entity, remove: self.remove })
     }
 }
 
@@ -52,14 +80,3 @@ impl<'a> System<'a> for AddUnusedPiece {
         }
     }
 }
-
-impl<'a> Action<'a> for AddUnusedPiece {
-
-    fn get_anti_action(&self) -> Box<dyn Action<'a> + 'a> {
-        Box::new(AddUnusedPiece {
-            entity: self.entity,
-            remove: !self.remove,
-        })
-    }
-}
-

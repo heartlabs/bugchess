@@ -21,11 +21,11 @@ impl<'a> System<'a> for Place {
         board.place_piece_at(self.entity, &self.pos);
     }
 }
-impl<'a> Action<'a> for Place {
-    fn get_anti_action(&self) -> Box<dyn Action<'a> + 'a> {
-        Box::new(Remove {
-            entity: self.entity,
-            pos: self.pos
-        })
-    }
-}
+// impl<'a> Action<'a> for Place {
+//     fn get_anti_action(&self) -> Box<dyn Action<'a> + 'a> {
+//         Box::new(Remove {
+//             entity: self.entity,
+//             pos: self.pos
+//         })
+//     }
+// }

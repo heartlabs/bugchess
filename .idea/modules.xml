@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/amethyst-starter-2d.iml" filepath="$PROJECT_DIR$/amethyst-starter-2d.iml" />
+      <module fileurl="file://$PROJECT_DIR$/megachess.iml" filepath="$PROJECT_DIR$/megachess.iml" />
     </modules>
   </component>
 </project>

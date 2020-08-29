@@ -12,8 +12,16 @@ use crate::{
     resources::board::{Board,Pattern},
     states::load::Sprites,
 };
+use crate::systems::actions::actions::HasRunNow;
+use amethyst::core::ecs::RunNow;
 
 pub struct UpdateTargets {}
+
+impl HasRunNow for UpdateTargets {
+    fn get_run_now<'a>(&self) -> Box<dyn RunNow<'a>> {
+        Box::new(Self{})
+    }
+}
 
 impl<'a> System<'a> for UpdateTargets {
     type SystemData = (
@@ -78,6 +86,12 @@ impl<'a> System<'a> for UpdateTargets {
 
 pub struct MergePiecePatterns {}
 
+impl HasRunNow for MergePiecePatterns {
+    fn get_run_now<'a>(&self) -> Box<dyn RunNow<'a>> {
+        Box::new(Self{})
+    }
+}
+
 impl<'a> System<'a> for MergePiecePatterns {
     type SystemData = (
         WriteExpect<'a, Board>,
@@ -123,6 +137,12 @@ impl<'a> System<'a> for MergePiecePatterns {
 }
 
 pub struct InitNewPieces {}
+
+impl HasRunNow for InitNewPieces {
+    fn get_run_now<'a>(&self) -> Box<dyn RunNow<'a>> {
+        Box::new(Self{})
+    }
+}
 
 impl<'a> System<'a> for InitNewPieces {
     type SystemData = (
