@@ -27,6 +27,8 @@ use crate::systems::actions::during_turn::{InitNewPieces, MergePiecePatterns, Up
 use crate::states::load::Actions;
 use std::borrow::BorrowMut;
 use std::ops::Deref;
+use crate::systems::actions::actions::{HasRunNow, AddUnusedPiece};
+use crate::systems::actions::place::Place;
 
 pub struct PiecePlacementState {
 
@@ -44,22 +46,43 @@ impl PiecePlacementState {
 impl SimpleState for PiecePlacementState {
 
     fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
+
+        // That might have to happen AFTER actions.run_queue() but that's tricky because of borrow checker
         data.world.maintain(); // This makes sure that deleted entities are actually deleted
-        let actions = data.world.read_resource::<Actions>();
-        for action in actions.on_start.as_slice() {
+
+        let mut actions = data.world.write_resource::<Actions>();
+        actions.run_queue(&data.world);
+
+        let local_actions: Vec<Box<dyn HasRunNow>> = vec![
+            Box::new(UpdateUi{text: "Place your Piece"}),
+            Box::new(InitNewPieces{}),
+            Box::new(MergePiecePatterns{}),
+            Box::new(InitNewPieces{}),
+            Box::new(UpdateTargets{}),
+        ];
+
+        for action in local_actions {
             action.get_run_now().run_now(&data.world);
         }
+
+        actions.finalize_player_move();
+
     }
 
     fn handle_event(
         &mut self,
-        _data: StateData<'_, GameData<'_, '_>>,
+        data: StateData<'_, GameData<'_, '_>>,
         event: StateEvent,
     ) -> SimpleTrans {
         match &event {
             StateEvent::Window(event) => {
                 if is_close_requested(&event) || is_key_down(&event, VirtualKeyCode::Escape) {
                     return Trans::Quit
+                }
+
+                if is_key_down(&event, VirtualKeyCode::U) {
+                    data.world.write_resource::<Actions>().undo(data.world);
+                    return Trans::Replace(Box::new(PiecePlacementState::new()));
                 }
             }
             StateEvent::Ui(UiEvent{target: _, event_type: UiEventType::ClickStart}) => {
@@ -90,16 +113,19 @@ impl SimpleState for PiecePlacementState {
                             Trans::None
                         }
                     } else {
-                        let mut positions = data.world.write_storage::<BoardPosition>();
-                        let mut turn_intos = data.world.write_storage::<TurnInto>();
 
                         if let Some(piece) = board.get_unused_piece() {
-                            let piece_component = pieces.get_mut(piece).unwrap();
-                            piece_component.pierce = false;
+                            let mut actions = data.world.write_resource::<Actions>();
 
-                            println!("Placed new piece");
-                            positions.insert(piece, BoardPosition::new(x,y));
-                            turn_intos.insert(piece, TurnInto{kind: PieceKind::Simple});
+                            // Even though we don't run the remove action directly, we just did what it would do.
+                            // So we add it to the history so that it will be undone on undoing the current move
+                            actions.insert_only(Box::new(AddUnusedPiece::remove(piece)));
+
+                            actions.add_to_queue(Box::new(Place {
+                                entity: piece,
+                                pos: BoardPosition::new(x,y),
+                                kind: PieceKind::Simple
+                            }));
                             Trans::Replace(Box::new(PiecePlacementState::new()))
                         } else {
                             Trans::None

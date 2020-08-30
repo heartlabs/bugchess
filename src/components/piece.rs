@@ -71,7 +71,9 @@ impl Piece {
             activatable: None,
             dying: false,
             exhaustion: Exhaustion::new_exhausted(ExhaustionStrategy::Either),
-            team_id}
+            team_id,
+            exists: true
+        }
     }
 }
 
@@ -86,6 +88,7 @@ pub struct Piece {
     pub dying: bool,
     pub exhaustion: Exhaustion,
     pub team_id: usize,
+    pub exists: bool // To mark pieces that don't exist in the game but are still stored in the history
 }
 
 pub enum ExhaustionStrategy {

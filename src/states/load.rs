@@ -30,7 +30,8 @@ use crate::{
 };
 use crate::systems::actions::common::UpdateUi;
 use crate::systems::actions::during_turn::{InitNewPieces, MergePiecePatterns, UpdateTargets};
-use crate::systems::actions::actions::{Action, HasRunNow};
+use crate::systems::actions::actions::{Action, HasRunNow, CompoundAction};
+use std::collections::VecDeque;
 
 pub struct LoadingState;
 
@@ -53,36 +54,86 @@ pub struct UiElements {
 }
 
 pub struct Actions {
-    pub(crate) on_start: Vec<Box<dyn HasRunNow + Sync + Send>>,
+    history: Vec<Box<dyn Action + Sync + Send>>,
+    current_move: CompoundAction,
+    pos: usize,
+    queue: VecDeque<Box<dyn Action + Sync + Send>>
 }
 
 impl Actions {
     pub fn new() -> Actions {
         Actions {
-            on_start: vec![
-                Box::new(UpdateUi{text: "Place your Piece"}),
-                Box::new(InitNewPieces{}),
-                Box::new(MergePiecePatterns{}),
-                Box::new(InitNewPieces{}),
-                Box::new(UpdateTargets{}),
-            ]
+            history: Vec::new(),
+            current_move: CompoundAction::new(),
+            pos: 0, // needed for repeated undo
+            queue: VecDeque::new()
         }
     }
-}
 
-pub struct Ax {
+    pub fn run_queue(&mut self, world: &World) {
+        // TODO: Is there another way to avoid a double mutable ownership of self?
+        let actions: Vec<Box<dyn Action+Sync+Send>> = {
+            self.queue.drain(..).collect()
+        };
 
-}
+        for a in actions {
+            self.run_action(a, world);
+        }
+    }
 
-impl Ax {
-    pub fn get_actions<'a>(&self) -> Vec<Box<dyn RunNow<'a> + 'a>>{
-        vec![
-            Box::new(UpdateUi{text: "Place your Piece"}),
-            Box::new(InitNewPieces{}),
-            Box::new(MergePiecePatterns{}),
-            Box::new(InitNewPieces{}),
-            Box::new(UpdateTargets{}),
-        ]
+    fn run_action(&mut self, action: Box<dyn Action+Sync+Send>, world: &World) {
+        action.get_run_now().run_now(world);
+        self.current_move.add(action);
+    }
+
+    fn assert_empty_queue(&self, reason: &str) {
+        if !self.queue.is_empty() {
+            panic!("Action queue had unexpected entries while trying to {}.", reason);
+        }
+    }
+
+    pub fn add_to_queue(&mut self, action: Box<dyn Action + Send + Sync>) {
+        self.queue.push_back(action);
+    }
+
+    pub fn insert_only(&mut self, action: Box<dyn Action + Send + Sync>) {
+        self.assert_empty_queue("insert and run new action");
+        self.current_move.add(action);
+    }
+
+    pub fn insert_and_run(&mut self, action: Box<dyn Action + Send + Sync>, world: &World) {
+        self.assert_empty_queue("insert and run new action");
+        self.run_action(action, world);
+    }
+
+    pub fn finalize_player_move(&mut self) {
+        self.assert_empty_queue("finalize player move");
+
+        if self.current_move.is_empty() {
+            return;
+        }
+
+        let mut finalized_move = CompoundAction::new();
+        self.current_move.transfer_content_to(&mut finalized_move);
+        self.current_move = CompoundAction::new();
+        self.history.push(Box::new(finalized_move));
+        self.pos = self.history.len();
+    }
+
+    pub fn undo(&mut self, world: &World) {
+        self.assert_empty_queue("undo");
+        println!("Undoing at pos {}", self.pos);
+        if self.pos == 0 {
+            return;
+        }
+
+        self.pos -= 1;
+
+        let to_be_undone = self.history.get(self.pos).unwrap();
+        let anti_action = to_be_undone.get_anti_action();
+
+        anti_action.get_run_now().run_now(world);
+        self.history.push(anti_action);
     }
 }
 

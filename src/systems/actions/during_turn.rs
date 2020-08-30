@@ -188,6 +188,7 @@ impl<'a> System<'a> for InitNewPieces {
                 }
                 PieceKind::Simple => {
                     piece.movement = Some(Move::new(Direction::Star, 1));
+                    piece.pierce = false;
                     sprite_renders.insert(e, sprites.sprite_piece.clone());
                 }
                 PieceKind::Queen => {

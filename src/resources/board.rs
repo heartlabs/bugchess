@@ -51,8 +51,9 @@ impl Board {
     pub fn get_unused_piece(&mut self) -> Option<Entity> {
         self.unused_pieces[self.current_team_index].pop()
     }
-    pub fn discard_unused_piece(&mut self) -> Option<Entity> {
-        self.get_unused_piece()
+
+    pub fn discard_unused_piece(&mut self, piece: Entity) {
+        assert_eq!(self.get_unused_piece().unwrap(), piece);
     }
 
     pub fn num_unused_pieces(&self) -> usize {

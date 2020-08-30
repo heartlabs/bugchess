@@ -18,8 +18,13 @@ use crate::{
         next_turn::NextTurnState
     },
 };
+use crate::states::load::Actions;
+use crate::systems::actions::actions::AddUnusedPiece;
 
-pub(crate) struct IdentifyLosingTeams {}
+
+pub struct NextTeam<'a> {
+    pub(crate) state: &'a mut NextTurnState
+}
 
 impl<'a, 'b> System<'a> for NextTeam<'b> {
     type SystemData = (
@@ -30,9 +35,10 @@ impl<'a, 'b> System<'a> for NextTeam<'b> {
         WriteStorage<'a, SpriteRender>,
         WriteExpect<'a, Board>,
         WriteExpect<'a, Sprites>,
+        WriteExpect<'a, Actions>,
         Entities<'a>);
 
-    fn run(&mut self, (mut tints, mut pieces, board_positions, mut transforms, mut sprite_renders, mut board, sprites, entities): Self::SystemData) {
+    fn run(&mut self, (mut tints, mut pieces, board_positions, mut transforms, mut sprite_renders, mut board, sprites, mut actions, entities): Self::SystemData) {
         for mut p in (&mut pieces).join() {
             p.exhaustion.reset();
         }
@@ -52,42 +58,48 @@ impl<'a, 'b> System<'a> for NextTeam<'b> {
         let new_pieces_per_turn = 2;
 
         for _ in 0..new_pieces_per_turn {
-            entities.build_entity()
+            let entity = entities.build_entity()
                 .with(Piece::new(team.id), &mut pieces)
                 .with(Tint(team.color), &mut tints)
                 .build();
+
+            actions.add_to_queue(Box::new(AddUnusedPiece::add(entity)))
         }
 
-        for (piece, _b, e) in (&pieces, !&board_positions, &*entities).join() {
-            if piece.team_id == board.current_team().id && !transforms.contains(e){
 
-                let mut transform = Transform::default();
 
-                // 2 rows with 10 pieces each per team
-                let row: usize = piece.team_id * 2 + board.num_unused_pieces()/10;
-                let column: usize = board.num_unused_pieces()%10;
-
-                let x_offset = 650;
-                let y_offset = 100;
-
-                let piece_width = 32;
-
-                let screen_x = (x_offset + column * piece_width) as f32;
-                let screen_y = (y_offset + row * piece_width) as f32;
-                //println!("New unused piece at {}:{}", screen_x, screen_y);
-
-                transform.set_translation_xyz(screen_x, screen_y, 0.1);
-                transform.set_scale(Vector3::new(0.5,0.5,1.));
-                transforms.insert(e, transform);
-
-                sprite_renders.insert(e, sprites.sprite_piece.clone());
-
-                board.add_unused_piece(e);
-            }
-        }
+        // for (piece, _b, e) in (&pieces, !&board_positions, &*entities).join() {
+        //     if piece.exists && piece.team_id == board.current_team().id && !transforms.contains(e){
+        //
+        //         let mut transform = Transform::default();
+        //
+        //         // 2 rows with 10 pieces each per team
+        //         let row: usize = piece.team_id * 2 + board.num_unused_pieces()/10;
+        //         let column: usize = board.num_unused_pieces()%10;
+        //
+        //         let x_offset = 650;
+        //         let y_offset = 100;
+        //
+        //         let piece_width = 32;
+        //
+        //         let screen_x = (x_offset + column * piece_width) as f32;
+        //         let screen_y = (y_offset + row * piece_width) as f32;
+        //         //println!("New unused piece at {}:{}", screen_x, screen_y);
+        //
+        //         transform.set_translation_xyz(screen_x, screen_y, 0.1);
+        //         transform.set_scale(Vector3::new(0.5,0.5,1.));
+        //         transforms.insert(e, transform);
+        //
+        //         sprite_renders.insert(e, sprites.sprite_piece.clone());
+        //
+        //         board.add_unused_piece(e);
+        //     }
+        // }
     }
 
 }
+
+pub(crate) struct IdentifyLosingTeams {}
 
 impl<'a> System<'a> for IdentifyLosingTeams {
     type SystemData = (
@@ -115,6 +127,3 @@ impl<'a> System<'a> for IdentifyLosingTeams {
     }
 }
 
-pub struct NextTeam<'a> {
-    pub(crate) state: &'a mut NextTurnState
-}
