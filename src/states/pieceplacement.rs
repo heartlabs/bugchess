@@ -121,11 +121,11 @@ impl SimpleState for PiecePlacementState {
                             // So we add it to the history so that it will be undone on undoing the current move
                             actions.insert_only(Box::new(AddUnusedPiece::remove(piece)));
 
-                            actions.add_to_queue(Box::new(Place {
-                                entity: piece,
-                                pos: BoardPosition::new(x,y),
-                                kind: PieceKind::Simple
-                            }));
+                            actions.add_to_queue(Place::introduce(
+                                piece,
+                                BoardPosition::new(x,y),
+                                PieceKind::Simple
+                            ));
                             Trans::Replace(Box::new(PiecePlacementState::new()))
                         } else {
                             Trans::None

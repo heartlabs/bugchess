@@ -16,9 +16,15 @@ use amethyst::core::Transform;
 pub struct Remove {
     pub entity: Entity,
     pub pos: BoardPosition,
-    pub kind: PieceKind
 }
-
+impl Remove {
+    pub fn new(entity: Entity, pos: BoardPosition) -> Box<Self> {
+        Box::new(Remove {
+            entity,
+            pos,
+        })
+    }
+}
 impl<'a> System<'a> for Remove {
     type SystemData = (
         WriteExpect<'a, Board>,
@@ -40,16 +46,12 @@ impl<'a> System<'a> for Remove {
 
 impl Action for Remove {
     fn get_anti_action(&self) -> Box<dyn Action + Send + Sync> {
-        Box::new(Place {
-            entity: self.entity,
-            pos: self.pos,
-            kind: self.kind
-        })
+        Place::new(self.entity, self.pos)
     }
 }
 
 impl HasRunNow for Remove {
     fn get_run_now<'a>(&self) -> Box<dyn RunNow<'a> + 'a> {
-        Box::new(Remove {entity: self.entity, pos: self.pos, kind: self.kind})
+        Remove::new(self.entity, self.pos)
     }
 }

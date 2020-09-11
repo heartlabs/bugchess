@@ -160,7 +160,7 @@ impl<'a> System<'a> for InitNewPieces {
     fn run(&mut self, (mut board, sprites, mut pieces, positions,
         mut turn_intos, mut sprite_renders, mut tints, mut effects, entities): Self::SystemData) {
         for (turn_into, pos, mut piece, e) in (&mut turn_intos, &positions, &mut pieces, &*entities).join() {
-            board.place_piece(e, pos.coords.x, pos.coords.y);
+
 
             tints.insert(e, Tint(board.get_team(piece.team_id).color));
 
@@ -201,6 +201,7 @@ impl<'a> System<'a> for InitNewPieces {
                     });
                 }
                 PieceKind::Castle => {
+                    piece.shield = true;
                     sprite_renders.insert(e, sprites.sprite_protect.clone());
                     effects.insert(e, Effect {
                         kind: EffectKind::Protection,

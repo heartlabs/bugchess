@@ -59,7 +59,9 @@ impl SimpleState for NextTurnState {
             turn_counter.num_turns += 1;
         }
         let mut systems: Vec<Box<dyn RunNow>> = Vec::new();
-        systems.push(Box::new(IdentifyLosingTeams {}));
+        if !self.first_turn {
+            systems.push(Box::new(IdentifyLosingTeams {}));
+        }
         systems.push(Box::new(NextTeam { state: self }));
 
         for mut s in systems {

@@ -32,6 +32,7 @@ use crate::systems::actions::common::UpdateUi;
 use crate::systems::actions::during_turn::{InitNewPieces, MergePiecePatterns, UpdateTargets};
 use crate::systems::actions::actions::{Action, HasRunNow, CompoundAction};
 use std::collections::VecDeque;
+use crate::systems::actions::place::Place;
 
 pub struct LoadingState;
 
@@ -157,8 +158,12 @@ impl SimpleState for LoadingState {
         // Place the camera
         init_camera(world, &dimensions);
 
+        let mut actions = Actions::new();
+
         let sprites_board = load_sprites(world, "squares", 4);
-        init_board(world, &sprites_board);
+        init_board(world, &sprites_board, &mut actions);
+
+        world.insert(actions);
 
         world
             .create_entity()
@@ -189,7 +194,7 @@ impl SimpleState for LoadingState {
             sprite_sniper: s_vec[6].to_owned(),
         });
 
-        world.insert(Actions::new());
+
     }
 
     fn handle_event(
@@ -252,7 +257,7 @@ impl SimpleState for LoadingState {
 }
 
 
-fn init_board(world: &mut World, sprites: &[SpriteRender]) {
+fn init_board(world: &mut World, sprites: &[SpriteRender], actions: &mut Actions) {
 
     let cells = (0..BOARD_WIDTH as usize)
         .map(|x| {
@@ -315,11 +320,13 @@ fn init_board(world: &mut World, sprites: &[SpriteRender]) {
     let board = Board::new(cells, teams);
 
     for team_id in 0..team_count {
-        world.create_entity()
+        let piece = world.create_entity()
             .with(Piece::new(team_id))
-            .with(BoardPosition::new((1 + team_id * 2) as u8, (1 + team_id * 2) as u8))
             .with(TurnInto{kind: PieceKind::Simple})
             .build();
+
+        let pos = BoardPosition::new((1 + team_id * 2) as u8, (1 + team_id * 2) as u8);
+        actions.add_to_queue(Place::new(piece, pos));
     }
 
     world.insert(board);

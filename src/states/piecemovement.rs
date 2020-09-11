@@ -21,6 +21,10 @@ use crate::{
 };
 
 use log::info;
+use crate::states::load::Actions;
+use crate::systems::actions::remove::Remove;
+use crate::systems::actions::moving::Move;
+use crate::systems::actions::exhaust::Exhaust;
 
 pub struct PieceMovementState {
     pub from_x: u8,
@@ -127,24 +131,27 @@ impl SimpleState for PieceMovementState {
 
                     println!("target piece: {:?} ; invalid attack: {} ; invalid target cell: {}", piece_at_target, invalid_attack, invalid_target_cell);
 
+                    let mut actions = data.world.write_resource::<Actions>();
                     if cant_move || invalid_attack || invalid_target_cell {
                         return Trans::Replace(Box::new(PiecePlacementState::new()))
                     } else if let Some(attacked_piece) = piece_at_target {
-                        pieces.get_mut(attacked_piece).unwrap().dying = true;
+                        // pieces.get_mut(attacked_piece).unwrap().dying = true;
+                        actions.add_to_queue(
+                            Remove::new(attacked_piece, BoardPosition::new(x,y))
+                        )
                     }
 
-                    let mut positions = data.world.write_storage::<BoardPosition>();
 
                     {
                         pieces.get_mut(self.piece).unwrap().exhaustion.on_move();
                     }
 
-                    let mut pos = positions.get_mut(self.piece).unwrap();
-
-                    pos.coords.x = x;
-                    pos.coords.y = y;
-
-                    board.move_piece(self.piece, self.from_x, self.from_y, x, y);
+                    actions.add_to_queue(Exhaust::moved(self.piece));
+                    actions.add_to_queue(Move::new(
+                        self.piece,
+                        BoardPosition::new(self.from_x, self.from_y),
+                        BoardPosition::new(x,y)
+                    ));
                     return Trans::Replace(Box::new(PiecePlacementState::new()));
 
                 },

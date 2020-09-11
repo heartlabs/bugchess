@@ -121,6 +121,7 @@ impl Board {
     }
 
     pub fn mark_team_as_lost(&mut self, team_id: usize) {
+        println!("Team {} lost.", team_id);
         self.teams[team_id].lost = true;
     }
 
