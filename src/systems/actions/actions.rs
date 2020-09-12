@@ -16,6 +16,9 @@ use crate::states::load::Sprites;
 
 pub trait Action : HasRunNow {
     fn get_anti_action(&self) -> Box<dyn Action + Send + Sync>;
+    fn finalize(&self, world: &World) {
+        // Do nothing
+    }
 }
 
 pub trait HasRunNow {
@@ -93,6 +96,10 @@ impl Action for CompoundAction {
             components: anti_components
         })
     }
+
+    fn finalize(&self, world: &World) {
+        self.components.iter().for_each(|a| a.finalize(world));
+    }
 }
 
 impl HasRunNow for CompoundAction {
@@ -147,8 +154,8 @@ impl<'a> System<'a> for AddUnusedPiece {
             let piece = pieces.get(self.entity).unwrap();
 
             // 2 rows with 10 pieces each per team
-            let row: usize = piece.team_id * 2 + board.num_unused_pieces()/10;
-            let column: usize = board.num_unused_pieces()%10;
+            let row: usize = piece.team_id * 2 + board.num_unused_pieces_of(piece.team_id)/10;
+            let column: usize = board.num_unused_pieces_of(piece.team_id)%10;
 
             let x_offset = 650;
             let y_offset = 100;
@@ -165,7 +172,7 @@ impl<'a> System<'a> for AddUnusedPiece {
 
             sprite_renders.insert(self.entity, sprites.sprite_piece.clone());
 
-            board.add_unused_piece(self.entity);
+            board.add_unused_piece_for(self.entity, piece.team_id);
 
             println!("Adding unused piece {:?} at {}:{}", self.entity, screen_x, screen_y);
         }

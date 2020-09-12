@@ -25,6 +25,13 @@ impl Exhaust {
             is_anti: false
         })
     }
+    pub fn special(entity: Entity) -> Box<Self> {
+        Box::new(Exhaust {
+            entity,
+            moved: false,
+            is_anti: false
+        })
+    }
 }
 
 impl<'a> System<'a> for Exhaust {

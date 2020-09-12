@@ -9,9 +9,10 @@ use crate::{
     },
 };
 use crate::systems::actions::actions::HasRunNow;
-use amethyst::core::ecs::{RunNow, Entities, WriteStorage};
+use amethyst::core::ecs::{RunNow, Entities, WriteStorage, World};
 use crate::components::piece::{PieceKind, Piece};
 use amethyst::core::Transform;
+use amethyst::prelude::*;
 
 pub struct Remove {
     pub entity: Entity,
@@ -47,6 +48,11 @@ impl<'a> System<'a> for Remove {
 impl Action for Remove {
     fn get_anti_action(&self) -> Box<dyn Action + Send + Sync> {
         Place::new(self.entity, self.pos)
+    }
+
+    fn finalize(&self, world: &World) {
+        println!("Deleted entity {:?}", self.entity);
+        world.entities_mut().delete(self.entity);
     }
 }
 

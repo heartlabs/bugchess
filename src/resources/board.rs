@@ -47,6 +47,9 @@ impl Board {
     pub fn add_unused_piece(&mut self, piece: Entity) {
         self.unused_pieces[self.current_team_index].push(piece);
     }
+    pub fn add_unused_piece_for(&mut self, piece: Entity, team_id: usize) {
+        self.unused_pieces[team_id].push(piece);
+    }
 
     pub fn get_unused_piece(&mut self) -> Option<Entity> {
         self.unused_pieces[self.current_team_index].pop()
@@ -58,6 +61,9 @@ impl Board {
 
     pub fn num_unused_pieces(&self) -> usize {
         self.unused_pieces[self.current_team_index].len()
+    }
+    pub fn num_unused_pieces_of(&self, team_id: usize) -> usize {
+        self.unused_pieces[team_id].len()
     }
 
     pub fn place_piece(&mut self, piece: Entity, x: u8, y: u8){

@@ -30,7 +30,7 @@ use crate::{
 };
 use crate::systems::actions::common::UpdateUi;
 use crate::systems::actions::during_turn::{InitNewPieces, MergePiecePatterns, UpdateTargets};
-use crate::systems::actions::actions::{Action, HasRunNow, CompoundAction};
+use crate::systems::actions::actions::{Action, HasRunNow, CompoundAction, AddUnusedPiece};
 use std::collections::VecDeque;
 use crate::systems::actions::place::Place;
 
@@ -71,11 +71,11 @@ impl Actions {
         }
     }
 
-    pub fn finish_turn(&mut self) {
+    pub fn finish_turn(&mut self, world: &World) {
         self.assert_empty_queue("finishing turn");
         println!("Finished turn. Pos: {}, History: {:?}", self.pos, self.history.len());
         self.pos = 0;
-        self.history.clear();
+        self.history.drain(..).for_each(|a| a.finalize(world))
 
     }
 
@@ -325,7 +325,7 @@ fn init_board(world: &mut World, sprites: &[SpriteRender], actions: &mut Actions
 
     let team_count = teams.len();
 
-    let board = Board::new(cells, teams);
+    let start_pieces = 2;
 
     for team_id in 0..team_count {
         let piece = world.create_entity()
@@ -333,10 +333,20 @@ fn init_board(world: &mut World, sprites: &[SpriteRender], actions: &mut Actions
             .with(TurnInto{kind: PieceKind::Simple})
             .build();
 
-        let pos = BoardPosition::new((1 + team_id * 2) as u8, (1 + team_id * 2) as u8);
+        let pos = BoardPosition::new((2 + team_id * 3) as u8, (2 + team_id * 3) as u8);
         actions.add_to_queue(Place::new(piece, pos));
+
+        for _ in 0..start_pieces {
+            let entity = world.create_entity()
+                .with(Piece::new(team_id))
+                .with(Tint(teams[team_id].color))
+                .build();
+
+            actions.add_to_queue(Box::new(AddUnusedPiece::add(entity)))
+        }
     }
 
+    let board = Board::new(cells, teams);
     world.insert(board);
     world.insert(TurnCounter{num_turns: 0});
 }

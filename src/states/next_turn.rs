@@ -93,7 +93,7 @@ impl SimpleState for NextTurnState {
         let mut actions = data.world.write_resource::<Actions>();
         actions.run_queue(data.world);
         actions.finalize_player_move();
-        actions.finish_turn();
+        actions.finish_turn(data.world);
 
         Trans::Replace(Box::new(PiecePlacementState::new()))
     }

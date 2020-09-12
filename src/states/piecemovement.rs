@@ -103,6 +103,7 @@ impl SimpleState for PieceMovementState {
 
                     let mut targets = data.world.write_storage::<Target>();
                     let mut pieces = data.world.write_storage::<Piece>();
+                    let mut actions = data.world.write_resource::<Actions>();
 
                     let piece_at_target = board.get_piece(x, y);
 
@@ -110,7 +111,7 @@ impl SimpleState for PieceMovementState {
                         if let Some(new_piece_component) = pieces.get_mut(new_piece) {
                             if new_piece_component.team_id == board.current_team().id {
                                 return self.handle_own_piece_at_target(x, y, new_piece,
-                                                 &mut board, &mut pieces, &targets);
+                                                 &mut board, &mut actions, &mut pieces, &targets);
                             }
                         }
                     }
@@ -131,7 +132,6 @@ impl SimpleState for PieceMovementState {
 
                     println!("target piece: {:?} ; invalid attack: {} ; invalid target cell: {}", piece_at_target, invalid_attack, invalid_target_cell);
 
-                    let mut actions = data.world.write_resource::<Actions>();
                     if cant_move || invalid_attack || invalid_target_cell {
                         return Trans::Replace(Box::new(PiecePlacementState::new()))
                     } else if let Some(attacked_piece) = piece_at_target {
@@ -168,6 +168,7 @@ impl PieceMovementState {
 
     fn handle_own_piece_at_target(&mut self, x: u8, y: u8, piece_at_target: Entity,
                                   mut board: &mut Board,
+                                  mut actions: &mut Actions,
                                   mut pieces: &mut WriteStorage<Piece>,
                                   targets: &WriteStorage<Target>) -> SimpleTrans{
         if self.piece == piece_at_target{
@@ -177,7 +178,8 @@ impl PieceMovementState {
             if let Some(power) = p {
                 return match power.kind {
                     Power::Blast => {
-                        self.activate_blast(x,y,&power, &mut board, &mut pieces, targets);
+                        self.activate_blast(x,y,&power, &mut board, actions, &mut pieces, targets);
+                        actions.add_to_queue(Exhaust::special(piece_at_target));
                         Trans::Replace(Box::new(PiecePlacementState::new()))
                     },
                     Power::TargetedShoot => {
@@ -199,6 +201,7 @@ impl PieceMovementState {
 
     fn activate_blast(&mut self, x: u8, y: u8, power: &ActivatablePower,
                       board: &mut Board,
+                      actions: &mut Actions,
                       pieces: &mut WriteStorage<Piece>,
                       targets: &WriteStorage<Target>) {
 
@@ -211,12 +214,14 @@ impl PieceMovementState {
             if let Some(target_piece) = board.get_piece(power_x as u8, power_y as u8){
 
                 if pieces.get(target_piece).unwrap().team_id != board.current_team().id {
-                    pieces.get_mut(target_piece).unwrap().dying = true;
+                    actions.add_to_queue(Remove::new(target_piece, BoardPosition::new(power_x,power_y)));
                     pieces.get_mut(self.piece).unwrap().exhaustion.on_attack();
                 }
             }
 
             return true;
         });
+
+
     }
 }
