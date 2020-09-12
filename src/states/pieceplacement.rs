@@ -27,7 +27,7 @@ use crate::systems::actions::during_turn::{InitNewPieces, MergePiecePatterns, Up
 use crate::states::load::Actions;
 use std::borrow::BorrowMut;
 use std::ops::Deref;
-use crate::systems::actions::actions::{HasRunNow, AddUnusedPiece};
+use crate::systems::actions::actions::{HasRunNow, AddUnusedPiece, ProducesActions};
 use crate::systems::actions::place::Place;
 
 pub struct PiecePlacementState {
@@ -46,25 +46,29 @@ impl PiecePlacementState {
 impl SimpleState for PiecePlacementState {
 
     fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
+        {
+            let mut actions = data.world.write_resource::<Actions>();
+            actions.run_queue(&data.world);
+        }
 
-        // That might have to happen AFTER actions.run_queue() but that's tricky because of borrow checker
         data.world.maintain(); // This makes sure that deleted entities are actually deleted
-
-        let mut actions = data.world.write_resource::<Actions>();
-        actions.run_queue(&data.world);
 
         let local_actions: Vec<Box<dyn HasRunNow>> = vec![
             Box::new(UpdateUi{text: "Place your Piece"}),
             Box::new(InitNewPieces{}),
-            Box::new(MergePiecePatterns{}),
+            MergePiecePatterns::new(),
             Box::new(InitNewPieces{}),
             Box::new(UpdateTargets{}),
         ];
 
         for action in local_actions {
             action.get_run_now().run_now(&data.world);
+
+            let mut actions = data.world.write_resource::<Actions>();
+            actions.run_queue(&data.world);
         }
 
+        let mut actions = data.world.write_resource::<Actions>();
         actions.finalize_player_move();
 
     }

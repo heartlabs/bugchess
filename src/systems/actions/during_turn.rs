@@ -12,8 +12,11 @@ use crate::{
     resources::board::{Board,Pattern},
     states::load::Sprites,
 };
-use crate::systems::actions::actions::HasRunNow;
+use crate::systems::actions::actions::{HasRunNow, Action};
 use amethyst::core::ecs::RunNow;
+use crate::states::load::Actions;
+use crate::systems::actions::place::Place;
+use crate::systems::actions::remove::Remove;
 
 pub struct UpdateTargets {}
 
@@ -84,7 +87,14 @@ impl<'a> System<'a> for UpdateTargets {
     }
 }
 
-pub struct MergePiecePatterns {}
+pub struct MergePiecePatterns {
+}
+
+impl MergePiecePatterns {
+    pub fn new() -> Box<Self> {
+        Box::new(MergePiecePatterns{})
+    }
+}
 
 impl HasRunNow for MergePiecePatterns {
     fn get_run_now<'a>(&self) -> Box<dyn RunNow<'a>> {
@@ -95,13 +105,14 @@ impl HasRunNow for MergePiecePatterns {
 impl<'a> System<'a> for MergePiecePatterns {
     type SystemData = (
         WriteExpect<'a, Board>,
+        WriteExpect<'a, Actions>,
         WriteStorage<'a, TurnInto>,
         WriteStorage<'a, Piece>,
         WriteStorage<'a, BoardPosition>,
         Entities<'a>
     );
 
-    fn run(&mut self, (mut board, mut turn_intos, mut pieces, mut positions, entities): Self::SystemData) {
+    fn run(&mut self, (mut board, mut actions, mut turn_intos, mut pieces, mut positions, entities): Self::SystemData) {
         for pattern in &Pattern::all_patterns() {
             for x in 0..board.w as usize - pattern.components[0].len() + 1 {
                 for y in 0..board.h as usize - pattern.components.len() + 1 {
@@ -114,18 +125,22 @@ impl<'a> System<'a> for MergePiecePatterns {
                                 && !pieces.get(x).unwrap().dying) {
                             matched_entities.iter_mut().for_each(|&mut matched_piece| {
                                 println!("Going to remove matched piece {:?}", matched_piece);
-                                pieces.get_mut(matched_piece).unwrap().dying = true;
-                                let pos = positions.get(matched_piece).unwrap();
-                                board.remove_piece(pos.coords.x, pos.coords.y);
+                                let pos = positions.get(matched_piece).unwrap().clone();
+                                actions.add_to_queue(Remove::new(matched_piece, pos));
                             });
+
                             let new_piece = entities.create();
-                            turn_intos.insert(new_piece, TurnInto { kind: pattern.turn_into });
+                            pieces.insert(new_piece, Piece::new(any_team_id));
 
                             let new_piece_x = x as u8 + pattern.new_piece_relative_position.coords.x;
                             let new_piece_y = y as u8 + pattern.new_piece_relative_position.coords.y;
-                            positions.insert(new_piece, BoardPosition { coords: Point2::new(new_piece_x, new_piece_y) });
 
-                            pieces.insert(new_piece, Piece::new(any_team_id));
+                            actions.add_to_queue(Place::introduce(
+                                new_piece,
+                                BoardPosition { coords: Point2::new(new_piece_x, new_piece_y) },
+                                pattern.turn_into
+                            ));
+
 
                             println!("Matched pattern at {}:{}; new piece at {}:{}", x, y, new_piece_x, new_piece_y);
                         }

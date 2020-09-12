@@ -22,6 +22,12 @@ pub trait HasRunNow {
     fn get_run_now<'a> (&self) -> Box<dyn RunNow<'a>  + 'a>;
 }
 
+pub trait ProducesActions {
+    fn get_actions(&self) -> Vec<Box<dyn Action + Send + Sync>> {
+        Vec::new()
+    }
+}
+
 #[derive(Copy,Clone)]
 pub struct AddUnusedPiece {
     entity: Entity,

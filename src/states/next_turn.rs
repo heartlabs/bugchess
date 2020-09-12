@@ -24,6 +24,7 @@ use crate::resources::board::{Board,};
 use crate::systems::actions::moving::Move;
 use crate::systems::actions::place::Place;
 use crate::systems::actions::next_turn::*;
+use crate::states::load::Actions;
 
 pub struct TurnCounter {
     pub num_turns: u32,
@@ -70,21 +71,29 @@ impl SimpleState for NextTurnState {
     }
 
     fn update(&mut self, data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans  {
-        let board = data.world.write_resource::<Board>();
-
         {
-            let mut ui_text = data.world.write_storage::<UiText>();
-            let team = board.current_team();
-            let ui_elements = data.world.read_resource::<UiElements>();
-            if let Some(text) = ui_text.get_mut(ui_elements.current_team_text) {
-                text.text = format!("Current Team: {}", team.name);
-                text.color = [team.color.red, team.color.green, team.color.blue, team.color.alpha];
+            let board = data.world.write_resource::<Board>();
+
+
+            {
+                let mut ui_text = data.world.write_storage::<UiText>();
+                let team = board.current_team();
+                let ui_elements = data.world.read_resource::<UiElements>();
+                if let Some(text) = ui_text.get_mut(ui_elements.current_team_text) {
+                    text.text = format!("Current Team: {}", team.name);
+                    text.color = [team.color.red, team.color.green, team.color.blue, team.color.alpha];
+                }
+            }
+
+            if self.no_teams_left || board.num_unused_pieces() > 20 {
+                return Trans::Replace(Box::new(GameOverState::new(board.current_team())))
             }
         }
 
-        if self.no_teams_left || board.num_unused_pieces() > 20 {
-            return Trans::Replace(Box::new(GameOverState::new(board.current_team())))
-        }
+        let mut actions = data.world.write_resource::<Actions>();
+        actions.run_queue(data.world);
+        actions.finalize_player_move();
+        actions.finish_turn();
 
         Trans::Replace(Box::new(PiecePlacementState::new()))
     }

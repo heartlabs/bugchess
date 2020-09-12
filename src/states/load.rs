@@ -71,6 +71,14 @@ impl Actions {
         }
     }
 
+    pub fn finish_turn(&mut self) {
+        self.assert_empty_queue("finishing turn");
+        println!("Finished turn. Pos: {}, History: {:?}", self.pos, self.history.len());
+        self.pos = 0;
+        self.history.clear();
+
+    }
+
     pub fn run_queue(&mut self, world: &World) {
         // TODO: Is there another way to avoid a double mutable ownership of self?
         let actions: Vec<Box<dyn Action+Sync+Send>> = {
@@ -98,7 +106,7 @@ impl Actions {
     }
 
     pub fn insert_only(&mut self, action: Box<dyn Action + Send + Sync>) {
-        self.assert_empty_queue("insert and run new action");
+        self.assert_empty_queue("insert new action without running it");
         self.current_move.add(action);
     }
 
