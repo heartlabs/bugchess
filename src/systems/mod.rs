@@ -5,6 +5,7 @@ pub mod ui_event_handling;
 pub mod target_highlighter;
 pub mod piece_movement_indicator;
 pub mod actions;
+pub mod power_animation;
 
 pub use self::dying::DyingSystem;
 pub use self::mousehandler::MouseHandler;

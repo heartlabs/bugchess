@@ -22,6 +22,7 @@ mod resources;
 mod states;
 mod components;
 mod systems;
+mod constants;
 
 type MyPrefabData = BasicScenePrefab<(Vec<Position>, Vec<Normal>, Vec<TexCoord>)>;
 
@@ -43,6 +44,7 @@ fn main() -> amethyst::Result<()> {
         .with(crate::systems::piece_movement_indicator::PieceMovement, "piece_movement_indicator", &["th_system"])
         .with(crate::systems::dying::DyingSystem, "dying_system", &[])
         .with(crate::systems::move_to_position::MoveToPosition, "movement_system", &[])
+        .with(crate::systems::power_animation::PowerAnimationSystem, "animation_system", &[])
         .with_bundle(TransformBundle::new())?
         .with_bundle(UiBundle::<StringBindings>::new())?
         .with_system_desc(crate::systems::ui_event_handling::UiEventHandlerSystemDesc::default(), "ui_event_handler", &[])

@@ -26,6 +26,10 @@ use crate::systems::actions::place::Place;
 use crate::systems::actions::next_turn::*;
 use crate::states::load::Actions;
 
+use std::io::prelude::*;
+use std::net::{TcpStream, TcpListener};
+use std::time::Duration;
+
 pub struct TurnCounter {
     pub num_turns: u32,
 }
@@ -54,7 +58,6 @@ impl NextTurnState {
 impl SimpleState for NextTurnState {
 
     fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
-
         {
             let mut turn_counter = data.world.write_resource::<TurnCounter>();
             turn_counter.num_turns += 1;
@@ -73,8 +76,7 @@ impl SimpleState for NextTurnState {
     fn update(&mut self, data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans  {
         {
             let board = data.world.write_resource::<Board>();
-
-
+            
             {
                 let mut ui_text = data.world.write_storage::<UiText>();
                 let team = board.current_team();

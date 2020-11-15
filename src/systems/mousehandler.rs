@@ -97,12 +97,12 @@ impl<'s> System<'s> for MouseHandler {
 
             let half_height = bounded.bounds.half_extents().x;
             let half_width = bounded.bounds.half_extents().y;
-            debug_lines_resource.draw_rectangle(
-                Point2::new(rect_x - half_height, rect_y - half_width),
-                Point2::new(rect_x + half_height, rect_y + half_width),
-                0.0,
-                Srgba::new(0.5, 0.9, 0.0, 1.0),
-            );
+            // debug_lines_resource.draw_rectangle(
+            //     Point2::new(rect_x - half_height, rect_y - half_width),
+            //     Point2::new(rect_x + half_height, rect_y + half_width),
+            //     0.0,
+            //     Srgba::new(0.5, 0.9, 0.0, 1.0),
+            // );
         }
 
 

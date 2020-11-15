@@ -11,18 +11,18 @@ Container(
         Label(
             transform: (
                 id: "current_state",
-                x: 150.,
-                y: -100,
-                width: 400.,
-                height: 200.,
+                x: -70.,
+                y: 275,
+                width: 800.,
+                height: 30.,
                 tab_order: 1,
-                anchor: TopLeft,
+                anchor: Middle,
             ),
             text: (
                 text: "Loading...",
                 font_size: 30.,
                 color: (0.1, 0.1, 0.1, 1.0),
-                align: Middle,
+                align: TopLeft,
             )
         ),
         Label(

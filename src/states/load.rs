@@ -33,6 +33,9 @@ use crate::systems::actions::during_turn::{InitNewPieces, MergePiecePatterns, Up
 use crate::systems::actions::actions::{Action, HasRunNow, CompoundAction, AddUnusedPiece};
 use std::collections::VecDeque;
 use crate::systems::actions::place::Place;
+use crate::components::bounded::PowerAnimation;
+use std::time::Instant;
+use crate::constants::{CELL_SCALE, CELL_WIDTH, cell_coords};
 
 pub struct LoadingState;
 
@@ -44,7 +47,9 @@ pub struct Sprites {
     pub sprite_cross: SpriteRender,
     pub sprite_queen: SpriteRender,
     pub sprite_protect: SpriteRender,
-    pub sprite_sniper: SpriteRender
+    pub sprite_sniper: SpriteRender,
+    pub sprite_bullet: SpriteRender,
+    pub sprite_explosion: SpriteRender,
 }
 
 #[derive(Clone)]
@@ -157,6 +162,7 @@ impl SimpleState for LoadingState {
         world.register::<Piece>();
         world.register::<Tint>();
         world.register::<Effect>();
+        world.register::<PowerAnimation>();
 
         // Get the screen dimensions so we can initialize the camera and
         // place our sprites correctly later. We'll clone this since we'll
@@ -191,6 +197,7 @@ impl SimpleState for LoadingState {
         });
 
         let s_vec= load_sprites(world, "pieces", 8);
+        let special_sprites= load_sprites(world, "special", 4);
 
         world.insert(Sprites{
             sprite_piece: s_vec[0].to_owned(),
@@ -200,6 +207,8 @@ impl SimpleState for LoadingState {
             sprite_queen: s_vec[4].to_owned(),
             sprite_protect: s_vec[5].to_owned(),
             sprite_sniper: s_vec[6].to_owned(),
+            sprite_bullet: special_sprites[0].to_owned(),
+            sprite_explosion: special_sprites[1].to_owned(),
         });
 
 
@@ -265,32 +274,30 @@ impl SimpleState for LoadingState {
 }
 
 
+
+
 fn init_board(world: &mut World, sprites: &[SpriteRender], actions: &mut Actions) {
 
     let cells = (0..BOARD_WIDTH as usize)
         .map(|x| {
             (0..BOARD_HEIGHT as usize)
                 .map(|y| {
-                    let scale: f32 = 1.2;
-                    let cell_size = 64;
-                    let shift_x: f32 = cell_size as f32/2. * scale;
-                    let shift_y: f32 = cell_size as f32/2. * scale;
-
-                    let x_pos = ((x * cell_size) as f32) * scale + shift_x;
-                    let y_pos = ((y * cell_size) as f32) * scale + shift_y;
-
                     let x_coord = x as u8;
                     let y_coord = y as u8;
 
+                    let (x_pos, y_pos) = cell_coords(x_coord,y_coord);
+
+
                     let mut transform = Transform::default();
                     transform.set_translation_xyz(x_pos, y_pos, -0.1);
-                    transform.set_scale(Vector3::new(scale, scale, scale));
+                    transform.set_scale(Vector3::new(CELL_SCALE, CELL_SCALE, 1.));
 
                     let bounded = Bounded {
-                        bounds: Cuboid::new(Vector3::new((cell_size - 1) as f32 /2. * scale, (cell_size-1) as f32 /2. * scale, 0.0))
+                        bounds: Cuboid::new(Vector3::new((CELL_WIDTH-1) as f32 /2. * CELL_SCALE, (CELL_WIDTH-1) as f32 /2. * CELL_SCALE, 0.0))
                     };
 
-                    let sprite = &sprites[(x + y)%2];
+                    // let sprite = &sprites[1];
+                    let sprite = &sprites[(x + y + 1)%2];
 
                     world
                         .create_entity()
@@ -312,13 +319,18 @@ fn init_board(world: &mut World, sprites: &[SpriteRender], actions: &mut Actions
         Team {
             name: "Unos",
             id: 0,
-            color: Srgba::new(1., 0., 0., 1.),
+            // color: Srgba::new(1., 1., 0.2, 1.),
+            // color: Srgba::new(0.96,  0.49, 0.37, 1.),
+            // color: Srgba::new(0.96, 0.37, 0.23, 1.),
+            color: Srgba::new(0.76, 0.17, 0.10, 1.),
             lost: false,
         },
          Team {
              name: "Duos",
              id: 1,
-             color: Srgba::new(0., 1., 0., 1.),
+             // color: Srgba::new(0., 0., 0., 1.),
+             // color: Srgba::new(0.93, 0.78, 0.31, 1.),
+             color: Srgba::new(0.90, 0.68, 0.15, 1.),
              lost: false,
          },
     ];

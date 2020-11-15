@@ -52,7 +52,7 @@ impl Action for Remove {
 
     fn finalize(&self, world: &World) {
         println!("Deleted entity {:?}", self.entity);
-        world.entities_mut().delete(self.entity);
+     //   world.entities_mut().delete(self.entity);
     }
 }
 

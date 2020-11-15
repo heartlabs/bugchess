@@ -21,6 +21,15 @@ use crate::{
 };
 
 use log::info;
+use crate::components::bounded::PowerAnimation;
+use amethyst::core::Transform;
+use crate::components::Cell;
+use amethyst::core::math::Vector3;
+use std::time::Instant;
+use crate::states::load::Sprites;
+use amethyst::renderer::{Sprite, SpriteRender, resources::Tint};
+use crate::constants::cell_coords;
+use crate::states::piecemovement::POWER_ANIMATION_DURATION;
 
 pub struct TargetForPowerState {
     pub from_x: u8,
@@ -109,14 +118,60 @@ impl SimpleState for TargetForPowerState {
                     }
 
                     let mut targets = data.world.write_storage::<Target>();
+                    let mut transforms = data.world.write_storage::<Transform>();
+                    let mut sprite_renders = data.world.write_storage::<SpriteRender>();
+                    let mut tints = data.world.write_storage::<Tint>();
+                    let sprites = data.world.read_resource::<Sprites>();
 
                     let cell = board.get_cell(x,y);
                     let target = targets.get(cell).unwrap();
 
+                    let mut power_animations = data.world.write_storage::<PowerAnimation>();
                     if target.is_possible_special_target_of(self.piece) {
                         if let Some(attacked_piece) = piece_at_target {
                             attacked_piece.dying = true;
-                            pieces.get_mut(self.piece).unwrap().exhaustion.on_attack();
+                            let mut own_piece = pieces.get_mut(self.piece).unwrap();
+                            own_piece.exhaustion.on_attack();
+
+                            let (x_coord, y_coord) = cell_coords(x,y);
+                            let target_pos = Vector3::new(x_coord, y_coord, 0.);
+
+                            {
+                                let own_transform = transforms.get(self.piece).unwrap();
+                                let power_animation: PowerAnimation = PowerAnimation {
+                                    from_pos: own_transform.translation().clone(),
+                                    to_pos: target_pos,
+                                    start_time: Instant::now(),
+                                    duration: POWER_ANIMATION_DURATION,
+                                    start_scale: 1.0,
+                                    end_scale: 1.0
+                                };
+
+                                data.world.entities().build_entity()
+                                    .with(power_animation, &mut power_animations)
+                                    .with(own_transform.clone(), &mut transforms)
+                                    .with(sprites.sprite_bullet.clone(), &mut sprite_renders)
+                                    .build();
+                            }
+                            {
+                                let own_transform = transforms.get(self.piece).unwrap();
+                                let dying_animation: PowerAnimation = PowerAnimation {
+                                    from_pos: target_pos,
+                                    to_pos: target_pos,
+                                    start_time: Instant::now(),
+                                    duration: POWER_ANIMATION_DURATION,
+                                    start_scale: 1.0,
+                                    end_scale: 1.0
+                                };
+
+                                let target_entity = board.get_piece(x, y).unwrap();
+                                data.world.entities().build_entity()
+                                    .with(dying_animation, &mut power_animations)
+                                    .with(own_transform.clone(), &mut transforms)
+                                    .with(sprite_renders.get(target_entity).unwrap().to_owned(), &mut sprite_renders)
+                                    .with(tints.get(target_entity).unwrap().to_owned(), &mut tints)
+                                    .build();
+                            }
                         }
                     }
 

@@ -2,7 +2,7 @@
 
 Grid((
     texture_width: 128,
-    texture_height: 256,
+    texture_height: 128,
     columns: 2,
-    rows: 4,
+    rows: 2,
 ))

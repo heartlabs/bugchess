@@ -2,6 +2,8 @@ use amethyst::ecs::{Component, DenseVecStorage, Entity};
 
 use std::iter::successors;
 use crate::resources::board::Board;
+use crate::components::bounded::PowerAnimation;
+use crate::states::load::Sprites;
 
 
 #[derive(Debug,PartialEq)]
@@ -48,7 +50,6 @@ pub enum Power {
     Blast,
     TargetedShoot
 }
-
 
 #[derive(Clone, Copy, Debug)]
 pub enum PieceKind {
