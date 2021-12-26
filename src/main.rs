@@ -1,68 +1,126 @@
-use amethyst::{
-    core::transform::TransformBundle,
-    prelude::*,
-    renderer::{
-        plugins::{RenderFlat2D, RenderToWindow, RenderDebugLines},
-        types::DefaultBackend,
-        RenderingBundle,
-        rendy::mesh::{Normal, Position, TexCoord},
-    },
-    ui::{RenderUi, UiBundle},
-    utils::{
-        application_root_dir,
-        fps_counter::{FpsCounterBundle},
-        scene::BasicScenePrefab,
-    },
-    input::{InputBundle, StringBindings},
-    assets::{PrefabLoaderSystemDesc},
-};
-
-
-mod resources;
-mod states;
-mod components;
-mod systems;
+mod board;
 mod constants;
+mod piece;
+mod rendering;
+mod states;
+mod game_events;
 
-type MyPrefabData = BasicScenePrefab<(Vec<Position>, Vec<Normal>, Vec<TexCoord>)>;
+use std::borrow::{Borrow, BorrowMut};
+use std::cell::RefCell;
+use std::rc::Rc;
+use macroquad::prelude::*;
+use crate::{
+    board::*,
+    constants::*,
+//    piece::*
+};
+use crate::game_events::{BoardEventConsumer, CompoundEventType, EventBroker, EventConsumer, GameEvent};
+use crate::piece::{Piece, PieceKind};
+use crate::rendering::{BoardRender, CustomRenderContext};
+use crate::states::CoreGameState;
 
-
-fn main() -> amethyst::Result<()> {
-    amethyst::start_logger(Default::default());
-
-    let app_root = application_root_dir()?;
-
-    let resources = app_root.join("resources");
-    let display_config = resources.join("display_config.ron");
-    let input_bundle = InputBundle::<StringBindings>::new();
-
-    let game_data = GameDataBuilder::default()
-        .with_system_desc(PrefabLoaderSystemDesc::<MyPrefabData>::default(), "", &[])
-        .with_bundle(input_bundle)?
-        .with(crate::systems::mousehandler::MouseHandler::new(), "mouse_handler", &["input_system"])
-        .with(crate::systems::target_highlighter::TargetHighlightingSystem, "th_system", &[])
-        .with(crate::systems::piece_movement_indicator::PieceMovement, "piece_movement_indicator", &["th_system"])
-        .with(crate::systems::dying::DyingSystem, "dying_system", &[])
-        .with(crate::systems::move_to_position::MoveToPosition, "movement_system", &[])
-        .with(crate::systems::power_animation::PowerAnimationSystem, "animation_system", &[])
-        .with_bundle(TransformBundle::new())?
-        .with_bundle(UiBundle::<StringBindings>::new())?
-        .with_system_desc(crate::systems::ui_event_handling::UiEventHandlerSystemDesc::default(), "ui_event_handler", &[])
-        .with_bundle(FpsCounterBundle::default())?
-        .with_bundle(
-            RenderingBundle::<DefaultBackend>::new()
-                .with_plugin(RenderFlat2D::default())
-                .with_plugin(RenderDebugLines::default())
-                .with_plugin(RenderUi::default())
-                .with_plugin(
-                    RenderToWindow::from_config_path(display_config)?
-                        .with_clear([0.34, 0.36, 0.52, 1.0]),
-                ),
-        )?;
-
-    let mut game = Application::new(resources, states::LoadingState {}, game_data)?;
-    game.run();
-
-    Ok(())
+fn window_conf() -> Conf {
+    Conf {
+        window_title: "Makrochess".to_owned(),
+        window_width: 800,
+        window_height: 800,
+        ..Default::default()
+    }
 }
 
+#[macroquad::main(window_conf)]
+async fn main() {
+    let mut board = Rc::new(RefCell::new(Box::new(init_board())));
+    let mut event_broker = EventBroker::new();
+    event_broker.subscribe(Box::new(BoardEventConsumer {board: Rc::clone(&board)}));
+
+    set_up_pieces(&mut board, &mut event_broker);
+
+    println!("set up pieces. {}", (*board).borrow().as_ref().teams[0].unused_pieces);
+
+    let mut board_render = BoardRender::new((*board).borrow().as_ref());
+    let mut render_context = CustomRenderContext::new();
+
+    println!("set up everything.");
+    loop {
+        board_render.render((*board).borrow().as_ref(), &render_context);
+
+        if is_mouse_button_pressed(MouseButton::Left) {
+            let (x, y) = cell_hovered();
+            let next_game_state = render_context.game_state.on_click(Point2::new(x,y), board.as_ref().borrow_mut().borrow_mut(), &mut event_broker);
+            render_context.game_state = next_game_state;
+            render_context.reset_elapsed_time();
+            if event_broker.flush() {
+                CoreGameState::merge_patterns((*board).borrow_mut().as_mut(), &mut event_broker);
+                event_broker.commit(Some(CompoundEventType::Merge));
+            }
+        }
+
+        if is_key_pressed(KeyCode::N) {
+            {
+                let mut b = (*board).borrow_mut();
+                let current_team_index = b.current_team_index;
+                b.next_team();
+                event_broker.handle_event(&GameEvent::AddUnusedPiece(current_team_index));
+                event_broker.handle_event(&GameEvent::AddUnusedPiece(current_team_index));
+            }
+            event_broker.commit(Option::None);
+            event_broker.delete_history();
+        }
+
+        if is_key_pressed(KeyCode::U) {
+            event_broker.undo();
+        }
+
+        event_broker.flush();
+        board_render = BoardRender::new((*board).borrow().as_ref());
+
+        next_frame().await
+    }
+}
+
+fn set_up_pieces(board: &mut Rc<RefCell<Box<Board>>>, event_broker: &mut EventBroker) {
+    let team_count = (**board).borrow().teams.len();
+
+    let start_pieces = 2;
+
+    for team_id in 0..team_count {
+        let target_point = Point2::new((2 + team_id * 3) as u8, (2 + team_id * 3) as u8);
+        let piece = Piece::new(team_id, PieceKind::Simple);
+        event_broker.handle_event(&GameEvent::Place(target_point, piece));
+
+        for _ in 0..start_pieces {
+            event_broker.handle_event(&GameEvent::AddUnusedPiece(team_id));
+        }
+    }
+
+    event_broker.commit(None);
+    event_broker.delete_history();
+}
+
+fn init_board() -> Board {
+
+    let teams = vec![
+        Team {
+            name: "Unos",
+            id: 0,
+            // color: Srgba::new(1., 1., 0.2, 1.),
+            // color: Srgba::new(0.96,  0.49, 0.37, 1.),
+            // color: Srgba::new(0.96, 0.37, 0.23, 1.),
+            color: Color::new(0.76, 0.17, 0.10, 1.),
+            lost: false,
+            unused_pieces: 0
+        },
+        Team {
+            name: "Duos",
+            id: 1,
+            // color: Srgba::new(0., 0., 0., 1.),
+            // color: Srgba::new(0.93, 0.78, 0.31, 1.),
+            color: Color::new(0.90, 0.68, 0.15, 1.),
+            lost: false,
+            unused_pieces: 0
+        },
+    ];
+
+    Board::new(teams)
+}

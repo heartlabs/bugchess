@@ -1,5 +1,0 @@
-(
-  title: "megachess",
-  dimensions: Some((800, 600)),
-  resizable: false,
-)

@@ -1,25 +1,38 @@
+use macroquad::prelude::*;
 use crate::{
-    components::{
-        board::{Team, BoardEvent, BOARD_WIDTH, BOARD_HEIGHT, BoardPosition},
-        piece::{PieceKind}
-    }
+    constants::*,
+    piece::*
 };
-use amethyst::ecs::{Entity};
-use amethyst::core::math::{Point2};
+use crate::game_events::{EventConsumer, GameEvent};
+use crate::rendering::{CustomRenderContext};
+
+#[derive(Clone, Copy)]
+pub struct Team {
+    pub id: usize,
+    pub color: Color,
+    pub name: &'static str,
+    pub lost: bool,
+    pub unused_pieces: u8
+}
+
+#[derive(Clone, Copy)]
+pub struct Cell {
+    pub x: u8,
+    pub y: u8
+}
+
 
 pub struct Board {
-    cells: Vec<Vec<Entity>>,
-    placed_pieces: Vec<Vec<Option<Entity>>>,
-    unused_pieces: Vec<Vec<Entity>>,
-    teams: Vec<Team>,
-    current_team_index: usize,
+    pub(crate) placed_pieces: Vec<Vec<Option<Piece>>>,
+    pub(crate) cells: Vec<Cell>,
+    pub(crate) teams: Vec<Team>,
+    pub(crate) current_team_index: usize,
     pub w: u8,
     pub h: u8,
-    event: Option<BoardEvent>,
 }
 
 impl Board {
-    pub fn new(cells: Vec<Vec<Entity>>, teams: Vec<Team>) -> Board {
+    pub fn new(teams: Vec<Team>) -> Board {
         let pieces = (0..BOARD_WIDTH)
             .map(|_i| {
                 (0..BOARD_HEIGHT)
@@ -30,84 +43,53 @@ impl Board {
             })
             .collect();
 
-        let unused_pieces = teams.iter().map(|_| Vec::new()).collect();
+        let mut cells = vec![];
+
+        for x in 0..BOARD_WIDTH {
+            for y in 0..BOARD_HEIGHT {
+                cells.push(Cell {x, y});
+            }
+
+        }
 
         Board {
-            cells,
             placed_pieces: pieces,
-            unused_pieces,
+            cells,
             teams,
             current_team_index: 0,
             w: BOARD_WIDTH,
             h: BOARD_HEIGHT,
-            event: Option::None,
         }
     }
 
-    pub fn add_unused_piece(&mut self, piece: Entity) {
-        self.unused_pieces[self.current_team_index].push(piece);
+    pub fn num_unused_pieces(&self) -> u8 {
+        self.current_team().unused_pieces
     }
-    pub fn add_unused_piece_for(&mut self, piece: Entity, team_id: usize) {
-        self.unused_pieces[team_id].push(piece);
-    }
-
-    pub fn get_unused_piece(&mut self) -> Option<Entity> {
-        self.unused_pieces[self.current_team_index].pop()
+    pub fn num_unused_pieces_of(&self, team_id: usize) -> u8 {
+        self.get_team(team_id).unused_pieces
     }
 
-    pub fn discard_unused_piece(&mut self, piece: Entity) {
-        assert_eq!(self.get_unused_piece().unwrap(), piece);
-    }
-
-    pub fn num_unused_pieces(&self) -> usize {
-        self.unused_pieces[self.current_team_index].len()
-    }
-    pub fn num_unused_pieces_of(&self, team_id: usize) -> usize {
-        self.unused_pieces[team_id].len()
-    }
-
-    pub fn place_piece(&mut self, piece: Entity, x: u8, y: u8){
-        self.placed_pieces[x as usize][y as usize] = Some(piece);
-    }
-
-    pub fn place_piece_at(&mut self, piece: Entity, pos: &BoardPosition){
-        self.place_piece(piece, pos.coords.x, pos.coords.y);
-    }
-
-    pub fn remove_piece(&mut self, x: u8, y: u8){
-        self.placed_pieces[x as usize][y as usize] = None;
-    }
-    pub fn remove_piece_at(&mut self, pos: &BoardPosition){
-        self.remove_piece(pos.coords.x, pos.coords.y);
-    }
-
-    pub fn get_piece(&self, x: u8, y: u8) -> Option<Entity> {
-        self.placed_pieces[x as usize][y as usize]
-    }
-
-    pub fn get_piece_at(&self, pos: &BoardPosition) -> Option<Entity> {
-        self.get_piece(pos.coords.x, pos.coords.y)
-    }
-
-    pub fn move_piece(&mut self, piece: Entity, from_x: u8, from_y: u8, to_x: u8, to_y: u8){
-        self.remove_piece(from_x, from_y);
-        self.place_piece(piece, to_x, to_y);
-    }
-    pub fn move_piece_at(&mut self, piece: Entity, from_pos: &BoardPosition, to_pos: &BoardPosition){
-        self.remove_piece_at(from_pos);
-        self.place_piece_at(piece, to_pos);
-    }
-
-    pub fn get_cell_safely(&self, x: i16, y: i16) -> Option<Entity> {
-        if x >= 0 && y >=0 && x < self.w as i16 && y < self.h as i16{
-            Some(self.get_cell(x as u8,y as u8))
-        } else {
-            None
+    pub fn get_piece(&self, x: u8, y: u8) -> Option<&Piece> {
+        if !self.has_cell(x,y){
+            return Option::None;
         }
+        self.placed_pieces[x as usize][y as usize].as_ref()
     }
 
-    pub fn get_cell(&self, x: u8, y: u8) -> Entity {
-        self.cells[x as usize][y as usize]
+    pub fn get_piece_at(&self, pos: &Point2) -> Option<&Piece> {
+        self.get_piece(pos.x, pos.y)
+    }
+
+    pub fn get_piece_mut(&mut self, x: u8, y: u8) -> Option<&mut Piece> {
+        self.placed_pieces[x as usize][y as usize].as_mut()
+    }
+
+    pub fn get_piece_mut_at(&mut self, pos: &Point2) -> Option<&mut Piece> {
+        self.get_piece_mut(pos.x, pos.y)
+    }
+
+    pub fn has_cell(&self, x: u8, y: u8) -> bool {
+        x < self.w && y < self.h
     }
 
     pub fn current_team(&self) -> Team {
@@ -118,8 +100,8 @@ impl Board {
         self.current_team_index == team_id
     }
 
-    pub fn get_team(&self, team_id: usize) -> Team {
-        self.teams[team_id]
+    pub fn get_team(&self, team_id: usize) -> &Team {
+        &self.teams[team_id]
     }
 
     pub fn num_teams(&self) -> usize {
@@ -152,32 +134,19 @@ impl Board {
     }
 
 
-
-    pub fn set_event(&mut self, event: BoardEvent) {
-        self.event = Some(event);
-    }
-    pub fn poll_event(&mut self) -> Option<BoardEvent> {
-
-        let event = self.event.take();
-        if event.is_some() {
-            println!("Handling event {:?}", event);
-        }
-        event
-    }
-
-    pub fn match_pattern(&self, pattern: &Pattern, start_x: u8, start_y: u8) -> Option<Vec<Entity>> {
+    pub fn match_pattern(&self, pattern: &Pattern, start_x: u8, start_y: u8) -> Option<Vec<Point2>> {
         let mut matched_entities = Vec::new();
         for (pattern_y, line) in pattern.components.iter().enumerate() {
             for (pattern_x, p) in line.iter().enumerate() {
                 let board_x = start_x + pattern_x as u8;
                 let board_y = start_y + pattern_y as u8;
 
-                if let Some(piece) = self.get_piece(board_x, board_y) {
+                if let Some(_piece) = self.get_piece(board_x, board_y) {
                     if p == &PatternComponent::Free {
                         return None;
                     }
                     else if p == &PatternComponent::OwnPiece {
-                        matched_entities.push(piece);
+                        matched_entities.push(Point2::new(board_x, board_y));
                     }
                 } else if p == &PatternComponent::OwnPiece {
                     return None;
@@ -186,6 +155,64 @@ impl Board {
         }
 
         Option::Some(matched_entities)
+    }
+
+    // publicly accessible with events:
+
+    pub(crate) fn add_unused_piece_for(&mut self, team_id: usize) {
+        self.teams[team_id].unused_pieces += 1;
+    }
+
+    pub fn remove_unused_piece(&mut self, team_id: usize) -> bool {
+        if self.teams[team_id].unused_pieces <= 0 {
+            false
+        } else {
+            self.teams[team_id].unused_pieces -= 1;
+            true
+        }
+    }
+
+    pub fn unused_piece_available(&self) -> bool {
+        self.current_team().unused_pieces > 0
+    }
+
+    pub(crate) fn place_piece(&mut self, piece: Piece, x: u8, y: u8){
+        self.placed_pieces[x as usize][y as usize] = Some(piece);
+    }
+
+    fn place_piece_at(&mut self, piece: Piece, pos: &Point2){
+        self.place_piece(piece, pos.x, pos.y);
+    }
+
+    pub(crate) fn remove_piece(&mut self, x: u8, y: u8) -> Piece {
+        self.placed_pieces[x as usize][y as usize].take().unwrap()
+    }
+    fn remove_piece_at(&mut self, pos: &Point2){
+        self.remove_piece(pos.x, pos.y);
+    }
+
+    pub(crate) fn move_piece(&mut self, from_x: u8, from_y: u8, to_x: u8, to_y: u8){
+        let piece = self.remove_piece(from_x, from_y);
+        self.place_piece(piece, to_x, to_y);
+    }
+    fn move_piece_at(&mut self, piece: Piece, from_pos: &Point2, to_pos: &Point2){
+        self.remove_piece_at(from_pos);
+        self.place_piece_at(piece, to_pos);
+    }
+
+}
+
+
+
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub struct Point2 {
+    pub x: u8,
+    pub y: u8
+}
+
+impl Point2 {
+    pub fn new(x: u8, y: u8) -> Self {
+        Point2 {x,y}
     }
 }
 
@@ -199,7 +226,7 @@ pub enum PatternComponent {
 pub struct Pattern {
     pub components: Vec<Vec<PatternComponent>>,
     pub turn_into: PieceKind,
-    pub new_piece_relative_position: Point2<u8>,
+    pub new_piece_relative_position: Point2,
 }
 
 impl Pattern {

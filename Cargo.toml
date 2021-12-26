@@ -1,17 +1,9 @@
 [package]
-name = "megachess"
+name = "makrochess"
 version = "0.1.0"
-authors = ["Neidhart Orlich <neidhart.orlich@gmail.com>"]
-edition = "2018"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-amethyst = "0.15.0"
-log = { version = "0.4.8", features = ["serde"] }
-ncollide3d = "0.21.0"
-
-[features]
-default = ["vulkan", "fast"]
-empty = ["amethyst/empty"]
-metal = ["amethyst/metal"]
-vulkan = ["amethyst/vulkan"]
-fast = ["amethyst/no-slow-safety-checks"]
+macroquad = "0.3"

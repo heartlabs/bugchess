@@ -1,10 +1,6 @@
-use amethyst::ecs::{Component, DenseVecStorage, Entity};
-
+use std::fmt::{Debug};
 use std::iter::successors;
-use crate::resources::board::Board;
-use crate::components::bounded::PowerAnimation;
-use crate::states::load::Sprites;
-
+use crate::Board;
 
 #[derive(Debug,PartialEq)]
 pub enum EffectKind {
@@ -25,12 +21,12 @@ pub struct ActivatablePower {
     pub range: Range,
 }
 
+#[derive(Debug,Copy,Clone)]
 pub struct Move {
     pub range: Range,
 }
 
-#[derive(Component, Debug)]
-#[storage(DenseVecStorage)]
+#[derive(Debug)]
 pub struct TurnInto {
     pub kind: PieceKind,
 }
@@ -63,8 +59,13 @@ pub enum PieceKind {
 }
 
 impl Piece {
-    pub fn new(team_id: usize) -> Piece {
-        Piece {
+    pub fn simple() -> Piece {
+        Self::new(0, PieceKind::Simple)
+    }
+
+    pub fn new(team_id: usize, turn_into: PieceKind) -> Piece {
+        let mut piece = Piece {
+            piece_kind: PieceKind::Simple,
             attack: true,
             pierce: true,
             shield: false,
@@ -74,13 +75,71 @@ impl Piece {
             exhaustion: Exhaustion::new_exhausted(ExhaustionStrategy::Either),
             team_id,
             exists: true
+        };
+
+        Piece::init_piece(&mut piece, turn_into);
+
+        piece
+    }
+
+    fn init_piece(piece: &mut Piece, turn_into: PieceKind) {
+        piece.piece_kind = turn_into;
+        match turn_into {
+            PieceKind::HorizontalBar => {
+                piece.movement = Some(Move::new(Direction::Horizontal, 255));
+                piece.activatable = Some(ActivatablePower {
+                    range: Range::new_unlimited(Direction::Horizontal),
+                    kind: Power::Blast,
+                });
+            }
+            PieceKind::VerticalBar => {
+                piece.movement = Some(Move::new(Direction::Vertical, 255));
+                piece.activatable = Some(ActivatablePower {
+                    range: Range::new_unlimited(Direction::Vertical),
+                    kind: Power::Blast,
+                });
+            }
+            PieceKind::Cross => {
+                piece.movement = Some(Move::new(Direction::Straight, 255));
+                piece.shield = true;
+            }
+            PieceKind::Simple => {
+                piece.movement = Some(Move::new(Direction::Star, 1));
+                piece.pierce = false;
+            }
+            PieceKind::Queen => {
+                piece.movement = Some(Move::new(Direction::Star, 255));
+                piece.exhaustion = Exhaustion::new_exhausted(ExhaustionStrategy::Both);
+                piece.activatable = Some(ActivatablePower {
+                    range: Range::new(Direction::Star, 1),
+                    kind: Power::Blast,
+                });
+            }
+            PieceKind::Castle => {
+                piece.shield = true;
+                /*effects.insert(e, Effect {
+                    kind: EffectKind::Protection,
+                    range: Range {
+                        direction: Direction::Star,
+                        steps: 1,
+                        jumps: true,
+                        include_self: true,
+                    },
+                });*/
+            }
+            PieceKind::Sniper => {
+                piece.activatable = Some(ActivatablePower {
+                    range: Range::anywhere(),
+                    kind: Power::TargetedShoot,
+                });
+            }
         }
     }
 }
 
-#[derive(Component)]
-#[storage(DenseVecStorage)]
+#[derive(Debug,Copy,Clone)]
 pub struct Piece {
+    pub piece_kind: PieceKind,
     pub attack: bool,
     pub pierce: bool,
     pub shield: bool,
@@ -92,6 +151,7 @@ pub struct Piece {
     pub exists: bool // To mark pieces that don't exist in the game but are still stored in the history
 }
 
+#[derive(Debug,Copy,Clone)]
 pub enum ExhaustionStrategy {
     Either,
     Both,
@@ -99,6 +159,7 @@ pub enum ExhaustionStrategy {
     Special
 }
 
+#[derive(Debug,Copy,Clone)]
 pub struct Exhaustion {
     moved: bool,
     used_special: bool,
@@ -221,8 +282,7 @@ impl Direction {
     }
 }
 
-#[derive(Component, Debug)]
-#[storage(DenseVecStorage)]
+#[derive(Debug)]
 pub struct Effect {
     pub kind: EffectKind,
     pub range: Range,
@@ -250,7 +310,7 @@ impl Range {
     pub fn paths(&self, from_x: u8, from_y: u8) -> Box<dyn Iterator<Item=Box<dyn Iterator<Item=(i16,i16)>>>> {
         if self.direction == Direction::Anywhere { // TODO: This only works if jump=true and steps=max
             let row_iter = (0..255 as i16).map(move |x| {
-                Box::new((0..255 as i16).map(move |y| (x, y))) as Box<Iterator<Item=(i16, i16)>>
+                Box::new((0..255 as i16).map(move |y| (x, y))) as Box<dyn Iterator<Item=(i16, i16)>>
             });
             return Box::new(row_iter);
         }
@@ -271,12 +331,12 @@ impl Range {
         Box::new(vec.into_iter())
     }
 
-    pub fn for_each<F>(&self, from_x: u8, from_y: u8, board: &Board, mut perform: F) where F: FnMut(u8,u8,Entity) -> bool {
+    pub fn for_each<F>(&self, from_x: u8, from_y: u8, board: &Board, mut perform: F) where F: FnMut(u8,u8) -> bool {
         for direction in self.paths(from_x, from_y) {
             for (x_i16,y_i16) in direction {
                 let (x,y) = (x_i16 as u8, y_i16 as u8);
-                if let Some(cell) = board.get_cell_safely(x_i16, y_i16) {
-                    let proceed = perform(x,y,cell);
+                if board.has_cell(x,y) {
+                    let proceed = perform(x,y);
                     if !self.jumps && (board.get_piece(x, y).is_some() || !proceed) {
                         break;
                     }

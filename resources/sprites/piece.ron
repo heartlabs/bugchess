@@ -1,8 +1,0 @@
-#![enable(implicit_some)]
-
-Grid((
-    texture_width: 162,
-    texture_height: 162,
-    columns: 1,
-    rows: 1,
-))
