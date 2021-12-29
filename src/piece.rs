@@ -1,8 +1,9 @@
-use std::fmt::{Debug};
-use std::iter::successors;
 use crate::Board;
+use std::fmt::Debug;
+use std::iter::successors;
+use nanoserde::{SerBin, DeBin};
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum EffectKind {
     Protection,
 }
@@ -10,18 +11,18 @@ pub enum EffectKind {
 impl Move {
     pub fn new(direction: Direction, steps: u8) -> Move {
         Move {
-            range: Range::new(direction, steps)
+            range: Range::new(direction, steps),
         }
     }
 }
 
-#[derive(Debug,Copy,Clone)]
+#[derive(Debug, Copy, Clone, SerBin, DeBin)]
 pub struct ActivatablePower {
     pub kind: Power,
     pub range: Range,
 }
 
-#[derive(Debug,Copy,Clone)]
+#[derive(Debug, Copy, Clone, SerBin, DeBin)]
 pub struct Move {
     pub range: Range,
 }
@@ -31,23 +32,23 @@ pub struct TurnInto {
     pub kind: PieceKind,
 }
 
-#[derive(Debug,PartialEq,Copy,Clone)]
+#[derive(Debug, PartialEq, Copy, Clone, SerBin, DeBin)]
 pub enum Direction {
     Vertical,
     Horizontal,
     Diagonal,
     Straight,
     Star,
-    Anywhere
+    Anywhere,
 }
 
-#[derive(Debug,Copy,Clone)]
+#[derive(Debug, Copy, Clone, SerBin, DeBin)]
 pub enum Power {
     Blast,
-    TargetedShoot
+    TargetedShoot,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, SerBin, DeBin)]
 pub enum PieceKind {
     Simple,
     HorizontalBar,
@@ -55,7 +56,7 @@ pub enum PieceKind {
     Cross,
     Queen,
     Castle,
-    Sniper
+    Sniper,
 }
 
 impl Piece {
@@ -74,7 +75,7 @@ impl Piece {
             dying: false,
             exhaustion: Exhaustion::new_exhausted(ExhaustionStrategy::Either),
             team_id,
-            exists: true
+            exists: true,
         };
 
         Piece::init_piece(&mut piece, turn_into);
@@ -137,7 +138,7 @@ impl Piece {
     }
 }
 
-#[derive(Debug,Copy,Clone)]
+#[derive(Debug, Copy, Clone, SerBin, DeBin)]
 pub struct Piece {
     pub piece_kind: PieceKind,
     pub attack: bool,
@@ -148,38 +149,38 @@ pub struct Piece {
     pub dying: bool,
     pub exhaustion: Exhaustion,
     pub team_id: usize,
-    pub exists: bool // To mark pieces that don't exist in the game but are still stored in the history
+    pub exists: bool, // To mark pieces that don't exist in the game but are still stored in the history
 }
 
-#[derive(Debug,Copy,Clone)]
+#[derive(Debug, Copy, Clone, SerBin, DeBin)]
 pub enum ExhaustionStrategy {
     Either,
     Both,
     Move,
-    Special
+    Special,
 }
 
-#[derive(Debug,Copy,Clone)]
+#[derive(Debug, Copy, Clone, SerBin, DeBin)]
 pub struct Exhaustion {
     moved: bool,
     used_special: bool,
-    strategy: ExhaustionStrategy
+    strategy: ExhaustionStrategy,
 }
 
 impl Exhaustion {
     pub(crate) fn new_exhausted(strategy: ExhaustionStrategy) -> Exhaustion {
-      Exhaustion {
-          moved: true,
-          used_special: true,
-          strategy
-      }
+        Exhaustion {
+            moved: true,
+            used_special: true,
+            strategy,
+        }
     }
 
     pub(crate) fn new_rested(strategy: ExhaustionStrategy) -> Exhaustion {
         Exhaustion {
             moved: false,
             used_special: false,
-            strategy
+            strategy,
         }
     }
 
@@ -225,7 +226,7 @@ impl Exhaustion {
     }
 }
 
-#[derive(Debug,Copy,Clone)]
+#[derive(Debug, Copy, Clone, SerBin, DeBin)]
 pub struct Range {
     pub direction: Direction,
     pub steps: u8,
@@ -234,50 +235,54 @@ pub struct Range {
 }
 
 impl Direction {
-    fn reaches(&self, from_x: u8, from_y: u8, to_x: u8, to_y: u8) -> bool{
+    fn reaches(&self, from_x: u8, from_y: u8, to_x: u8, to_y: u8) -> bool {
         match &self {
             Direction::Vertical => from_x == to_x,
             Direction::Horizontal => from_y == to_y,
-            Direction::Diagonal => (from_y as i16 - to_y as i16).abs() == (from_x as i16 - to_x as i16).abs(),
+            Direction::Diagonal => {
+                (from_y as i16 - to_y as i16).abs() == (from_x as i16 - to_x as i16).abs()
+            }
             Direction::Straight => from_x == to_x || from_y == to_y,
-            Direction::Star =>(from_y as i16 - to_y as i16).abs() == (from_x as i16 - to_x as i16).abs() || from_x == to_x || from_y == to_y,
-            Direction::Anywhere => true
+            Direction::Star => {
+                (from_y as i16 - to_y as i16).abs() == (from_x as i16 - to_x as i16).abs()
+                    || from_x == to_x
+                    || from_y == to_y
+            }
+            Direction::Anywhere => true,
         }
     }
 
-    fn paths(&self) -> Vec<Box<dyn Fn((i16,i16)) -> (i16,i16)>>{
+    fn paths(&self) -> Vec<Box<dyn Fn((i16, i16)) -> (i16, i16)>> {
         match &self {
-            Direction::Vertical => vec![
-                Box::new(|(x,y)| (x,y+1)),
-                Box::new(|(x,y)| (x,y-1))
-            ],
-            Direction::Horizontal => vec![
-                Box::new(|(x,y)| (x+1,y)),
-                Box::new(|(x,y)| (x-1,y))
-            ],
+            Direction::Vertical => {
+                vec![Box::new(|(x, y)| (x, y + 1)), Box::new(|(x, y)| (x, y - 1))]
+            }
+            Direction::Horizontal => {
+                vec![Box::new(|(x, y)| (x + 1, y)), Box::new(|(x, y)| (x - 1, y))]
+            }
             Direction::Diagonal => vec![
-                Box::new(|(x,y)| (x+1,y+1)),
-                Box::new(|(x,y)| (x-1,y-1)),
-                Box::new(|(x,y)| (x+1,y-1)),
-                Box::new(|(x,y)| (x-1,y+1)),
+                Box::new(|(x, y)| (x + 1, y + 1)),
+                Box::new(|(x, y)| (x - 1, y - 1)),
+                Box::new(|(x, y)| (x + 1, y - 1)),
+                Box::new(|(x, y)| (x - 1, y + 1)),
             ],
             Direction::Straight => vec![
-                Box::new(|(x,y)| (x+1,y)),
-                Box::new(|(x,y)| (x-1,y)),
-                Box::new(|(x,y)| (x,y+1)),
-                Box::new(|(x,y)| (x,y-1))
+                Box::new(|(x, y)| (x + 1, y)),
+                Box::new(|(x, y)| (x - 1, y)),
+                Box::new(|(x, y)| (x, y + 1)),
+                Box::new(|(x, y)| (x, y - 1)),
             ],
             Direction::Star => vec![
-                Box::new(|(x,y)| (x+1,y+1)),
-                Box::new(|(x,y)| (x-1,y-1)),
-                Box::new(|(x,y)| (x+1,y-1)),
-                Box::new(|(x,y)| (x-1,y+1)),
-                Box::new(|(x,y)| (x+1,y)),
-                Box::new(|(x,y)| (x-1,y)),
-                Box::new(|(x,y)| (x,y+1)),
-                Box::new(|(x,y)| (x,y-1))
+                Box::new(|(x, y)| (x + 1, y + 1)),
+                Box::new(|(x, y)| (x - 1, y - 1)),
+                Box::new(|(x, y)| (x + 1, y - 1)),
+                Box::new(|(x, y)| (x - 1, y + 1)),
+                Box::new(|(x, y)| (x + 1, y)),
+                Box::new(|(x, y)| (x - 1, y)),
+                Box::new(|(x, y)| (x, y + 1)),
+                Box::new(|(x, y)| (x, y - 1)),
             ],
-            Direction::Anywhere => Vec::new()
+            Direction::Anywhere => Vec::new(),
         }
     }
 }
@@ -290,15 +295,30 @@ pub struct Effect {
 
 impl Range {
     pub fn new_unlimited(direction: Direction) -> Range {
-        Range {direction, steps: 255, jumps: false, include_self: false}
+        Range {
+            direction,
+            steps: 255,
+            jumps: false,
+            include_self: false,
+        }
     }
 
     pub fn new(direction: Direction, steps: u8) -> Range {
-        Range {direction, steps, jumps: false, include_self: false}
+        Range {
+            direction,
+            steps,
+            jumps: false,
+            include_self: false,
+        }
     }
 
     pub fn anywhere() -> Range {
-        Range {direction: Direction::Anywhere, steps: 255, jumps: true, include_self: false}
+        Range {
+            direction: Direction::Anywhere,
+            steps: 255,
+            jumps: true,
+            include_self: false,
+        }
     }
 
     pub fn reaches(&self, from_x: u8, from_y: u8, to_x: u8, to_y: u8) -> bool {
@@ -307,36 +327,50 @@ impl Range {
             && (from_x as i16 - to_x as i16).abs() as u8 <= self.steps
     }
 
-    pub fn paths(&self, from_x: u8, from_y: u8) -> Box<dyn Iterator<Item=Box<dyn Iterator<Item=(i16,i16)>>>> {
-        if self.direction == Direction::Anywhere { // TODO: This only works if jump=true and steps=max
+    pub fn paths(
+        &self,
+        from_x: u8,
+        from_y: u8,
+    ) -> Box<dyn Iterator<Item = Box<dyn Iterator<Item = (i16, i16)>>>> {
+        if self.direction == Direction::Anywhere {
+            // TODO: This only works if jump=true and steps=max
             let row_iter = (0..255 as i16).map(move |x| {
-                Box::new((0..255 as i16).map(move |y| (x, y))) as Box<dyn Iterator<Item=(i16, i16)>>
+                Box::new((0..255 as i16).map(move |y| (x, y)))
+                    as Box<dyn Iterator<Item = (i16, i16)>>
             });
             return Box::new(row_iter);
         }
 
-        let mut vec = self.direction.paths().into_iter().map(move |i| {
-            let x: Box<dyn Iterator<Item=(i16,i16)>> = Box::new(successors(
-                Some((from_x as i16, from_y as i16)),
-                move |&x| Some(i(x)))
-                .skip(1)
-                .take(self.steps as usize));
-            x
-        }).collect::<Vec<Box<dyn Iterator<Item=(i16,i16)>>>>();
+        let mut vec = self
+            .direction
+            .paths()
+            .into_iter()
+            .map(move |i| {
+                let x: Box<dyn Iterator<Item = (i16, i16)>> = Box::new(
+                    successors(Some((from_x as i16, from_y as i16)), move |&x| Some(i(x)))
+                        .skip(1)
+                        .take(self.steps as usize),
+                );
+                x
+            })
+            .collect::<Vec<Box<dyn Iterator<Item = (i16, i16)>>>>();
 
         if self.include_self {
-            vec.push(Box::new(Some((from_x as i16,from_y as i16)).into_iter()));
+            vec.push(Box::new(Some((from_x as i16, from_y as i16)).into_iter()));
         }
 
         Box::new(vec.into_iter())
     }
 
-    pub fn for_each<F>(&self, from_x: u8, from_y: u8, board: &Board, mut perform: F) where F: FnMut(u8,u8) -> bool {
+    pub fn for_each<F>(&self, from_x: u8, from_y: u8, board: &Board, mut perform: F)
+    where
+        F: FnMut(u8, u8) -> bool,
+    {
         for direction in self.paths(from_x, from_y) {
-            for (x_i16,y_i16) in direction {
-                let (x,y) = (x_i16 as u8, y_i16 as u8);
-                if board.has_cell(x,y) {
-                    let proceed = perform(x,y);
+            for (x_i16, y_i16) in direction {
+                let (x, y) = (x_i16 as u8, y_i16 as u8);
+                if board.has_cell(x, y) {
+                    let proceed = perform(x, y);
                     if !self.jumps && (board.get_piece(x, y).is_some() || !proceed) {
                         break;
                     }
@@ -347,5 +381,3 @@ impl Range {
         }
     }
 }
-
-

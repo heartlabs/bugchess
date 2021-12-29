@@ -1,10 +1,8 @@
-use macroquad::prelude::*;
-use crate::{
-    constants::*,
-    piece::*
-};
 use crate::game_events::{EventConsumer, GameEvent};
-use crate::rendering::{CustomRenderContext};
+use crate::rendering::CustomRenderContext;
+use crate::{constants::*, piece::*};
+use macroquad::prelude::*;
+use nanoserde::{SerBin, DeBin};
 
 #[derive(Clone, Copy)]
 pub struct Team {
@@ -12,15 +10,14 @@ pub struct Team {
     pub color: Color,
     pub name: &'static str,
     pub lost: bool,
-    pub unused_pieces: u8
+    pub unused_pieces: u8,
 }
 
 #[derive(Clone, Copy)]
 pub struct Cell {
     pub x: u8,
-    pub y: u8
+    pub y: u8,
 }
-
 
 pub struct Board {
     pub(crate) placed_pieces: Vec<Vec<Option<Piece>>>,
@@ -34,22 +31,15 @@ pub struct Board {
 impl Board {
     pub fn new(teams: Vec<Team>) -> Board {
         let pieces = (0..BOARD_WIDTH)
-            .map(|_i| {
-                (0..BOARD_HEIGHT)
-                    .map(|_j| {
-                        Option::None
-                    })
-                    .collect()
-            })
+            .map(|_i| (0..BOARD_HEIGHT).map(|_j| Option::None).collect())
             .collect();
 
         let mut cells = vec![];
 
         for x in 0..BOARD_WIDTH {
             for y in 0..BOARD_HEIGHT {
-                cells.push(Cell {x, y});
+                cells.push(Cell { x, y });
             }
-
         }
 
         Board {
@@ -70,7 +60,7 @@ impl Board {
     }
 
     pub fn get_piece(&self, x: u8, y: u8) -> Option<&Piece> {
-        if !self.has_cell(x,y){
+        if !self.has_cell(x, y) {
             return Option::None;
         }
         self.placed_pieces[x as usize][y as usize].as_ref()
@@ -125,7 +115,7 @@ impl Board {
 
             if self.current_team_index == initial_team_index {
                 println!("No next team. Current team {}", self.current_team_index);
-                return None // All (other) teams lost
+                return None; // All (other) teams lost
             } else if !self.current_team().lost {
                 println!("Next team is {}", self.current_team_index);
                 return Some(self.current_team());
@@ -133,8 +123,12 @@ impl Board {
         }
     }
 
-
-    pub fn match_pattern(&self, pattern: &Pattern, start_x: u8, start_y: u8) -> Option<Vec<Point2>> {
+    pub fn match_pattern(
+        &self,
+        pattern: &Pattern,
+        start_x: u8,
+        start_y: u8,
+    ) -> Option<Vec<Point2>> {
         let mut matched_entities = Vec::new();
         for (pattern_y, line) in pattern.components.iter().enumerate() {
             for (pattern_x, p) in line.iter().enumerate() {
@@ -144,8 +138,7 @@ impl Board {
                 if let Some(_piece) = self.get_piece(board_x, board_y) {
                     if p == &PatternComponent::Free {
                         return None;
-                    }
-                    else if p == &PatternComponent::OwnPiece {
+                    } else if p == &PatternComponent::OwnPiece {
                         matched_entities.push(Point2::new(board_x, board_y));
                     }
                 } else if p == &PatternComponent::OwnPiece {
@@ -176,43 +169,41 @@ impl Board {
         self.current_team().unused_pieces > 0
     }
 
-    pub(crate) fn place_piece(&mut self, piece: Piece, x: u8, y: u8){
+    pub(crate) fn place_piece(&mut self, piece: Piece, x: u8, y: u8) {
         self.placed_pieces[x as usize][y as usize] = Some(piece);
     }
 
-    fn place_piece_at(&mut self, piece: Piece, pos: &Point2){
+    fn place_piece_at(&mut self, piece: Piece, pos: &Point2) {
         self.place_piece(piece, pos.x, pos.y);
     }
 
     pub(crate) fn remove_piece(&mut self, x: u8, y: u8) -> Piece {
-        self.placed_pieces[x as usize][y as usize].take().unwrap()
+        self.placed_pieces[x as usize][y as usize].take()
+            .expect(format!("Cannot remove: There is no piece on {}:{}", x,y).as_str())
     }
-    fn remove_piece_at(&mut self, pos: &Point2){
+    fn remove_piece_at(&mut self, pos: &Point2) {
         self.remove_piece(pos.x, pos.y);
     }
 
-    pub(crate) fn move_piece(&mut self, from_x: u8, from_y: u8, to_x: u8, to_y: u8){
+    pub(crate) fn move_piece(&mut self, from_x: u8, from_y: u8, to_x: u8, to_y: u8) {
         let piece = self.remove_piece(from_x, from_y);
         self.place_piece(piece, to_x, to_y);
     }
-    fn move_piece_at(&mut self, piece: Piece, from_pos: &Point2, to_pos: &Point2){
+    fn move_piece_at(&mut self, piece: Piece, from_pos: &Point2, to_pos: &Point2) {
         self.remove_piece_at(from_pos);
         self.place_piece_at(piece, to_pos);
     }
-
 }
 
-
-
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone, SerBin, DeBin)]
 pub struct Point2 {
     pub x: u8,
-    pub y: u8
+    pub y: u8,
 }
 
 impl Point2 {
     pub fn new(x: u8, y: u8) -> Self {
-        Point2 {x,y}
+        Point2 { x, y }
     }
 }
 
@@ -230,66 +221,154 @@ pub struct Pattern {
 }
 
 impl Pattern {
-    pub fn all_patterns() -> [Pattern;6] {
+    pub fn all_patterns() -> [Pattern; 6] {
         [
             Pattern {
                 components: vec![
-                    vec![PatternComponent::Any,     PatternComponent::Any, PatternComponent::OwnPiece,  PatternComponent::Any,      PatternComponent::Any],
-                    vec![PatternComponent::Any,     PatternComponent::OwnPiece, PatternComponent::Free, PatternComponent::OwnPiece, PatternComponent::Any],
-                    vec![PatternComponent::OwnPiece,PatternComponent::Free,     PatternComponent::Free, PatternComponent::Free,     PatternComponent::OwnPiece],
-                    vec![PatternComponent::Any,     PatternComponent::OwnPiece, PatternComponent::Free, PatternComponent::OwnPiece, PatternComponent::Any],
-                    vec![PatternComponent::Any,     PatternComponent::Any, PatternComponent::OwnPiece,  PatternComponent::Any,      PatternComponent::Any],
+                    vec![
+                        PatternComponent::Any,
+                        PatternComponent::Any,
+                        PatternComponent::OwnPiece,
+                        PatternComponent::Any,
+                        PatternComponent::Any,
+                    ],
+                    vec![
+                        PatternComponent::Any,
+                        PatternComponent::OwnPiece,
+                        PatternComponent::Free,
+                        PatternComponent::OwnPiece,
+                        PatternComponent::Any,
+                    ],
+                    vec![
+                        PatternComponent::OwnPiece,
+                        PatternComponent::Free,
+                        PatternComponent::Free,
+                        PatternComponent::Free,
+                        PatternComponent::OwnPiece,
+                    ],
+                    vec![
+                        PatternComponent::Any,
+                        PatternComponent::OwnPiece,
+                        PatternComponent::Free,
+                        PatternComponent::OwnPiece,
+                        PatternComponent::Any,
+                    ],
+                    vec![
+                        PatternComponent::Any,
+                        PatternComponent::Any,
+                        PatternComponent::OwnPiece,
+                        PatternComponent::Any,
+                        PatternComponent::Any,
+                    ],
                 ],
                 turn_into: PieceKind::Queen,
-                new_piece_relative_position: Point2::new(2, 2)
+                new_piece_relative_position: Point2::new(2, 2),
             },
             Pattern {
                 components: vec![
-                    vec![PatternComponent::Any,     PatternComponent::OwnPiece, PatternComponent::Any],
-                    vec![PatternComponent::OwnPiece,PatternComponent::OwnPiece, PatternComponent::OwnPiece],
-                    vec![PatternComponent::Any,     PatternComponent::OwnPiece, PatternComponent::Any],
+                    vec![
+                        PatternComponent::Any,
+                        PatternComponent::OwnPiece,
+                        PatternComponent::Any,
+                    ],
+                    vec![
+                        PatternComponent::OwnPiece,
+                        PatternComponent::OwnPiece,
+                        PatternComponent::OwnPiece,
+                    ],
+                    vec![
+                        PatternComponent::Any,
+                        PatternComponent::OwnPiece,
+                        PatternComponent::Any,
+                    ],
                 ],
                 turn_into: PieceKind::Cross,
-                new_piece_relative_position: Point2::new(1, 1)
+                new_piece_relative_position: Point2::new(1, 1),
             },
             Pattern {
                 components: vec![
-                    vec![PatternComponent::Free, PatternComponent::Free, PatternComponent::Free],
-                    vec![PatternComponent::OwnPiece, PatternComponent::OwnPiece, PatternComponent::OwnPiece],
-                    vec![PatternComponent::Free, PatternComponent::Free, PatternComponent::Free],
+                    vec![
+                        PatternComponent::Free,
+                        PatternComponent::Free,
+                        PatternComponent::Free,
+                    ],
+                    vec![
+                        PatternComponent::OwnPiece,
+                        PatternComponent::OwnPiece,
+                        PatternComponent::OwnPiece,
+                    ],
+                    vec![
+                        PatternComponent::Free,
+                        PatternComponent::Free,
+                        PatternComponent::Free,
+                    ],
                 ],
                 turn_into: PieceKind::HorizontalBar,
-                new_piece_relative_position: Point2::new(1, 1)
+                new_piece_relative_position: Point2::new(1, 1),
             },
             Pattern {
                 components: vec![
-                    vec![PatternComponent::Free,PatternComponent::OwnPiece,PatternComponent::Free],
-                    vec![PatternComponent::Free,PatternComponent::OwnPiece,PatternComponent::Free],
-                    vec![PatternComponent::Free,PatternComponent::OwnPiece,PatternComponent::Free],
+                    vec![
+                        PatternComponent::Free,
+                        PatternComponent::OwnPiece,
+                        PatternComponent::Free,
+                    ],
+                    vec![
+                        PatternComponent::Free,
+                        PatternComponent::OwnPiece,
+                        PatternComponent::Free,
+                    ],
+                    vec![
+                        PatternComponent::Free,
+                        PatternComponent::OwnPiece,
+                        PatternComponent::Free,
+                    ],
                 ],
                 turn_into: PieceKind::VerticalBar,
-                new_piece_relative_position: Point2::new(1, 1)
+                new_piece_relative_position: Point2::new(1, 1),
             },
             Pattern {
                 components: vec![
-                    vec![PatternComponent::OwnPiece,PatternComponent::Any,PatternComponent::OwnPiece],
-                    vec![PatternComponent::Any,PatternComponent::OwnPiece,PatternComponent::Any],
-                    vec![PatternComponent::OwnPiece,PatternComponent::Any,PatternComponent::OwnPiece],
+                    vec![
+                        PatternComponent::OwnPiece,
+                        PatternComponent::Any,
+                        PatternComponent::OwnPiece,
+                    ],
+                    vec![
+                        PatternComponent::Any,
+                        PatternComponent::OwnPiece,
+                        PatternComponent::Any,
+                    ],
+                    vec![
+                        PatternComponent::OwnPiece,
+                        PatternComponent::Any,
+                        PatternComponent::OwnPiece,
+                    ],
                 ],
                 turn_into: PieceKind::Sniper,
-                new_piece_relative_position: Point2::new(1, 1)
+                new_piece_relative_position: Point2::new(1, 1),
             },
             Pattern {
                 components: vec![
-                    vec![PatternComponent::Any,PatternComponent::OwnPiece,PatternComponent::Any],
-                    vec![PatternComponent::OwnPiece,PatternComponent::Free,PatternComponent::OwnPiece],
-                    vec![PatternComponent::Any,PatternComponent::OwnPiece,PatternComponent::Any],
+                    vec![
+                        PatternComponent::Any,
+                        PatternComponent::OwnPiece,
+                        PatternComponent::Any,
+                    ],
+                    vec![
+                        PatternComponent::OwnPiece,
+                        PatternComponent::Free,
+                        PatternComponent::OwnPiece,
+                    ],
+                    vec![
+                        PatternComponent::Any,
+                        PatternComponent::OwnPiece,
+                        PatternComponent::Any,
+                    ],
                 ],
                 turn_into: PieceKind::Castle,
-                new_piece_relative_position: Point2::new(1, 1)
+                new_piece_relative_position: Point2::new(1, 1),
             },
-
-
         ]
     }
 }
