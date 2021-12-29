@@ -30,7 +30,9 @@ jobs:
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
-        files: 'target/wasm32-unknown-unknown/release/megachess.wasm'
+        files: |
+          target/wasm32-unknown-unknown/release/megachess.wasm
+          html/index.htm
         tag_name: ${{ steps.tag_version.outputs.new_tag }}
 #    - name: Run tests
 #      run: cargo test --verbose
