@@ -31,6 +31,6 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: 'target/wasm32-unknown-unknown/release/megachess.wasm'
-        tag: ${{ steps.tag_version.outputs.new_tag }}
+        tag_name: ${{ steps.tag_version.outputs.new_tag }}
 #    - name: Run tests
 #      run: cargo test --verbose
