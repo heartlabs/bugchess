@@ -10,15 +10,21 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install prerequisites
+      run: sudo apt-get -y install libasound2-dev
+    - name: Setup Rust environment
+      uses: raftario/setup-rust-action@v1.0.0
+      with:
+        rust-target: wasm32-unknown-unknown  
   build:
 
     runs-on: ubuntu-latest
 
-    steps:
-    - name: Setup Rust environment
-      uses: raftario/setup-rust-action@v1.0.0
-      with:
-        rust-target: wasm32-unknown-unknown         
+    steps:       
     - uses: actions/checkout@v2
     - name: Build
       run: cargo build --target wasm32-unknown-unknown --release
