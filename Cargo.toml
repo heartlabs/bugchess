@@ -7,3 +7,10 @@ edition = "2021"
 
 [dependencies]
 macroquad = "0.3"
+nakama-rs = "*"
+nanoserde = "0.1.29"
+futures = "0.3.15"
+instant = "0.1.12"
+
+[target.'cfg(target_os = "windows")'.dependencies]
+openssl = { version = "0.10", features = ["vendored"] }
