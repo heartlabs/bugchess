@@ -15,6 +15,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Setup Rust environment
+      uses: raftario/setup-rust-action@v1.0.0
+      with:
+        rust-target: wasm32-unknown-unknown         
     - uses: actions/checkout@v2
     - name: Build
       run: cargo build --target wasm32-unknown-unknown --release
