@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Install prerequisites
-      run: sudo apt-get -y install libasound2-dev libgl1-mesa-dev xorg-dev binaryen
+      run: sudo apt-get -y install libasound2-dev libgl1-mesa-dev xorg-dev binaryen wabt
     - name: Setup Rust environment
       uses: raftario/setup-rust-action@v1.0.0
       with:
@@ -23,7 +23,7 @@ jobs:
     - name: Build
       run: cargo build --target wasm32-unknown-unknown --release
     - name: Compress
-      run: cd target/wasm32-unknown-unknown/release/ && wasm-opt -Os -o megachess-opt.wasm megachess.wasm
+      run: cd target/wasm32-unknown-unknown/release/ && wasm-opt -Os -o megachess-opt.wasm megachess.wasm && wasm-strip megachess-opt.wasm
     - name: Bump version and push tag
       id: tag_version
       uses: mathieudutour/github-tag-action@v6.0
