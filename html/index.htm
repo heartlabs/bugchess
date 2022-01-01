@@ -23,7 +23,31 @@
 <canvas id="glcanvas" tabindex='1'></canvas>
 <!-- Minified and statically hosted version of https://github.com/not-fl3/macroquad/blob/master/js/mq_js_bundle.js -->
 <script src="https://not-fl3.github.io/miniquad-samples/mq_js_bundle.js"></script>
-<script>load("makrochess.wasm");</script>
+<!--<script src="https://v6p9d9t4.ssl.hwcdn.net/html/3660624-387905/mq_js_bundle.js"></script>-->
+
+<script>
+    function get_config() {
+      config = {
+        nakama: {
+        //    server: "heartlabs.tech",
+         //   server: "127.0.0.1",
+            server: "34.65.62.178",
+            port: "443",
+            protocol: "https"
+        }
+      }
+      console.log({config});
+      return js_object(config);
+    }
+
+    register_plugin = function (importObject) {
+      importObject.env.get_config = get_config;
+    }
+
+// register this plugin in miniquad, required to make plugin's functions available from rust
+miniquad_add_plugin({ register_plugin });
+</script>
+<script>load("/target/wasm32-unknown-unknown/release/megachess.wasm");</script>
 
 </body>
 

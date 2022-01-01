@@ -489,6 +489,7 @@ dependencies = [
  "nakama-rs",
  "nanoserde",
  "openssl",
+ "sapp-jsutils",
 ]
 
 [[package]]

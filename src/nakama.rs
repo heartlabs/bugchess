@@ -4,13 +4,34 @@ use std::rc::Rc;
 use nakama_rs::api_client::{ApiClient, Event};
 use nakama_rs::matchmaker::{Matchmaker, QueryItemBuilder};
 use nanoserde::DeBin;
-use crate::{EventBroker, EventConsumer};
+use crate::{EventBroker, EventConsumer, get_configuration, MyObject};
 use crate::game_events::GameEventObject;
 use crate::rand::rand;
 use macroquad::prelude::*;
 
 pub async fn nakama_client() -> Rc<RefCell<Box<NakamaClient>>> {
-    let mut client = ApiClient::new("defaultkey", "34.65.62.178", 7350, "http");
+    let mut server = String::from("127.0.0.1");
+    //let mut server = String::from("34.65.62.178");
+    let mut protocol = String::from("http");
+    let mut port = 7350;
+
+    let config: Box<dyn MyObject> = get_configuration();
+    if let Some(s) = config.get_field("nakama").and_then(|n| n.get_field("server")) {
+        s.to_string(&mut server);
+    }
+    if let Some(s) = config.get_field("nakama").and_then(|n| n.get_field("protocol")) {
+        s.to_string(&mut protocol);
+    }
+    if let Some(s) = config.get_field("nakama").and_then(|n| n.get_field("port")) {
+        let mut port_str: String = String::new();
+        s.to_string(&mut port_str);
+        port = port_str.parse().unwrap();
+    }
+
+
+    info!("Got {}, {}, {}", protocol, server, port);
+
+    let mut client = ApiClient::new("defaultkey", server.as_str(), port, protocol.as_str());
 
     // Note that the minimum password length is 8 characters!
    // let uuid = Uuid::new_v4();
@@ -22,6 +43,11 @@ pub async fn nakama_client() -> Rc<RefCell<Box<NakamaClient>>> {
 
     if let Some(error) = client.error() {
         info!("Error: {:?}", error);
+    }
+
+    while client.authenticated() == false {
+        info!("Waiting for authentication");
+        next_frame().await;
     }
 
     info!("Username: {:?}; {:?}; {:?}", client.username(), client.rpc_response(), client.authenticated());

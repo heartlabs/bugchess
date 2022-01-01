@@ -6,6 +6,7 @@ mod rendering;
 mod states;
 mod gui;
 mod nakama;
+mod conf;
 
 use crate::game_events::{BoardEventConsumer, CompoundEventType, EventBroker, EventConsumer, GameEvent};
 use crate::piece::{Piece, PieceKind};
@@ -14,6 +15,7 @@ use crate::states::CoreGameState;
 use crate::{
     board::*,
     constants::*,
+    conf::*,
     //    piece::*
 };
 use macroquad::prelude::*;
@@ -22,6 +24,15 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use macroquad::prelude::scene::RefMut;
 use nakama_rs::api_client::ApiClient;
+use futures::executor::block_on;
+use std::collections::HashMap;
+use instant::Instant;
+use macroquad::rand::srand;
+use nakama_rs::matchmaker::{Matchmaker, QueryItemBuilder};
+use nanoserde::DeRonTok::Str;
+use crate::nakama::NakamaEventConsumer;
+
+//use wasm_bindgen::prelude::*;
 
 fn window_conf() -> Conf {
     Conf {
@@ -31,41 +42,9 @@ fn window_conf() -> Conf {
         ..Default::default()
     }
 }
-/*
-pub struct Nakama {
-    pub api_client: ApiClient,
-}
 
-impl Nakama {
-    pub fn new(key: &str, server: &str, port: u32, protocol: &str) -> Nakama {
-        Nakama {
-            api_client: ApiClient::new(key, server, port, protocol),
-        }
-    }
-}
 
-impl scene::Node for Nakama {
-    fn ready(node: RefMut<Self>) {
-        // Once created, nakama node should never be deleted.
-        // The persist() call will make nakama node a singleton,
-        // alive during all scene reloads.
-        node.persist();
-    }
 
-    fn update(mut node: RefMut<Self>) {
-        // api_client should be "ticked" once per frame
-        node.api_client.tick();
-    }
-}*/
-
-use futures::executor::block_on;
-//use nakama_rs::api_client::ApiClient;
-//use nakama_rs::default_client::DefaultClient;
-use std::collections::HashMap;
-use instant::Instant;
-use macroquad::rand::srand;
-use nakama_rs::matchmaker::{Matchmaker, QueryItemBuilder};
-use crate::nakama::NakamaEventConsumer;
 
 #[macroquad::main(window_conf)]
 async fn main() {
@@ -87,10 +66,6 @@ async fn main() {
     let mut board_render = BoardRender::new((*board).borrow().as_ref());
     let mut render_context = CustomRenderContext::new();
 
-    /*let nakama = scene::add_node(Nakama::new(
-        "defaultkey", "127.0.0.1", 7350, "http"
-    ));*/
-
     srand((start_time.elapsed().as_nanos() % u64::MAX as u128) as u64);
     let nakama_events = nakama::nakama_client().await;
     event_broker.subscribe(Box::new(NakamaEventConsumer {
@@ -98,6 +73,7 @@ async fn main() {
     }));
 
     info!("set up everything.");
+
     loop {
         (*nakama_events).borrow_mut().try_recieve(&mut event_broker);
         board_render.render((*board).borrow().as_ref(), &render_context);

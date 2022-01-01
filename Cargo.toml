@@ -11,6 +11,10 @@ nakama-rs = "*"
 nanoserde = "0.1.29"
 futures = "0.3.15"
 instant = "0.1.12"
+# wasm-bindgen = "0.2.78"
+
+[target.'cfg(target_family = "wasm")'.dependencies]
+sapp-jsutils = "0.1.5"
 
 [target.'cfg(target_os = "windows")'.dependencies]
 openssl = { version = "0.10", features = ["vendored"] }

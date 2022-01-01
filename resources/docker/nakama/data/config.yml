@@ -1,0 +1,9 @@
+name: nakama-node-1
+data_dir: "./data/"
+
+logger:
+    level: "DEBUG"
+    file: "/nakama/data/logfile.log"
+
+session:
+    token_expiry_sec: 7200

@@ -1,5 +1,8 @@
 # Unwanted files
 target
+*.pem
+*.cookie
+*.log
 
 # Backup files
 .DS_Store
