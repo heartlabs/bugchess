@@ -1,6 +1,8 @@
+use std::cell::RefCell;
+use std::rc::Rc;
 use crate::game_events::{EventConsumer, GameEvent};
 use crate::rendering::CustomRenderContext;
-use crate::{constants::*, piece::*};
+use crate::{constants::*, Direction, piece::*, Range, RangeContext};
 use macroquad::prelude::*;
 use nanoserde::{SerBin, DeBin};
 
@@ -13,15 +15,16 @@ pub struct Team {
     pub unused_pieces: u8,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct Cell {
-    pub x: u8,
-    pub y: u8,
+    pub point: Point2,
+    pub piece: Option<Piece>,
+    pub effects: Vec<EffectKind>,
 }
 
 pub struct Board {
-    pub(crate) placed_pieces: Vec<Vec<Option<Piece>>>,
-    pub(crate) cells: Vec<Cell>,
+    //pub(crate) placed_pieces: Vec<Vec<Option<Piece>>>,
+    pub(crate) cells: Vec<Vec<Cell>>,
     pub(crate) teams: Vec<Team>,
     pub(crate) current_team_index: usize,
     pub w: u8,
@@ -29,27 +32,57 @@ pub struct Board {
 }
 
 impl Board {
-    pub fn new(teams: Vec<Team>) -> Board {
-        let pieces = (0..BOARD_WIDTH)
-            .map(|_i| (0..BOARD_HEIGHT).map(|_j| Option::None).collect())
-            .collect();
 
+    pub fn new(teams: Vec<Team>) -> Board {
         let mut cells = vec![];
 
         for x in 0..BOARD_WIDTH {
+            let mut column = vec![];
             for y in 0..BOARD_HEIGHT {
-                cells.push(Cell { x, y });
+                column.push(Cell { point: Point2::new(x,y), piece: Option::None, effects: vec![] });
             }
+            cells.push(column);
         }
 
         Board {
-            placed_pieces: pieces,
             cells,
             teams,
             current_team_index: 0,
             w: BOARD_WIDTH,
             h: BOARD_HEIGHT,
         }
+    }
+
+
+    pub fn for_each_cell_mut<F>(&mut self, mut closure: F)  where F : FnMut(&mut Cell) -> () {
+        for mut row in self.cells.iter_mut() {
+            for cell in row {
+                closure(cell);
+            }
+        }
+    }
+
+    pub fn for_each_placed_piece_mut<F>(&mut self, mut closure: F)  where F : FnMut(Point2, &mut Piece) -> () {
+        self.for_each_cell_mut(|cell| {
+            if let Some(piece) = cell.piece.as_mut() {
+                closure(cell.point, piece);
+            }
+        });
+    }
+    pub fn for_each_cell<F>(&self, mut closure: F)  where F : FnMut(&Cell) -> () {
+        for mut row in self.cells.iter() {
+            for cell in row {
+                closure(cell);
+            }
+        }
+    }
+
+    pub fn for_each_placed_piece<F>(&self, mut closure: F)  where F : FnMut(Point2, &Piece) -> () {
+        self.for_each_cell(|cell| {
+                if let Some(piece) = cell.piece.as_ref() {
+                    closure(cell.point, piece);
+                }
+        });
     }
 
     pub fn num_unused_pieces(&self) -> u8 {
@@ -59,27 +92,28 @@ impl Board {
         self.get_team(team_id).unused_pieces
     }
 
-    pub fn get_piece(&self, x: u8, y: u8) -> Option<&Piece> {
-        if !self.has_cell(x, y) {
-            return Option::None;
-        }
-        self.placed_pieces[x as usize][y as usize].as_ref()
+
+    pub fn has_effect_at(&self, effect: &EffectKind, pos: &Point2) -> bool {
+        self.get_cell(pos).effects.contains(effect)
     }
 
     pub fn get_piece_at(&self, pos: &Point2) -> Option<&Piece> {
-        self.get_piece(pos.x, pos.y)
+        if !self.has_cell(pos) {
+            return Option::None;
+        }
+        self.cells[pos.x as usize][pos.y as usize].piece.as_ref()
     }
 
     pub fn get_piece_mut(&mut self, x: u8, y: u8) -> Option<&mut Piece> {
-        self.placed_pieces[x as usize][y as usize].as_mut()
+        self.cells[x as usize][y as usize].piece.as_mut()
     }
 
     pub fn get_piece_mut_at(&mut self, pos: &Point2) -> Option<&mut Piece> {
         self.get_piece_mut(pos.x, pos.y)
     }
 
-    pub fn has_cell(&self, x: u8, y: u8) -> bool {
-        x < self.w && y < self.h
+    pub fn has_cell(&self, point: &Point2) -> bool {
+        point.x < self.w && point.y < self.h
     }
 
     pub fn current_team(&self) -> Team {
@@ -135,11 +169,13 @@ impl Board {
                 let board_x = start_x + pattern_x as u8;
                 let board_y = start_y + pattern_y as u8;
 
-                if let Some(_piece) = self.get_piece(board_x, board_y) {
+                let board_point = Point2::new(board_x, board_y);
+
+                if let Some(_piece) = self.get_piece_at(&board_point) {
                     if p == &PatternComponent::Free {
                         return None;
                     } else if p == &PatternComponent::OwnPiece {
-                        matched_entities.push(Point2::new(board_x, board_y));
+                        matched_entities.push(board_point);
                     }
                 } else if p == &PatternComponent::OwnPiece {
                     return None;
@@ -169,33 +205,48 @@ impl Board {
         self.current_team().unused_pieces > 0
     }
 
-    pub(crate) fn place_piece(&mut self, piece: Piece, x: u8, y: u8) {
-        self.placed_pieces[x as usize][y as usize] = Some(piece);
+    pub(crate) fn place_piece_at(&mut self, piece: Piece, pos: &Point2) {
+        self.get_cell_mut(pos).piece = Some(piece);
+
+        if let Some(effect) = piece.effect {
+            for point in effect.range.reachable_points(pos, &self, &RangeContext::Area).iter() {
+                self.get_cell_mut(point).effects.push(EffectKind::Protection);
+            }
+        }
     }
 
-    fn place_piece_at(&mut self, piece: Piece, pos: &Point2) {
-        self.place_piece(piece, pos.x, pos.y);
+    fn get_cell_mut(&mut self, pos: &Point2) -> &mut Cell {
+        &mut self.cells[pos.x as usize][pos.y as usize]
+    }
+    fn get_cell(&self, pos: &Point2) -> &Cell {
+        &self.cells[pos.x as usize][pos.y as usize]
     }
 
-    pub(crate) fn remove_piece(&mut self, x: u8, y: u8) -> Piece {
-        self.placed_pieces[x as usize][y as usize].take()
-            .expect(format!("Cannot remove: There is no piece on {}:{}", x,y).as_str())
-    }
-    fn remove_piece_at(&mut self, pos: &Point2) {
-        self.remove_piece(pos.x, pos.y);
+    pub fn remove_piece_at(&mut self, pos: &Point2) {
+        let piece = self.get_cell_mut(pos).piece.take()
+            .expect(format!("Cannot remove: There is no piece on {:?}", pos).as_str());
+
+        if let Some(effect) = piece.effect {
+            for point in effect.range.reachable_points(pos, &self, &RangeContext::Area).iter() {
+                let effects = &mut self.get_cell_mut(point).effects;
+                if let Some(pos) = effects.iter_mut().position(|e| *e == EffectKind::Protection) {
+                    effects.swap_remove(pos);
+                }
+            }
+        }
     }
 
-    pub(crate) fn move_piece(&mut self, from_x: u8, from_y: u8, to_x: u8, to_y: u8) {
+    /*pub(crate) fn move_piece(&mut self, from_x: u8, from_y: u8, to_x: u8, to_y: u8) {
         let piece = self.remove_piece(from_x, from_y);
         self.place_piece(piece, to_x, to_y);
     }
     fn move_piece_at(&mut self, piece: Piece, from_pos: &Point2, to_pos: &Point2) {
         self.remove_piece_at(from_pos);
         self.place_piece_at(piece, to_pos);
-    }
+    }*/
 }
 
-#[derive(Debug, PartialEq, Copy, Clone, SerBin, DeBin)]
+#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, SerBin, DeBin)]
 pub struct Point2 {
     pub x: u8,
     pub y: u8,

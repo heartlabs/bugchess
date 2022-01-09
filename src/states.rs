@@ -1,15 +1,18 @@
 use crate::game_events::{CompoundEventType, EventBroker, EventConsumer};
 use crate::*;
 use std::mem;
+use crate::GameEvent::{CompoundEvent, Exhaust, Remove};
 
-enum State {
+#[derive(Debug, Copy, Clone)]
+pub enum State {
     Place,
     Move,
+    Activate,
 }
 
 pub struct CoreGameState {
     pub selected: Option<Point2>,
-    state: State,
+    pub state: State,
 }
 
 impl CoreGameState {
@@ -26,31 +29,43 @@ impl CoreGameState {
             state: State::Move,
         }
     }
+
+    pub fn activate(point: Point2) -> Self {
+        CoreGameState {
+            selected: Some(point),
+            state: State::Activate,
+        }
+    }
 }
 
 impl CoreGameState {
     pub(crate) fn on_click(
         &self,
-        target_point: Point2,
+        target_point: &Point2,
         board: &mut Board,
         event_consumer: &mut EventBroker,
     ) -> CoreGameState {
-        if !board.has_cell(target_point.x, target_point.y) {
+        if !board.has_cell(target_point) {
             return Self::place();
         }
 
         match self.state {
             State::Place => {
-                if let Some(target_piece) = board.get_piece(target_point.x, target_point.y) {
-                    if target_piece.team_id == board.current_team().id {
-                        return Self::move_piece(target_point);
+                if let Some(target_piece) = board.get_piece_at(target_point) {
+                    if target_piece.team_id == board.current_team_index {
+                        if target_piece.can_move() {
+                            return Self::move_piece(*target_point);
+                        }
+                        else if target_piece.can_use_special() {
+                            return Self::activate(*target_point);
+                        }
                     }
                 } else if board.unused_piece_available() {
                     let event = GameEvent::CompoundEvent(
                         vec![
                             GameEvent::RemoveUnusedPiece(board.current_team_index),
                             GameEvent::Place(
-                                target_point,
+                                *target_point,
                                 Piece::new(board.current_team_index, PieceKind::Simple),
                             ),
                         ],
@@ -60,21 +75,62 @@ impl CoreGameState {
                 }
             }
             State::Move => {
-                if let Some(target_piece) = board.get_piece(target_point.x, target_point.y) {
-                    if target_piece.team_id == board.current_team().id {
-                        return Self::move_piece(target_point);
+                if let Some(target_piece) = board.get_piece_at(target_point) {
+                    if let Some(itself) = self.selected {
+                        if itself == *target_point && target_piece.can_use_special() {
+                            if let Some(activatable) = target_piece.activatable {
+                                return match activatable.kind {
+                                    Power::Blast => {
+                                        let mut game_events = vec![Exhaust(true, *target_point)];
+                                        for point in activatable.range.reachable_points(target_point, board, &RangeContext::Special(*target_piece)){
+                                            if let Some(piece) = board.get_piece_at(&point){
+                                                game_events.push(Remove(point, *piece));
+                                            }
+                                        }
+
+                                        event_consumer
+                                            .handle_new_event(&CompoundEvent(
+                                                game_events,
+                                                CompoundEventType::Attack
+                                            ));
+                                        Self::place()
+                                    }
+                                    Power::TargetedShoot => Self::activate(*target_point)
+                                }
+                            }
+                        }
+                    }
+                    if target_piece.team_id == board.current_team_index && target_piece.can_move() {
+                        return Self::move_piece(*target_point);
                     }
                 }
 
-                let Point2 { x, y } = self.selected.unwrap();
+                let selected_point = self.selected.unwrap();
 
-                let selected_piece = board.get_piece(x, y).unwrap();
+                let selected_piece = board.get_piece_at(&selected_point).unwrap();
                 if let Some(m) = selected_piece.movement.as_ref() {
-                    if m.range.reaches(x, y, target_point.x, target_point.y) {
+                    if m.range.reachable_points(&selected_point, board, &RangeContext::Moving(*selected_piece)).contains(target_point) {
                         event_consumer
-                            .handle_new_event(&GameEvent::Move(self.selected.unwrap(), target_point));
+                            .handle_new_event(&GameEvent::new_move(*selected_piece, self.selected.unwrap(), *target_point));
                     }
                 }
+            }
+            State::Activate => {
+                let active_piece_pos = self.selected.as_ref().unwrap();
+                let active_piece = board.get_piece_at(active_piece_pos).unwrap();
+                if let Some(target_piece) = board.get_piece_at(target_point) {
+                    if target_piece.team_id != board.current_team_index && active_piece.can_use_special() {
+                        event_consumer
+                            .handle_new_event(&CompoundEvent(
+                                vec![
+                                    Exhaust(true, *active_piece_pos),
+                                    Remove(*target_point, *target_piece)
+                                ],
+                                CompoundEventType::Attack
+                            ));
+                    }
+                }
+
             }
         }
 

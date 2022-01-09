@@ -10,8 +10,8 @@ use crate::rand::rand;
 use macroquad::prelude::*;
 
 pub async fn nakama_client() -> Rc<RefCell<Box<NakamaClient>>> {
-    let mut server = String::from("127.0.0.1");
-    //let mut server = String::from("34.65.62.178");
+    //let mut server = String::from("127.0.0.1");
+    let mut server = String::from("34.65.62.178");
     let mut protocol = String::from("http");
     let mut port = 7350;
 

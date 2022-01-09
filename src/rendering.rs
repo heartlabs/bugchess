@@ -1,5 +1,6 @@
-use crate::piece::{PieceKind, Range};
-use crate::states::CoreGameState;
+use crate::piece::{PieceKind};
+use crate::ranges::*;
+use crate::states::{CoreGameState, State};
 use crate::*;
 use std::cmp::max;
 use instant::{Instant, Duration};
@@ -41,7 +42,7 @@ impl BoardRender {
         let mut unused_pieces = vec![];
         let mut placed_pieces = vec![];
 
-        let (mut upb_x, mut upb_y) = cell_coords(board.w, board.h - 1);
+        let (mut upb_x, mut upb_y) = cell_coords_tuple(board.w, board.h - 1);
         upb_x += CELL_ABSOLUTE_WIDTH / 2.;
         upb_y += CELL_ABSOLUTE_WIDTH / 2.;
 
@@ -58,22 +59,19 @@ impl BoardRender {
         }
         //}
 
-        for (x, v) in board.placed_pieces.iter().enumerate() {
-            for (y, p) in v.iter().enumerate() {
-                if let Some(piece) = p {
-                    let (x_pos, y_pos) = cell_coords(x as u8, y as u8);
-                    let piece_scale = 60.;
-                    let shift = (CELL_ABSOLUTE_WIDTH - piece_scale) / 2.;
+        board.for_each_placed_piece(|point, piece| {
+            let (x_pos, y_pos) = cell_coords(&point);
+            let piece_scale = 60.;
+            let shift = (CELL_ABSOLUTE_WIDTH - piece_scale) / 2.;
 
-                    placed_pieces.push(PieceRender::new(
-                        x_pos + shift,
-                        y_pos + shift,
-                        board.get_team(piece.team_id).color,
-                        piece.piece_kind,
-                    ));
-                }
-            }
-        }
+            placed_pieces.push(PieceRender::new(
+                x_pos + shift,
+                y_pos + shift,
+                board.get_team(piece.team_id).color,
+                piece.piece_kind,
+            ));
+        });
+
 
         BoardRender {
             unused_pieces,
@@ -82,17 +80,17 @@ impl BoardRender {
     }
 
     pub fn render(&self, board: &Board, render_context: &CustomRenderContext) {
-        board.cells.iter().for_each(|c| {
-            let (x_pos, y_pos) = cell_coords(c.x, c.y);
+        board.for_each_cell(|cell| {
+            let (x_pos, y_pos) = cell_coords(&cell.point);
 
-            let (mouse_cell_x, mouse_cell_y) = cell_hovered();
+            let mouse_point = cell_hovered();
 
-            let color = if c.x == mouse_cell_x && c.y == mouse_cell_y {
+            let color = if cell.point == mouse_point {
                 BLUE
-            } else if (c.x + c.y + 1) % 2 == 0 {
-                GREEN
+            } else if (cell.point.x + cell.point.y + 1) % 2 == 0 {
+                Color::from_rgba(187,173,160, 255)
             } else {
-                YELLOW
+                Color::from_rgba(238,228,218, 255)
             };
             draw_rectangle(
                 x_pos,
@@ -103,31 +101,61 @@ impl BoardRender {
             );
         });
 
-        let (hovered_x, hovered_y) = cell_hovered();
-        if let Some(hovered_piece) = board.get_piece(hovered_x, hovered_y) {
+        board.for_each_cell(|cell| {
+            let (x_pos, y_pos) = cell_coords(&cell.point);
+
+            if !cell.effects.is_empty() {
+                draw_rectangle(
+                    x_pos,
+                    y_pos,
+                    CELL_ABSOLUTE_WIDTH,
+                    CELL_ABSOLUTE_WIDTH,
+                    Color::new(80.,0.,100., 0.6),
+                );
+            }
+        });
+
+
+
+        let hovered_point = cell_hovered();
+        if let Some(hovered_piece) = board.get_piece_at(&hovered_point) {
+            let range_context = match render_context.game_state.state {
+                State::Place => RangeContext::Moving(*hovered_piece),
+                State::Move => RangeContext::Moving(*hovered_piece),
+                State::Activate => RangeContext::Special(*hovered_piece)
+            };
+
             if let Some(m) = hovered_piece.movement.as_ref() {
                 let range = m.range;
                 Self::highlight_range(
                     board,
-                    hovered_x,
-                    hovered_y,
-                    range,
-                    Color::from_rgba(0, 0, 200, 100),
+                    &hovered_point,
+                    &range_context,
+                    &range,
+                    Color::from_rgba(90, 220, 90, 100),
                 )
             }
         }
 
         if let Some(selected_point) = render_context.game_state.selected {
-            if let Some(selected_piece) = board.get_piece(selected_point.x, selected_point.y) {
-                if let Some(m) = selected_piece.movement.as_ref() {
-                    let range = m.range;
+            if let Some(selected_piece) = board.get_piece_at(&selected_point) {
+                let range_context = match render_context.game_state.state {
+                    State::Place => RangeContext::Moving(*selected_piece),
+                    State::Move => RangeContext::Moving(*selected_piece),
+                    State::Activate => RangeContext::Special(*selected_piece)
+                };
+                let range_option: Option<Range> = match render_context.game_state.state {
+                    State::Place => Option::None,
+                    State::Move => selected_piece.movement.map(|m| m.range),
+                    State::Activate => selected_piece.activatable.map(|m| m.range)
+                };
+                if let Some(range) = range_option {
                     Self::highlight_range(
                         board,
-                        selected_point.x,
-                        selected_point.y,
-                        range,
-                        Color::from_rgba(200, 0, 0, 100),
-                    )
+                        &selected_point,
+                        &range_context,
+                        &range,
+                        Color::from_rgba(0, 150, 0, 150),                    )
                 }
             }
         }
@@ -141,18 +169,24 @@ impl BoardRender {
             .for_each(|p| p.render(render_context));
     }
 
-    fn highlight_range(board: &Board, x: u8, y: u8, range: Range, color: Color) {
-        range.for_each(x, y, board, |x, y| {
-            let (x_pos, y_pos) = cell_coords(x, y);
+    fn highlight_range(board: &Board, source_point: &Point2, range_context: &RangeContext, range: &Range, color: Color) {
+        for point in range.reachable_points(source_point, board, range_context).iter() {
+            let (x_pos, y_pos) = cell_coords(&point);
+
+            let mut used_color = color;
+
+            if let Some(piece) = board.get_piece_at(point) {
+                used_color = Color {r: 1.,..used_color}
+            }
+
             draw_rectangle(
                 x_pos,
                 y_pos,
                 CELL_ABSOLUTE_WIDTH,
                 CELL_ABSOLUTE_WIDTH,
-                color,
+                used_color,
             );
-            true
-        })
+        }
     }
 }
 

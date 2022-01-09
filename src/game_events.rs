@@ -1,6 +1,6 @@
 use std::borrow::BorrowMut;
 use crate::game_events::GameEvent::*;
-use crate::{Board, Piece, Point2, u32};
+use crate::{Board, Effect, Piece, Point2, u32};
 use std::cell::RefCell;
 use std::collections::HashSet;
 use std::mem;
@@ -14,12 +14,23 @@ use crate::rand::rand;
 
 #[derive(Debug, Clone, SerBin, DeBin)]
 pub enum GameEvent {
-    Move(Point2, Point2),
     Place(Point2, Piece),
     Remove(Point2, Piece),
     AddUnusedPiece(usize),
     RemoveUnusedPiece(usize),
+    Exhaust(bool, Point2),
+    UndoExhaustion(bool, Point2),
     CompoundEvent(Vec<GameEvent>, CompoundEventType),
+}
+
+impl GameEvent {
+    pub fn new_move(piece: Piece, from: Point2, to: Point2) -> Self {
+        CompoundEvent(vec![
+            Remove(from, piece),
+            Place(to, piece),
+            Exhaust(false, to),
+        ], CompoundEventType::Move)
+    }
 }
 
 #[derive(Debug, Clone, SerBin, DeBin)]
@@ -44,21 +55,24 @@ pub enum CompoundEventType {
     Merge,
     Attack,
     Place,
-    Undo,
+    Move,
+    Undo(Box<CompoundEventType>),
 }
 
 impl GameEvent {
     pub fn anti_event(&self) -> GameEvent {
         match self {
-            Move(from, to) => Move(*to, *from),
+        //    Move(from, to) => Move(*to, *from),
             Place(at, piece) => Remove(*at, *piece),
             Remove(at, piece) => Place(*at, *piece),
             AddUnusedPiece(team_id) => RemoveUnusedPiece(*team_id),
             RemoveUnusedPiece(team_id) => AddUnusedPiece(*team_id),
-            CompoundEvent(events, _) => CompoundEvent(
+            CompoundEvent(events, event_type) => CompoundEvent(
                 events.iter().map(|e| e.anti_event()).rev().collect(),
-                CompoundEventType::Undo,
+                CompoundEventType::Undo(Box::new(event_type.clone())),
             ),
+            Exhaust(special, point) => UndoExhaustion(*special, *point),
+            UndoExhaustion(special, point) => Exhaust(*special, *point),
         }
     }
 }
@@ -168,20 +182,42 @@ impl BoardEventConsumer {
         let mut board = (*self.board).borrow_mut();
 
         match event {
-            GameEvent::Move(from, to) => {
-                board.move_piece(from.x, from.y, to.x, to.y);
-            }
             GameEvent::Place(at, piece) => {
-                board.place_piece(*piece, at.x, at.y);
+                board.place_piece_at(*piece, at);
             }
             GameEvent::Remove(at, _) => {
-                board.remove_piece(at.x, at.y);
+                board.remove_piece_at(at);
             }
             GameEvent::AddUnusedPiece(team_id) => {
                 board.add_unused_piece_for(*team_id);
             }
             GameEvent::RemoveUnusedPiece(team_id) => {
                 board.remove_unused_piece(*team_id);
+            }
+            Exhaust(special, point) => {
+                let mut exhaustion = &mut board.get_piece_mut_at(point)
+                    .expect(&*format!("Can't execute {:?} for non-existing piece at {:?}", event, point))
+                    .exhaustion;
+
+                if *special {
+                    exhaustion.on_attack();
+                } else {
+                    println!("Before exhaustion {}", exhaustion.can_move());
+                    exhaustion.on_move();
+                    println!("After exhaustion {}", exhaustion.can_move());
+                }
+            }
+            UndoExhaustion(special, point) => {
+                let mut exhaustion = &mut board.get_piece_mut_at(point)
+                    .expect(&*format!("Can't execute {:?} for non-existing piece at {:?}", event, point))
+                    .exhaustion;
+
+                if *special {
+                    exhaustion.undo_attack();
+                } else {
+                    exhaustion.undo_move();
+                }
+
             }
             GameEvent::CompoundEvent(events, _) => {}
         }

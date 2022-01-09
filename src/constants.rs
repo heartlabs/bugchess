@@ -5,28 +5,54 @@ pub const CELL_SCALE: f32 = 1.1875;
 pub const CELL_WIDTH: u32 = 64;
 pub const CELL_ABSOLUTE_WIDTH: f32 = CELL_WIDTH as f32 * CELL_SCALE;
 
-pub const SHIFT_X: f32 = CELL_WIDTH as f32 / 2. * CELL_SCALE;
-pub const SHIFT_Y: f32 = CELL_WIDTH as f32 / 2. * CELL_SCALE;
+pub const SHIFT_X: f32 = 0.;
+pub const SHIFT_Y: f32 = 0.;
 
 pub const BOARD_WIDTH: u8 = 8;
 pub const BOARD_HEIGHT: u8 = 8;
 
-pub fn cell_coords(x: u8, y: u8) -> (f32, f32) {
+pub fn cell_coords(point: &Point2) -> (f32, f32) {
+    cell_coords_tuple(point.x, point.y)
+}
+pub fn cell_coords_tuple(x: u8, y: u8) -> (f32, f32) {
     let x_pos = ((x as u32 * CELL_WIDTH) as f32) * CELL_SCALE + SHIFT_X;
     let y_pos = ((y as u32 * CELL_WIDTH) as f32) * CELL_SCALE + SHIFT_Y;
 
     (x_pos, y_pos)
 }
 
-pub fn coords_to_cell(x_pos: f32, y_pos: f32) -> (u8, u8) {
+pub fn coords_to_cell(x_pos: f32, y_pos: f32) -> Point2 {
     let x = (x_pos - SHIFT_X) / CELL_ABSOLUTE_WIDTH;
     let y = (y_pos - SHIFT_Y) / CELL_ABSOLUTE_WIDTH;
 
-    (x as u8, y as u8)
+    (x as u8, y as u8).into()
 }
 
-pub fn cell_hovered() -> (u8, u8) {
+pub fn cell_hovered() -> Point2 {
     let (mouse_x, mouse_y) = mouse_position();
-    let (mouse_cell_x, mouse_cell_y) = coords_to_cell(mouse_x, mouse_y);
-    (mouse_cell_x, mouse_cell_y)
+    coords_to_cell(mouse_x, mouse_y)
+}
+
+impl Into<(u8,u8)> for Point2 {
+    fn into(self) -> (u8, u8) {
+        (self.x, self.y)
+    }
+}
+
+impl  Into<Point2> for (u8,u8) {
+    fn into(self) -> Point2 {
+        Point2{x: self.0, y: self.1}
+    }
+}
+
+pub struct Util {}
+
+impl Util {
+    pub fn with<T,F>(board: Rc<RefCell<Box<T>>>, mut closure: F) where F : FnMut(&T){
+        closure((*board).borrow().as_ref());
+    }
+
+    pub fn with_mut<T,F>(board: Rc<RefCell<Box<T>>>, mut closure: F) where F : FnMut(&mut T){
+        closure((*board).borrow_mut().as_mut());
+    }
 }

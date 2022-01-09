@@ -7,16 +7,18 @@ mod states;
 mod gui;
 mod nakama;
 mod conf;
+mod ranges;
 
-use crate::game_events::{BoardEventConsumer, CompoundEventType, EventBroker, EventConsumer, GameEvent};
-use crate::piece::{Piece, PieceKind};
-use crate::rendering::{BoardRender, CustomRenderContext};
-use crate::states::CoreGameState;
 use crate::{
+    game_events::{BoardEventConsumer, CompoundEventType, EventBroker, EventConsumer, GameEvent},
     board::*,
     constants::*,
     conf::*,
-    //    piece::*
+    piece::*,
+    rendering::{BoardRender, CustomRenderContext},
+    states::CoreGameState,
+    nakama::NakamaEventConsumer,
+    ranges::*,
 };
 use macroquad::prelude::*;
 use std::borrow::{Borrow, BorrowMut};
@@ -30,7 +32,6 @@ use instant::Instant;
 use macroquad::rand::srand;
 use nakama_rs::matchmaker::{Matchmaker, QueryItemBuilder};
 use nanoserde::DeRonTok::Str;
-use crate::nakama::NakamaEventConsumer;
 
 //use wasm_bindgen::prelude::*;
 
@@ -49,6 +50,7 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
     let start_time = Instant::now();
+    const ONLINE: bool = true;
 
     let mut board = Rc::new(RefCell::new(Box::new(init_board())));
     let mut event_broker = EventBroker::new();
@@ -67,25 +69,32 @@ async fn main() {
     let mut render_context = CustomRenderContext::new();
 
     srand((start_time.elapsed().as_nanos() % u64::MAX as u128) as u64);
-    let nakama_events = nakama::nakama_client().await;
-    event_broker.subscribe(Box::new(NakamaEventConsumer {
-        nakama_client: Rc::clone(&nakama_events)
-    }));
 
+    let mut nakama_events = Option::None;
+    if ONLINE {
+        nakama_events = Option::Some(nakama::nakama_client().await);
+        event_broker.subscribe(Box::new(NakamaEventConsumer {
+            nakama_client: Rc::clone(nakama_events.as_ref().unwrap())
+        }));
+    }
     info!("set up everything.");
 
     loop {
-        (*nakama_events).borrow_mut().try_recieve(&mut event_broker);
+        if ONLINE {
+            // TODO does that work?
+            let x = nakama_events.as_mut().unwrap();
+            (**x).borrow_mut().try_recieve(&mut event_broker);
+        }
         board_render.render((*board).borrow().as_ref(), &render_context);
 
         if is_mouse_button_pressed(MouseButton::Left) {
             info!("mouse button pressed");
-            let (x, y) = cell_hovered();
             let next_game_state = render_context.game_state.on_click(
-                Point2::new(x, y),
+                &cell_hovered(),
                 board.as_ref().borrow_mut().borrow_mut(),
                 &mut event_broker,
             );
+            info!("{:?} -> {:?}", render_context.game_state.state, next_game_state.state);
             render_context.game_state = next_game_state;
             render_context.reset_elapsed_time();
 
@@ -99,15 +108,7 @@ async fn main() {
         }
 
         if is_key_pressed(KeyCode::N) {
-            {
-                let mut b = (*board).borrow_mut();
-                let current_team_index = b.current_team_index;
-                b.next_team();
-                event_broker.handle_new_event(&GameEvent::AddUnusedPiece(current_team_index));
-                event_broker.handle_new_event(&GameEvent::AddUnusedPiece(current_team_index));
-            }
-            event_broker.commit(Option::None);
-            event_broker.delete_history();
+            next_turn(&mut board, &mut event_broker);
         }
 
         if is_key_pressed(KeyCode::U) {
@@ -118,8 +119,21 @@ async fn main() {
         board_render = BoardRender::new((*board).borrow().as_ref());
 
         next_frame().await;
-        info!("next frame");
     }
+}
+
+fn next_turn(board: &mut Rc<RefCell<Box<Board>>>, event_broker: &mut EventBroker) {
+    {
+        let mut b = (**board).borrow_mut();
+        let current_team_index = b.current_team_index;
+        b.next_team();
+        event_broker.handle_new_event(&GameEvent::AddUnusedPiece(current_team_index));
+        event_broker.handle_new_event(&GameEvent::AddUnusedPiece(current_team_index));
+
+        b.for_each_placed_piece_mut(|_point, mut piece| piece.exhaustion.reset());
+    }
+    event_broker.commit(Option::None);
+    event_broker.delete_history();
 }
 
 fn set_up_pieces(board: &mut Rc<RefCell<Box<Board>>>, event_broker: &mut EventBroker) {
@@ -129,7 +143,8 @@ fn set_up_pieces(board: &mut Rc<RefCell<Box<Board>>>, event_broker: &mut EventBr
 
     for team_id in 0..team_count {
         let target_point = Point2::new((2 + team_id * 3) as u8, (2 + team_id * 3) as u8);
-        let piece = Piece::new(team_id, PieceKind::Simple);
+        let mut piece = Piece::new(team_id, PieceKind::Simple);
+        piece.exhaustion.reset();
         event_broker.handle_new_event(&GameEvent::Place(target_point, piece));
 
         for _ in 0..start_pieces {
