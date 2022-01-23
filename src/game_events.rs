@@ -1,6 +1,6 @@
 use std::borrow::BorrowMut;
 use crate::game_events::GameEvent::*;
-use crate::{Board, Effect, Piece, Point2, u32};
+use crate::{Board, Effect, info, Piece, Point2, u32};
 use std::cell::RefCell;
 use std::collections::HashSet;
 use std::mem;
@@ -21,6 +21,7 @@ pub enum GameEvent {
     Exhaust(bool, Point2),
     UndoExhaustion(bool, Point2),
     CompoundEvent(Vec<GameEvent>, CompoundEventType),
+    NextTurn
 }
 
 impl GameEvent {
@@ -57,6 +58,7 @@ pub enum CompoundEventType {
     Place,
     Move,
     Undo(Box<CompoundEventType>),
+    FinishTurn,
 }
 
 impl GameEvent {
@@ -73,20 +75,21 @@ impl GameEvent {
             ),
             Exhaust(special, point) => UndoExhaustion(*special, *point),
             UndoExhaustion(special, point) => Exhaust(*special, *point),
+            NextTurn => {panic!("Cannot undo next turn");}
         }
     }
 }
 
 pub trait EventConsumer {
     fn handle_event(&mut self, event: &GameEventObject);
-
 }
 
 pub struct EventBroker {
     event_queue: Vec<GameEventObject>,
     past_events: Vec<GameEvent>,
     current_transaction: Vec<GameEvent>,
-    pub(crate) subscribers: Vec<Box<dyn EventConsumer>>, //pub(crate) subscribers: Vec<Rc<RefCell<Box<Board>>>>
+    pub(crate) subscribers: Vec<Box<dyn EventConsumer>>,
+    pub(crate) committed_subscribers: Vec<Box<dyn EventConsumer>>,
 }
 
 impl EventBroker {
@@ -96,11 +99,16 @@ impl EventBroker {
             past_events: vec![],
             current_transaction: vec![],
             subscribers: vec![],
+            committed_subscribers: vec![],
         }
     }
 
     pub(crate) fn subscribe(&mut self, subscriber: Box<dyn EventConsumer>) {
         self.subscribers.push(subscriber);
+    }
+
+    pub(crate) fn subscribe_committed(&mut self, subscriber: Box<dyn EventConsumer>) {
+        self.committed_subscribers.push(subscriber);
     }
 
     pub(crate) fn flush(&mut self) -> bool {
@@ -126,10 +134,10 @@ impl EventBroker {
         if let Some(event) = self.past_events.pop() {
             let event_object = GameEventObject::new(event.anti_event());
             self.handle_event(&event_object);
+            self.commit(CompoundEventType::Undo(Box::from(CompoundEventType::FinishTurn))); // TODO: Use real type
         }
         //}
-        self.flush();
-        self.commit_without_history();
+        //self.commit_without_history();
         //self.delete_history();
     }
 
@@ -142,14 +150,23 @@ impl EventBroker {
         }
     }
 
-    pub fn commit(&mut self, c: Option<CompoundEventType>) {
+    pub fn commit(&mut self, c: CompoundEventType) {
         self.flush();
-        let mut compound_event: Vec<GameEvent> = self.current_transaction.drain(..).collect();
-        if let Some(cet) = c {
-            self.past_events.push(CompoundEvent(compound_event, cet));
-        } else {
-            self.past_events.append(&mut compound_event);
+        let mut events: Vec<GameEvent> = self.current_transaction.drain(..).collect();
+
+        if events.is_empty(){
+            return;
         }
+
+        info!("Committing...");
+
+        let compound_event = CompoundEvent(events, c);
+        self.past_events.push(compound_event.clone());
+        self.committed_subscribers
+            .iter_mut()
+            .for_each(|s| (*s).handle_event(&GameEventObject::new(compound_event.clone())));
+
+        info!("Compound event: {:?}", compound_event);
     }
 
     fn commit_without_history(&mut self) {
@@ -164,6 +181,12 @@ impl EventBroker {
     pub fn handle_new_event(&mut self, event: &GameEvent) {
         let event_object = GameEventObject::new(event.clone());
         self.handle_event(&event_object);
+    }
+
+    pub fn handle_remote_event(&mut self, event: &GameEventObject) {
+        self.handle_event(&event);
+        self.flush();
+        self.commit_without_history();
     }
 }
 
@@ -220,6 +243,7 @@ impl BoardEventConsumer {
 
             }
             GameEvent::CompoundEvent(events, _) => {}
+            NextTurn => {board.next_team();}
         }
 
         mem::drop(board);

@@ -8,6 +8,7 @@ pub enum State {
     Place,
     Move,
     Activate,
+    Won(usize)
 }
 
 pub struct CoreGameState {
@@ -20,6 +21,13 @@ impl CoreGameState {
         CoreGameState {
             selected: None,
             state: State::Place,
+        }
+    }
+
+    pub fn won(team: usize) -> Self {
+        CoreGameState {
+            selected: None,
+            state: State::Won(team),
         }
     }
 
@@ -132,6 +140,7 @@ impl CoreGameState {
                 }
 
             }
+            State::Won(team) => {return Self::won(team);}
         }
 
         Self::place()

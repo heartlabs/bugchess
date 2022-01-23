@@ -1,0 +1,16 @@
+Spielanleitung
+    * HTML
+    * Kurzer Text am Screen
+    * Buttons für
+        + next round
+        + undo
+
+Gewinnen
+    * 20 unused pieces
+    * Gegner 0 pieces am Feld
+
+Spielbar machen
+    * Im Onlinemodus nicht Gegner steuern
+    * Mobile
+    * Error Handling
+    * Wie verstecke ich den API Key?

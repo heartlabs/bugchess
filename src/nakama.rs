@@ -8,8 +8,9 @@ use crate::{EventBroker, EventConsumer, get_configuration, MyObject};
 use crate::game_events::GameEventObject;
 use crate::rand::rand;
 use macroquad::prelude::*;
+use nakama_rs::rt_api::Presence;
 
-pub async fn nakama_client() -> Rc<RefCell<Box<NakamaClient>>> {
+pub async fn nakama_client() -> NakamaClient {
     //let mut server = String::from("127.0.0.1");
     let mut server = String::from("34.65.62.178");
     let mut protocol = String::from("http");
@@ -87,7 +88,7 @@ pub async fn nakama_client() -> Rc<RefCell<Box<NakamaClient>>> {
 
     wait_for_client(&mut client, "match joining").await;
 
-    Rc::new(RefCell::new(Box::new(NakamaClient::new(client))))
+    NakamaClient::new(client)
 }
 
 async fn wait_for_client(client: &mut ApiClient, action: &str) {
@@ -101,29 +102,67 @@ async fn wait_for_client(client: &mut ApiClient, action: &str) {
 
 pub struct NakamaClient {
     sent_events: HashSet<String>,
-    client: ApiClient
+    client: ApiClient,
+    players: Vec<Presence>
 }
 
 impl NakamaClient {
     pub fn new(client: ApiClient) -> Self {
         NakamaClient {
             sent_events: HashSet::new(),
-            client
+            client,
+            players: vec![]
         }
+    }
+
+    pub fn get_own_player_index(&self) -> Option<usize> {
+        if self.players.len() != 2 {
+            return None
+        }
+
+        let sort_ascending = self.client.matchmaker_token.as_ref().unwrap().as_bytes()[0] % 2 == 0;
+
+        let mut sorted = self.players.clone();
+        sorted.sort_by_key(|p| p.user_id.clone());
+
+        if sort_ascending {
+            sorted.reverse();
+        }
+
+        self.client.username().and_then(|u| {
+            for (i,p) in sorted.iter().enumerate() {
+                if *u == p.username {
+                    return Option::Some(i)
+                }
+            }
+            Option::None
+        })
+
     }
 
     pub fn try_recieve(&mut self, event_broker: &mut EventBroker) {
         self.client.tick();
         while let Some(event) = self.client.try_recv() {
             match event {
-                Event::Presence { .. } => {}
+                Event::Presence { joins, leaves } => {
+                    for presence in joins {
+                        info!("Joined: {} ({}, {})", presence.username, presence.session_id, presence.user_id);
+
+                        self.players.push(presence);
+                    }
+
+                    for presence in leaves {
+                        error!("Left: {} ({}, {})", presence.username, presence.session_id, presence.user_id)
+                    }
+
+                }
                 Event::MatchData {
                     data,
                     ..
                 } => {
                     let event_object: GameEventObject = DeBin::deserialize_bin(&data).unwrap();
                     if self.register_event(&event_object) {
-                        event_broker.handle_event(&event_object);
+                        event_broker.handle_remote_event(&event_object);
                     }
                 }
             }

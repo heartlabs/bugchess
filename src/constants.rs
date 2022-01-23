@@ -5,7 +5,7 @@ pub const CELL_SCALE: f32 = 1.1875;
 pub const CELL_WIDTH: u32 = 64;
 pub const CELL_ABSOLUTE_WIDTH: f32 = CELL_WIDTH as f32 * CELL_SCALE;
 
-pub const SHIFT_X: f32 = 0.;
+pub const SHIFT_X: f32 = 60.;
 pub const SHIFT_Y: f32 = 0.;
 
 pub const BOARD_WIDTH: u8 = 8;

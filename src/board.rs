@@ -85,6 +85,18 @@ impl Board {
         });
     }
 
+    pub fn placed_pieces(&self, team: usize) -> Vec<Piece> {
+        let mut pieces = vec![];
+
+        self.for_each_placed_piece(|_point, piece| {
+            if piece.team_id == team{
+                pieces.push(*piece);
+            }
+        });
+
+        pieces
+    }
+
     pub fn num_unused_pieces(&self) -> u8 {
         self.current_team().unused_pieces
     }

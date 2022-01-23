@@ -42,22 +42,36 @@ impl BoardRender {
         let mut unused_pieces = vec![];
         let mut placed_pieces = vec![];
 
-        let (mut upb_x, mut upb_y) = cell_coords_tuple(board.w, board.h - 1);
-        upb_x += CELL_ABSOLUTE_WIDTH / 2.;
-        upb_y += CELL_ABSOLUTE_WIDTH / 2.;
+        {
+            let (mut upb_x, mut upb_y) = cell_coords_tuple(board.w, board.h - 1);
+            upb_y += CELL_ABSOLUTE_WIDTH / 4.;
 
-        //for team_id in 0..board.num_teams() {
-        let current_team = board.current_team();
-        let color = current_team.color;
-        for i in 0..current_team.unused_pieces {
-            unused_pieces.push(PieceRender::new(
-                upb_x,
-                upb_y - i as f32 * 32.,
-                color,
-                PieceKind::Simple,
-            ));
+            let first_team = board.get_team(0);
+            let color = first_team.color;
+            for i in 0..first_team.unused_pieces {
+                unused_pieces.push(PieceRender::new(
+                    upb_x,
+                    upb_y - i as f32 * 32.,
+                    color,
+                    PieceKind::Simple,
+                ));
+            }
         }
-        //}
+        {
+            let (mut upb_x, mut upb_y) = cell_coords_tuple(0, 0);
+            upb_x -= CELL_ABSOLUTE_WIDTH / 1.25;
+
+            let second_team = board.get_team(1);
+            let color = second_team.color;
+            for i in 0..second_team.unused_pieces {
+                unused_pieces.push(PieceRender::new(
+                    upb_x,
+                    upb_y + i as f32 * 32.,
+                    color,
+                    PieceKind::Simple,
+                ));
+            }
+        }
 
         board.for_each_placed_piece(|point, piece| {
             let (x_pos, y_pos) = cell_coords(&point);
@@ -122,7 +136,8 @@ impl BoardRender {
             let range_context = match render_context.game_state.state {
                 State::Place => RangeContext::Moving(*hovered_piece),
                 State::Move => RangeContext::Moving(*hovered_piece),
-                State::Activate => RangeContext::Special(*hovered_piece)
+                State::Activate => RangeContext::Special(*hovered_piece),
+                State::Won(_) => RangeContext::Moving(*hovered_piece)
             };
 
             if let Some(m) = hovered_piece.movement.as_ref() {
@@ -142,12 +157,14 @@ impl BoardRender {
                 let range_context = match render_context.game_state.state {
                     State::Place => RangeContext::Moving(*selected_piece),
                     State::Move => RangeContext::Moving(*selected_piece),
-                    State::Activate => RangeContext::Special(*selected_piece)
+                    State::Activate => RangeContext::Special(*selected_piece),
+                    State::Won(_) => RangeContext::Moving(*selected_piece),
                 };
                 let range_option: Option<Range> = match render_context.game_state.state {
                     State::Place => Option::None,
                     State::Move => selected_piece.movement.map(|m| m.range),
-                    State::Activate => selected_piece.activatable.map(|m| m.range)
+                    State::Activate => selected_piece.activatable.map(|m| m.range),
+                    State::Won(_) => selected_piece.movement.map(|m| m.range),
                 };
                 if let Some(range) = range_option {
                     Self::highlight_range(
