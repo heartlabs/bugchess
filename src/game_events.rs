@@ -1,12 +1,12 @@
 use crate::{
-    game_events::GameEvent::*, info, nakama::NakamaClient, rand::rand, u32, Board, Effect, Piece,
+    game_events::GameEvent::*, info, rand::rand, Board, Piece,
     Point2,
 };
-use instant::Instant;
-use macroquad::rand::srand;
-use nakama_rs::api_client::{ApiClient, Event};
+
+
+
 use nanoserde::{DeBin, SerBin};
-use std::{borrow::BorrowMut, cell::RefCell, collections::HashSet, mem, rc::Rc};
+use std::{borrow::BorrowMut, cell::RefCell, mem, rc::Rc};
 
 #[derive(Debug, Clone, SerBin, DeBin)]
 pub enum GameEvent {
@@ -151,7 +151,7 @@ impl EventBroker {
 
     pub fn commit(&mut self, c: CompoundEventType) {
         self.flush();
-        let mut events: Vec<GameEvent> = self.current_transaction.drain(..).collect();
+        let events: Vec<GameEvent> = self.current_transaction.drain(..).collect();
 
         if events.is_empty() {
             return;
@@ -217,7 +217,7 @@ impl BoardEventConsumer {
                 board.remove_unused_piece(*team_id);
             }
             Exhaust(special, point) => {
-                let mut exhaustion = &mut board
+                let exhaustion = &mut board
                     .get_piece_mut_at(point)
                     .expect(&*format!(
                         "Can't execute {:?} for non-existing piece at {:?}",
@@ -234,7 +234,7 @@ impl BoardEventConsumer {
                 }
             }
             UndoExhaustion(special, point) => {
-                let mut exhaustion = &mut board
+                let exhaustion = &mut board
                     .get_piece_mut_at(point)
                     .expect(&*format!(
                         "Can't execute {:?} for non-existing piece at {:?}",
@@ -248,7 +248,7 @@ impl BoardEventConsumer {
                     exhaustion.undo_move();
                 }
             }
-            GameEvent::CompoundEvent(events, _) => {}
+            GameEvent::CompoundEvent(_events, _) => {}
             NextTurn => {
                 board.next_team();
             }

@@ -19,21 +19,17 @@ use crate::{
     rendering::{BoardRender, CustomRenderContext},
     states::{CoreGameState, State},
 };
-use futures::executor::block_on;
+
 use instant::Instant;
 use macroquad::{
-    prelude::{scene::RefMut, *},
+    prelude::{*},
     rand::srand,
 };
-use nakama_rs::{
-    api_client::ApiClient,
-    matchmaker::{Matchmaker, QueryItemBuilder},
-};
-use nanoserde::DeRonTok::Str;
+
+
 use std::{
     borrow::{Borrow, BorrowMut},
     cell::RefCell,
-    collections::HashMap,
     rc::Rc,
 };
 
@@ -144,11 +140,11 @@ fn check_if_somebody_won(board: &Board, render_context: &mut CustomRenderContext
 fn description(render_context: &CustomRenderContext, board: &Board) -> Vec<String> {
     let mut description = vec![];
 
-    let CoreGameState { selected, state } = &render_context.game_state;
+    let CoreGameState { selected, state: _ } = &render_context.game_state;
 
     match render_context.game_state.state {
         State::Place => {
-            let mut all_pieces_exhausted = board
+            let all_pieces_exhausted = board
                 .placed_pieces(board.current_team_index)
                 .iter()
                 .all(|&piece| !piece.can_use_special() && !piece.can_move());
@@ -245,7 +241,7 @@ fn next_turn(board: &mut Rc<RefCell<Box<Board>>>, event_broker: &mut EventBroker
         event_broker.handle_new_event(&GameEvent::AddUnusedPiece(current_team_index));
         event_broker.handle_new_event(&GameEvent::AddUnusedPiece(current_team_index));
 
-        b.for_each_placed_piece_mut(|_point, mut piece| piece.exhaustion.reset());
+        b.for_each_placed_piece_mut(|_point, piece| piece.exhaustion.reset());
     }
     event_broker.commit(CompoundEventType::FinishTurn);
     event_broker.delete_history();

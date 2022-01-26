@@ -1,13 +1,10 @@
 use crate::{
     constants::*,
-    game_events::{EventConsumer, GameEvent},
-    piece::*,
-    rendering::CustomRenderContext,
-    Direction, Range, RangeContext,
+    piece::*, RangeContext,
 };
 use macroquad::prelude::*;
 use nanoserde::{DeBin, SerBin};
-use std::{cell::RefCell, rc::Rc};
+
 
 #[derive(Clone, Copy)]
 pub struct Team {
@@ -63,7 +60,7 @@ impl Board {
     where
         F: FnMut(&mut Cell) -> (),
     {
-        for mut row in self.cells.iter_mut() {
+        for row in self.cells.iter_mut() {
             for cell in row {
                 closure(cell);
             }
@@ -84,7 +81,7 @@ impl Board {
     where
         F: FnMut(&Cell) -> (),
     {
-        for mut row in self.cells.iter() {
+        for row in self.cells.iter() {
             for cell in row {
                 closure(cell);
             }

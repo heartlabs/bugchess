@@ -5,7 +5,7 @@ use crate::{
     *,
 };
 use instant::{Duration, Instant};
-use std::cmp::max;
+
 
 pub struct CustomRenderContext {
     pieces_texture: Texture2D,
@@ -45,7 +45,7 @@ impl BoardRender {
         let mut placed_pieces = vec![];
 
         {
-            let (mut upb_x, mut upb_y) = cell_coords_tuple(board.w, board.h - 1);
+            let (upb_x, mut upb_y) = cell_coords_tuple(board.w, board.h - 1);
             upb_y += CELL_ABSOLUTE_WIDTH / 4.;
 
             let first_team = board.get_team(0);
@@ -60,7 +60,7 @@ impl BoardRender {
             }
         }
         {
-            let (mut upb_x, mut upb_y) = cell_coords_tuple(0, 0);
+            let (mut upb_x, upb_y) = cell_coords_tuple(0, 0);
             upb_x -= CELL_ABSOLUTE_WIDTH / 1.25;
 
             let second_team = board.get_team(1);
@@ -201,7 +201,7 @@ impl BoardRender {
 
             let mut used_color = color;
 
-            if let Some(piece) = board.get_piece_at(point) {
+            if let Some(_piece) = board.get_piece_at(point) {
                 used_color = Color {
                     r: 1.,
                     ..used_color
@@ -312,7 +312,7 @@ impl PieceAnimationPoint {
         }
 
         let elapsed_time_ms = elapsed_time.as_millis() as u32;
-        let mut progress = if elapsed_time_ms < self.elapsed_time_ms {
+        let progress = if elapsed_time_ms < self.elapsed_time_ms {
             0.
         } else if elapsed_time_ms > towards.elapsed_time_ms {
             1.
