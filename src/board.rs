@@ -1,10 +1,6 @@
-use crate::{
-    constants::*,
-    piece::*, RangeContext,
-};
+use crate::{constants::*, piece::*, RangeContext};
 use macroquad::prelude::*;
 use nanoserde::{DeBin, SerBin};
-
 
 #[derive(Clone, Copy)]
 pub struct Team {

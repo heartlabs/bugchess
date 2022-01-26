@@ -6,7 +6,6 @@ use crate::{
 };
 use instant::{Duration, Instant};
 
-
 pub struct CustomRenderContext {
     pieces_texture: Texture2D,
     pub game_state: CoreGameState,

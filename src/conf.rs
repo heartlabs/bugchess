@@ -1,4 +1,3 @@
-
 #[cfg(target_family = "wasm")]
 use sapp_jsutils::JsObject;
 //#[wasm_bindgen]

@@ -4,7 +4,6 @@ use crate::{
     *,
 };
 
-
 #[derive(Debug, Copy, Clone)]
 pub enum State {
     Place,

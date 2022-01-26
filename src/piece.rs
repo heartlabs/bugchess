@@ -1,6 +1,6 @@
-use crate::{ranges::*};
+use crate::ranges::*;
 use nanoserde::{DeBin, SerBin};
-use std::{fmt::Debug};
+use std::fmt::Debug;
 
 #[derive(Debug, Copy, Clone, PartialEq, SerBin, DeBin)]
 pub enum EffectKind {

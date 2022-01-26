@@ -21,11 +21,7 @@ use crate::{
 };
 
 use instant::Instant;
-use macroquad::{
-    prelude::{*},
-    rand::srand,
-};
-
+use macroquad::{prelude::*, rand::srand};
 
 use std::{
     borrow::{Borrow, BorrowMut},
