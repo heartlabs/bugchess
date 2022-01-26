@@ -33,26 +33,35 @@ pub fn cell_hovered() -> Point2 {
     coords_to_cell(mouse_x, mouse_y)
 }
 
-impl Into<(u8,u8)> for Point2 {
+impl Into<(u8, u8)> for Point2 {
     fn into(self) -> (u8, u8) {
         (self.x, self.y)
     }
 }
 
-impl  Into<Point2> for (u8,u8) {
+impl Into<Point2> for (u8, u8) {
     fn into(self) -> Point2 {
-        Point2{x: self.0, y: self.1}
+        Point2 {
+            x: self.0,
+            y: self.1,
+        }
     }
 }
 
 pub struct Util {}
 
 impl Util {
-    pub fn with<T,F>(board: Rc<RefCell<Box<T>>>, mut closure: F) where F : FnMut(&T){
+    pub fn with<T, F>(board: Rc<RefCell<Box<T>>>, mut closure: F)
+    where
+        F: FnMut(&T),
+    {
         closure((*board).borrow().as_ref());
     }
 
-    pub fn with_mut<T,F>(board: Rc<RefCell<Box<T>>>, mut closure: F) where F : FnMut(&mut T){
+    pub fn with_mut<T, F>(board: Rc<RefCell<Box<T>>>, mut closure: F)
+    where
+        F: FnMut(&mut T),
+    {
         closure((*board).borrow_mut().as_mut());
     }
 }

@@ -1,8 +1,6 @@
-use crate::{Board, Point2};
-use crate::ranges::*;
-use std::fmt::Debug;
-use std::iter::successors;
-use nanoserde::{SerBin, DeBin};
+use crate::{ranges::*, Board, Point2};
+use nanoserde::{DeBin, SerBin};
+use std::{fmt::Debug, iter::successors};
 
 #[derive(Debug, Copy, Clone, PartialEq, SerBin, DeBin)]
 pub enum EffectKind {
@@ -49,7 +47,6 @@ pub enum PieceKind {
     Castle,
     Sniper,
 }
-
 
 #[derive(Debug, Copy, Clone, SerBin, DeBin)]
 pub struct Effect {
@@ -233,4 +230,3 @@ impl Exhaustion {
         self.used_special = false;
     }
 }
-

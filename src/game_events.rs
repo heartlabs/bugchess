@@ -1,16 +1,12 @@
-use std::borrow::BorrowMut;
-use crate::game_events::GameEvent::*;
-use crate::{Board, Effect, info, Piece, Point2, u32};
-use std::cell::RefCell;
-use std::collections::HashSet;
-use std::mem;
-use std::rc::Rc;
+use crate::{
+    game_events::GameEvent::*, info, nakama::NakamaClient, rand::rand, u32, Board, Effect, Piece,
+    Point2,
+};
 use instant::Instant;
 use macroquad::rand::srand;
 use nakama_rs::api_client::{ApiClient, Event};
 use nanoserde::{DeBin, SerBin};
-use crate::nakama::NakamaClient;
-use crate::rand::rand;
+use std::{borrow::BorrowMut, cell::RefCell, collections::HashSet, mem, rc::Rc};
 
 #[derive(Debug, Clone, SerBin, DeBin)]
 pub enum GameEvent {
@@ -21,23 +17,22 @@ pub enum GameEvent {
     Exhaust(bool, Point2),
     UndoExhaustion(bool, Point2),
     CompoundEvent(Vec<GameEvent>, CompoundEventType),
-    NextTurn
+    NextTurn,
 }
 
 impl GameEvent {
     pub fn new_move(piece: Piece, from: Point2, to: Point2) -> Self {
-        CompoundEvent(vec![
-            Remove(from, piece),
-            Place(to, piece),
-            Exhaust(false, to),
-        ], CompoundEventType::Move)
+        CompoundEvent(
+            vec![Remove(from, piece), Place(to, piece), Exhaust(false, to)],
+            CompoundEventType::Move,
+        )
     }
 }
 
 #[derive(Debug, Clone, SerBin, DeBin)]
 pub struct GameEventObject {
     pub(crate) id: String,
-    event: GameEvent
+    event: GameEvent,
 }
 
 impl GameEventObject {
@@ -46,7 +41,7 @@ impl GameEventObject {
     pub fn new(event: GameEvent) -> Self {
         GameEventObject {
             id: rand().to_string(),
-            event
+            event,
         }
     }
 }
@@ -64,7 +59,7 @@ pub enum CompoundEventType {
 impl GameEvent {
     pub fn anti_event(&self) -> GameEvent {
         match self {
-        //    Move(from, to) => Move(*to, *from),
+            //    Move(from, to) => Move(*to, *from),
             Place(at, piece) => Remove(*at, *piece),
             Remove(at, piece) => Place(*at, *piece),
             AddUnusedPiece(team_id) => RemoveUnusedPiece(*team_id),
@@ -75,7 +70,9 @@ impl GameEvent {
             ),
             Exhaust(special, point) => UndoExhaustion(*special, *point),
             UndoExhaustion(special, point) => Exhaust(*special, *point),
-            NextTurn => {panic!("Cannot undo next turn");}
+            NextTurn => {
+                panic!("Cannot undo next turn");
+            }
         }
     }
 }
@@ -134,7 +131,9 @@ impl EventBroker {
         if let Some(event) = self.past_events.pop() {
             let event_object = GameEventObject::new(event.anti_event());
             self.handle_event(&event_object);
-            self.commit(CompoundEventType::Undo(Box::from(CompoundEventType::FinishTurn))); // TODO: Use real type
+            self.commit(CompoundEventType::Undo(Box::from(
+                CompoundEventType::FinishTurn,
+            ))); // TODO: Use real type
         }
         //}
         //self.commit_without_history();
@@ -154,7 +153,7 @@ impl EventBroker {
         self.flush();
         let mut events: Vec<GameEvent> = self.current_transaction.drain(..).collect();
 
-        if events.is_empty(){
+        if events.is_empty() {
             return;
         }
 
@@ -201,7 +200,7 @@ pub struct BoardEventConsumer {
 }
 
 impl BoardEventConsumer {
-    fn handle_event_internal (&mut self, event: &GameEvent) {
+    fn handle_event_internal(&mut self, event: &GameEvent) {
         let mut board = (*self.board).borrow_mut();
 
         match event {
@@ -218,8 +217,12 @@ impl BoardEventConsumer {
                 board.remove_unused_piece(*team_id);
             }
             Exhaust(special, point) => {
-                let mut exhaustion = &mut board.get_piece_mut_at(point)
-                    .expect(&*format!("Can't execute {:?} for non-existing piece at {:?}", event, point))
+                let mut exhaustion = &mut board
+                    .get_piece_mut_at(point)
+                    .expect(&*format!(
+                        "Can't execute {:?} for non-existing piece at {:?}",
+                        event, point
+                    ))
                     .exhaustion;
 
                 if *special {
@@ -231,8 +234,12 @@ impl BoardEventConsumer {
                 }
             }
             UndoExhaustion(special, point) => {
-                let mut exhaustion = &mut board.get_piece_mut_at(point)
-                    .expect(&*format!("Can't execute {:?} for non-existing piece at {:?}", event, point))
+                let mut exhaustion = &mut board
+                    .get_piece_mut_at(point)
+                    .expect(&*format!(
+                        "Can't execute {:?} for non-existing piece at {:?}",
+                        event, point
+                    ))
                     .exhaustion;
 
                 if *special {
@@ -240,16 +247,19 @@ impl BoardEventConsumer {
                 } else {
                     exhaustion.undo_move();
                 }
-
             }
             GameEvent::CompoundEvent(events, _) => {}
-            NextTurn => {board.next_team();}
+            NextTurn => {
+                board.next_team();
+            }
         }
 
         mem::drop(board);
 
         match event {
-            GameEvent::CompoundEvent(events, _) => events.iter().for_each(|e| self.handle_event_internal(e)),
+            GameEvent::CompoundEvent(events, _) => {
+                events.iter().for_each(|e| self.handle_event_internal(e))
+            }
             _ => {}
         }
     }

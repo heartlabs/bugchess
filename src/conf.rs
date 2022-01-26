@@ -31,8 +31,7 @@ pub fn get_configuration() -> Box<dyn MyObject> {
     }
 
     #[cfg(not(target_family = "wasm"))]
-    return Box::new(NothingMuch{});
-
+    return Box::new(NothingMuch {});
 }
 
 #[cfg(not(target_family = "wasm"))]
@@ -66,7 +65,7 @@ pub trait MyObject {
     fn get_field(&self, field: &str) -> Option<Box<dyn MyObject>> {
         if self.have_field(field) {
             let child = self.field(field);
-            if !child.is_nil(){
+            if !child.is_nil() {
                 return Option::Some(child);
             }
         }

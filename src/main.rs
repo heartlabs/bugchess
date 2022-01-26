@@ -1,38 +1,41 @@
 mod board;
+mod conf;
 mod constants;
 mod game_events;
+mod nakama;
 mod piece;
+mod ranges;
 mod rendering;
 mod states;
-mod gui;
-mod nakama;
-mod conf;
-mod ranges;
 
 use crate::{
-    game_events::{BoardEventConsumer, CompoundEventType, EventBroker, EventConsumer, GameEvent},
     board::*,
-    constants::*,
     conf::*,
-    piece::*,
-    rendering::{BoardRender, CustomRenderContext},
-    states::CoreGameState,
+    constants::*,
+    game_events::{BoardEventConsumer, CompoundEventType, EventBroker, EventConsumer, GameEvent},
     nakama::NakamaEventConsumer,
+    piece::*,
     ranges::*,
+    rendering::{BoardRender, CustomRenderContext},
+    states::{CoreGameState, State},
 };
-use macroquad::prelude::*;
-use std::borrow::{Borrow, BorrowMut};
-use std::cell::RefCell;
-use std::rc::Rc;
-use macroquad::prelude::scene::RefMut;
-use nakama_rs::api_client::ApiClient;
 use futures::executor::block_on;
-use std::collections::HashMap;
 use instant::Instant;
-use macroquad::rand::srand;
-use nakama_rs::matchmaker::{Matchmaker, QueryItemBuilder};
+use macroquad::{
+    prelude::{scene::RefMut, *},
+    rand::srand,
+};
+use nakama_rs::{
+    api_client::ApiClient,
+    matchmaker::{Matchmaker, QueryItemBuilder},
+};
 use nanoserde::DeRonTok::Str;
-use crate::states::State;
+use std::{
+    borrow::{Borrow, BorrowMut},
+    cell::RefCell,
+    collections::HashMap,
+    rc::Rc,
+};
 
 //use wasm_bindgen::prelude::*;
 
@@ -44,9 +47,6 @@ fn window_conf() -> Conf {
         ..Default::default()
     }
 }
-
-
-
 
 #[macroquad::main(window_conf)]
 async fn main() {
@@ -80,9 +80,8 @@ async fn main() {
         let nakama_client = nakama::nakama_client().await;
         nakama_events = Option::Some(Rc::new(RefCell::new(Box::new(nakama_client))));
         event_broker.subscribe_committed(Box::new(NakamaEventConsumer {
-            nakama_client: Rc::clone(nakama_events.as_ref().unwrap())
+            nakama_client: Rc::clone(nakama_events.as_ref().unwrap()),
         }));
-
     }
     info!("set up everything.");
 
@@ -98,15 +97,29 @@ async fn main() {
         }
         board_render.render((*board).borrow().as_ref(), &render_context);
 
-
         if can_control_player((*board).borrow().as_ref(), &mut own_player_id, ONLINE) {
-            for (i,text) in description(&render_context, (*board).borrow().as_ref()).iter().enumerate() {
-                draw_text(text.as_str(), 10., 670. + (i*50) as f32, 50., (*board).borrow().as_ref().current_team().color);
+            for (i, text) in description(&render_context, (*board).borrow().as_ref())
+                .iter()
+                .enumerate()
+            {
+                draw_text(
+                    text.as_str(),
+                    10.,
+                    670. + (i * 50) as f32,
+                    50.,
+                    (*board).borrow().as_ref().current_team().color,
+                );
             }
 
             handle_player_input(&mut board, &mut event_broker, &mut render_context);
         } else {
-            draw_text("Please wait for opponent to finish", 10., 670., 50., (*board).borrow().as_ref().current_team().color);
+            draw_text(
+                "Please wait for opponent to finish",
+                10.,
+                670.,
+                50.,
+                (*board).borrow().as_ref().current_team().color,
+            );
         }
 
         check_if_somebody_won((*board).borrow().as_ref(), &mut render_context);
@@ -122,7 +135,7 @@ fn check_if_somebody_won(board: &Board, render_context: &mut CustomRenderContext
         info!("Team 1 won");
         render_context.game_state = CoreGameState::won(1);
     }
-    if board.placed_pieces(1).is_empty()  || board.num_unused_pieces_of(0) >= 20  {
+    if board.placed_pieces(1).is_empty() || board.num_unused_pieces_of(0) >= 20 {
         info!("Team 0 won");
         render_context.game_state = CoreGameState::won(0);
     }
@@ -131,12 +144,13 @@ fn check_if_somebody_won(board: &Board, render_context: &mut CustomRenderContext
 fn description(render_context: &CustomRenderContext, board: &Board) -> Vec<String> {
     let mut description = vec![];
 
-    let CoreGameState{selected, state } = &render_context.game_state;
+    let CoreGameState { selected, state } = &render_context.game_state;
 
     match render_context.game_state.state {
         State::Place => {
-
-            let mut all_pieces_exhausted = board.placed_pieces(board.current_team_index).iter()
+            let mut all_pieces_exhausted = board
+                .placed_pieces(board.current_team_index)
+                .iter()
                 .all(|&piece| !piece.can_use_special() && !piece.can_move());
 
             if board.unused_piece_available() {
@@ -154,12 +168,24 @@ fn description(render_context: &CustomRenderContext, board: &Board) -> Vec<Strin
         State::Move => {
             description.push("Click target square to move it".parse().unwrap());
 
-            if board.get_piece_at(selected.as_ref().unwrap()).unwrap().can_use_special() {
+            if board
+                .get_piece_at(selected.as_ref().unwrap())
+                .unwrap()
+                .can_use_special()
+            {
                 description.push("Click it again for special power".parse().unwrap());
             }
         }
-        State::Activate => {description.push("Click the target piece".parse().unwrap());}
-        State::Won(team) => {description.push(format!("The {} team won", board.teams[team].name).parse().unwrap());}
+        State::Activate => {
+            description.push("Click the target piece".parse().unwrap());
+        }
+        State::Won(team) => {
+            description.push(
+                format!("The {} team won", board.teams[team].name)
+                    .parse()
+                    .unwrap(),
+            );
+        }
     };
 
     description
@@ -177,7 +203,11 @@ fn can_control_player(board: &Board, own_player_id: &mut Option<usize>, is_onlin
     }
 }
 
-fn handle_player_input(mut board: &mut Rc<RefCell<Box<Board>>>, mut event_broker: &mut EventBroker, render_context: &mut CustomRenderContext) {
+fn handle_player_input(
+    mut board: &mut Rc<RefCell<Box<Board>>>,
+    mut event_broker: &mut EventBroker,
+    render_context: &mut CustomRenderContext,
+) {
     if is_mouse_button_pressed(MouseButton::Left) {
         info!("mouse button pressed");
         let next_game_state = render_context.game_state.on_click(
@@ -185,7 +215,10 @@ fn handle_player_input(mut board: &mut Rc<RefCell<Box<Board>>>, mut event_broker
             board.as_ref().borrow_mut().borrow_mut(),
             &mut event_broker,
         );
-        info!("{:?} -> {:?}", render_context.game_state.state, next_game_state.state);
+        info!(
+            "{:?} -> {:?}",
+            render_context.game_state.state, next_game_state.state
+        );
         render_context.game_state = next_game_state;
         render_context.reset_elapsed_time();
 

@@ -1,7 +1,6 @@
-use std::collections::HashSet;
-use std::iter::successors;
 use crate::*;
-use nanoserde::{SerBin, DeBin};
+use nanoserde::{DeBin, SerBin};
+use std::{collections::HashSet, iter::successors};
 
 #[derive(Debug, Copy, Clone, SerBin, DeBin)]
 pub struct Range {
@@ -77,14 +76,17 @@ impl Direction {
 pub enum RangeContext {
     Moving(Piece),
     Special(Piece),
-    Area
+    Area,
 }
 
 impl RangeContext {
     pub fn should_proceed(&self, point: &Point2, board: &Board) -> bool {
         match self {
             RangeContext::Moving(_) => board.get_piece_at(point).is_none(),
-            RangeContext::Special(_) => board.get_piece_at(point).is_none() && !board.has_effect_at(&EffectKind::Protection, point),
+            RangeContext::Special(_) => {
+                board.get_piece_at(point).is_none()
+                    && !board.has_effect_at(&EffectKind::Protection, point)
+            }
             RangeContext::Area => true,
         }
     }
@@ -93,22 +95,23 @@ impl RangeContext {
         match self {
             RangeContext::Moving(piece) => {
                 if let Some(target_piece) = board.get_piece_at(point) {
-                    return (!target_piece.shield || piece.pierce) && target_piece.team_id != piece.team_id
+                    return (!target_piece.shield || piece.pierce)
+                        && target_piece.team_id != piece.team_id;
                 }
                 true
-            },
+            }
             RangeContext::Special(piece) => {
                 if let Some(target_piece) = board.get_piece_at(point) {
-                    return target_piece.team_id != piece.team_id && !board.has_effect_at(&EffectKind::Protection, point)
+                    return target_piece.team_id != piece.team_id
+                        && !board.has_effect_at(&EffectKind::Protection, point);
                 }
 
                 false
-            },
-            RangeContext::Area => true
+            }
+            RangeContext::Area => true,
         }
     }
 }
-
 
 impl Range {
     pub fn new_unlimited(direction: Direction) -> Range {
@@ -138,7 +141,7 @@ impl Range {
         }
     }
 
-/*    pub fn reaches(&self, from: &Point2, to: &Point2) -> bool {
+    /*    pub fn reaches(&self, from: &Point2, to: &Point2) -> bool {
         self.direction.reaches(from.x, from.y, to.x, to.y)
             && (from.y as i16 - to.y as i16).abs() as u8 <= self.steps
             && (from.x as i16 - to.x as i16).abs() as u8 <= self.steps
@@ -179,9 +182,12 @@ impl Range {
         Box::new(vec.into_iter())
     }
 
-
-    pub fn reachable_points(&self, from_point: &Point2, board: &Board, range_context: &RangeContext) -> HashSet<Point2>
-    {
+    pub fn reachable_points(
+        &self,
+        from_point: &Point2,
+        board: &Board,
+        range_context: &RangeContext,
+    ) -> HashSet<Point2> {
         let mut cells = HashSet::new();
         for direction in self.paths(from_point.x, from_point.y) {
             for (x_i16, y_i16) in direction {
@@ -201,6 +207,4 @@ impl Range {
 
         cells
     }
-
-
 }

@@ -1,14 +1,16 @@
-use crate::game_events::{CompoundEventType, EventBroker, EventConsumer};
-use crate::*;
+use crate::{
+    game_events::{CompoundEventType, EventBroker, EventConsumer},
+    GameEvent::{CompoundEvent, Exhaust, Remove},
+    *,
+};
 use std::mem;
-use crate::GameEvent::{CompoundEvent, Exhaust, Remove};
 
 #[derive(Debug, Copy, Clone)]
 pub enum State {
     Place,
     Move,
     Activate,
-    Won(usize)
+    Won(usize),
 }
 
 pub struct CoreGameState {
@@ -63,8 +65,7 @@ impl CoreGameState {
                     if target_piece.team_id == board.current_team_index {
                         if target_piece.can_move() {
                             return Self::move_piece(*target_point);
-                        }
-                        else if target_piece.can_use_special() {
+                        } else if target_piece.can_use_special() {
                             return Self::activate(*target_point);
                         }
                     }
@@ -90,21 +91,24 @@ impl CoreGameState {
                                 return match activatable.kind {
                                     Power::Blast => {
                                         let mut game_events = vec![Exhaust(true, *target_point)];
-                                        for point in activatable.range.reachable_points(target_point, board, &RangeContext::Special(*target_piece)){
-                                            if let Some(piece) = board.get_piece_at(&point){
+                                        for point in activatable.range.reachable_points(
+                                            target_point,
+                                            board,
+                                            &RangeContext::Special(*target_piece),
+                                        ) {
+                                            if let Some(piece) = board.get_piece_at(&point) {
                                                 game_events.push(Remove(point, *piece));
                                             }
                                         }
 
-                                        event_consumer
-                                            .handle_new_event(&CompoundEvent(
-                                                game_events,
-                                                CompoundEventType::Attack
-                                            ));
+                                        event_consumer.handle_new_event(&CompoundEvent(
+                                            game_events,
+                                            CompoundEventType::Attack,
+                                        ));
                                         Self::place()
                                     }
-                                    Power::TargetedShoot => Self::activate(*target_point)
-                                }
+                                    Power::TargetedShoot => Self::activate(*target_point),
+                                };
                             }
                         }
                     }
@@ -117,9 +121,19 @@ impl CoreGameState {
 
                 let selected_piece = board.get_piece_at(&selected_point).unwrap();
                 if let Some(m) = selected_piece.movement.as_ref() {
-                    if m.range.reachable_points(&selected_point, board, &RangeContext::Moving(*selected_piece)).contains(target_point) {
-                        event_consumer
-                            .handle_new_event(&GameEvent::new_move(*selected_piece, self.selected.unwrap(), *target_point));
+                    if m.range
+                        .reachable_points(
+                            &selected_point,
+                            board,
+                            &RangeContext::Moving(*selected_piece),
+                        )
+                        .contains(target_point)
+                    {
+                        event_consumer.handle_new_event(&GameEvent::new_move(
+                            *selected_piece,
+                            self.selected.unwrap(),
+                            *target_point,
+                        ));
                     }
                 }
             }
@@ -127,20 +141,22 @@ impl CoreGameState {
                 let active_piece_pos = self.selected.as_ref().unwrap();
                 let active_piece = board.get_piece_at(active_piece_pos).unwrap();
                 if let Some(target_piece) = board.get_piece_at(target_point) {
-                    if target_piece.team_id != board.current_team_index && active_piece.can_use_special() {
-                        event_consumer
-                            .handle_new_event(&CompoundEvent(
-                                vec![
-                                    Exhaust(true, *active_piece_pos),
-                                    Remove(*target_point, *target_piece)
-                                ],
-                                CompoundEventType::Attack
-                            ));
+                    if target_piece.team_id != board.current_team_index
+                        && active_piece.can_use_special()
+                    {
+                        event_consumer.handle_new_event(&CompoundEvent(
+                            vec![
+                                Exhaust(true, *active_piece_pos),
+                                Remove(*target_point, *target_piece),
+                            ],
+                            CompoundEventType::Attack,
+                        ));
                     }
                 }
-
             }
-            State::Won(team) => {return Self::won(team);}
+            State::Won(team) => {
+                return Self::won(team);
+            }
         }
 
         Self::place()

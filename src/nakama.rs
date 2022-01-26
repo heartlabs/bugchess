@@ -1,14 +1,15 @@
-use std::cell::RefCell;
-use std::collections::HashSet;
-use std::rc::Rc;
-use nakama_rs::api_client::{ApiClient, Event};
-use nakama_rs::matchmaker::{Matchmaker, QueryItemBuilder};
-use nanoserde::DeBin;
-use crate::{EventBroker, EventConsumer, get_configuration, MyObject};
-use crate::game_events::GameEventObject;
-use crate::rand::rand;
+use crate::{
+    game_events::GameEventObject, get_configuration, rand::rand, EventBroker, EventConsumer,
+    MyObject,
+};
 use macroquad::prelude::*;
-use nakama_rs::rt_api::Presence;
+use nakama_rs::{
+    api_client::{ApiClient, Event},
+    matchmaker::{Matchmaker, QueryItemBuilder},
+    rt_api::Presence,
+};
+use nanoserde::DeBin;
+use std::{cell::RefCell, collections::HashSet, rc::Rc};
 
 pub async fn nakama_client() -> NakamaClient {
     //let mut server = String::from("127.0.0.1");
@@ -17,10 +18,16 @@ pub async fn nakama_client() -> NakamaClient {
     let mut port = 7350;
 
     let config: Box<dyn MyObject> = get_configuration();
-    if let Some(s) = config.get_field("nakama").and_then(|n| n.get_field("server")) {
+    if let Some(s) = config
+        .get_field("nakama")
+        .and_then(|n| n.get_field("server"))
+    {
         s.to_string(&mut server);
     }
-    if let Some(s) = config.get_field("nakama").and_then(|n| n.get_field("protocol")) {
+    if let Some(s) = config
+        .get_field("nakama")
+        .and_then(|n| n.get_field("protocol"))
+    {
         s.to_string(&mut protocol);
     }
     if let Some(s) = config.get_field("nakama").and_then(|n| n.get_field("port")) {
@@ -29,16 +36,19 @@ pub async fn nakama_client() -> NakamaClient {
         port = port_str.parse().unwrap();
     }
 
-
     info!("Got {}, {}, {}", protocol, server, port);
 
     let mut client = ApiClient::new("defaultkey", server.as_str(), port, protocol.as_str());
 
     // Note that the minimum password length is 8 characters!
-   // let uuid = Uuid::new_v4();
+    // let uuid = Uuid::new_v4();
     let uuid = rand().to_string();
 
-    client.register(&*(uuid.to_string() + "@user.com"), "password", &*uuid.to_string());
+    client.register(
+        &*(uuid.to_string() + "@user.com"),
+        "password",
+        &*uuid.to_string(),
+    );
 
     wait_for_client(&mut client, "registration").await;
 
@@ -51,7 +61,12 @@ pub async fn nakama_client() -> NakamaClient {
         next_frame().await;
     }
 
-    info!("Username: {:?}; {:?}; {:?}", client.username(), client.rpc_response(), client.authenticated());
+    info!(
+        "Username: {:?}; {:?}; {:?}",
+        client.username(),
+        client.rpc_response(),
+        client.authenticated()
+    );
 
     let mut matchmaker = Matchmaker::new();
 
@@ -83,7 +98,6 @@ pub async fn nakama_client() -> NakamaClient {
         let token = client.matchmaker_token.clone().unwrap();
         info!("Joining match with token {}", token);
         client.socket_join_match_by_token(&token);
-
     }
 
     wait_for_client(&mut client, "match joining").await;
@@ -103,7 +117,7 @@ async fn wait_for_client(client: &mut ApiClient, action: &str) {
 pub struct NakamaClient {
     sent_events: HashSet<String>,
     client: ApiClient,
-    players: Vec<Presence>
+    players: Vec<Presence>,
 }
 
 impl NakamaClient {
@@ -111,13 +125,13 @@ impl NakamaClient {
         NakamaClient {
             sent_events: HashSet::new(),
             client,
-            players: vec![]
+            players: vec![],
         }
     }
 
     pub fn get_own_player_index(&self) -> Option<usize> {
         if self.players.len() != 2 {
-            return None
+            return None;
         }
 
         let sort_ascending = self.client.matchmaker_token.as_ref().unwrap().as_bytes()[0] % 2 == 0;
@@ -130,14 +144,13 @@ impl NakamaClient {
         }
 
         self.client.username().and_then(|u| {
-            for (i,p) in sorted.iter().enumerate() {
+            for (i, p) in sorted.iter().enumerate() {
                 if *u == p.username {
-                    return Option::Some(i)
+                    return Option::Some(i);
                 }
             }
             Option::None
         })
-
     }
 
     pub fn try_recieve(&mut self, event_broker: &mut EventBroker) {
@@ -146,20 +159,22 @@ impl NakamaClient {
             match event {
                 Event::Presence { joins, leaves } => {
                     for presence in joins {
-                        info!("Joined: {} ({}, {})", presence.username, presence.session_id, presence.user_id);
+                        info!(
+                            "Joined: {} ({}, {})",
+                            presence.username, presence.session_id, presence.user_id
+                        );
 
                         self.players.push(presence);
                     }
 
                     for presence in leaves {
-                        error!("Left: {} ({}, {})", presence.username, presence.session_id, presence.user_id)
+                        error!(
+                            "Left: {} ({}, {})",
+                            presence.username, presence.session_id, presence.user_id
+                        )
                     }
-
                 }
-                Event::MatchData {
-                    data,
-                    ..
-                } => {
+                Event::MatchData { data, .. } => {
                     let event_object: GameEventObject = DeBin::deserialize_bin(&data).unwrap();
                     if self.register_event(&event_object) {
                         event_broker.handle_remote_event(&event_object);
@@ -178,12 +193,13 @@ pub struct NakamaEventConsumer {
     pub(crate) nakama_client: Rc<RefCell<Box<NakamaClient>>>,
 }
 
-
 impl EventConsumer for NakamaEventConsumer {
     fn handle_event(&mut self, event: &GameEventObject) {
         let mut nakama_client = (*self.nakama_client).borrow_mut();
         if nakama_client.register_event(event) {
-            nakama_client.client.socket_send(GameEventObject::OPCODE, event);
+            nakama_client
+                .client
+                .socket_send(GameEventObject::OPCODE, event);
         }
     }
 }
