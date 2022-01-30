@@ -11,8 +11,35 @@ use nakama_rs::{
 use nanoserde::DeBin;
 use std::{cell::RefCell, collections::HashSet, rc::Rc};
 
-pub async fn nakama_client() -> NakamaClient {
-    //let mut server = String::from("127.0.0.1");
+pub fn join_match(client: &mut ApiClient) {
+    if let Some(error) = client.error().clone() {
+        panic!("{}", error)
+    } else {
+        let token = client.matchmaker_token.clone().unwrap();
+        info!("Joining match with token {}", token);
+        client.socket_join_match_by_token(&token);
+    }
+}
+
+pub fn add_matchmaker(client: &mut ApiClient) {
+    let mut matchmaker = Matchmaker::new();
+
+    matchmaker
+        .min(2)
+        .max(2)
+        .add_string_property("engine", "macroquad_matchmaking")
+        .add_query_item(
+            &QueryItemBuilder::new("engine")
+                .required()
+                .term("macroquad_matchmaking")
+                .build(),
+        );
+
+    client.socket_add_matchmaker(&matchmaker);
+}
+
+pub fn start_registration() -> ApiClient {
+//let mut server = String::from("127.0.0.1");
     let mut server = String::from("34.65.62.178");
     let mut protocol = String::from("http");
     let mut port = 7350;
@@ -49,69 +76,7 @@ pub async fn nakama_client() -> NakamaClient {
         "password",
         &*uuid.to_string(),
     );
-
-    wait_for_client(&mut client, "registration").await;
-
-    if let Some(error) = client.error() {
-        info!("Error: {:?}", error);
-    }
-
-    while client.authenticated() == false {
-        info!("Waiting for authentication");
-        next_frame().await;
-    }
-
-    info!(
-        "Username: {:?}; {:?}; {:?}",
-        client.username(),
-        client.rpc_response(),
-        client.authenticated()
-    );
-
-    let mut matchmaker = Matchmaker::new();
-
-    matchmaker
-        .min(2)
-        .max(2)
-        .add_string_property("engine", "macroquad_matchmaking")
-        .add_query_item(
-            &QueryItemBuilder::new("engine")
-                .required()
-                .term("macroquad_matchmaking")
-                .build(),
-        );
-
-    client.socket_add_matchmaker(&matchmaker);
-    wait_for_client(&mut client, "matchmaking").await;
-
-    while client.matchmaker_token.clone().is_none() {
-        if let Some(error) = client.error().clone() {
-            panic!("{}", error)
-        }
-        next_frame().await;
-        client.tick();
-    }
-
-    if let Some(error) = client.error().clone() {
-        panic!("{}", error)
-    } else {
-        let token = client.matchmaker_token.clone().unwrap();
-        info!("Joining match with token {}", token);
-        client.socket_join_match_by_token(&token);
-    }
-
-    wait_for_client(&mut client, "match joining").await;
-
-    NakamaClient::new(client)
-}
-
-async fn wait_for_client(client: &mut ApiClient, action: &str) {
-    info!("Starting {}", action);
-    while client.in_progress() {
-        info!("{} in progress...", action);
-        next_frame().await;
-        client.tick();
-    }
+    client
 }
 
 pub struct NakamaClient {

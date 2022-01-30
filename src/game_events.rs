@@ -1,7 +1,7 @@
 use crate::{game_events::GameEvent::*, info, rand::rand, Board, Piece, Point2};
 
 use nanoserde::{DeBin, SerBin};
-use std::{borrow::BorrowMut, cell::RefCell, mem, rc::Rc};
+use std::{cell::RefCell, mem, rc::Rc};
 
 #[derive(Debug, Clone, SerBin, DeBin)]
 pub enum GameEvent {

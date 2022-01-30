@@ -1,7 +1,7 @@
 #[cfg(target_family = "wasm")]
 use sapp_jsutils::JsObject;
 //#[wasm_bindgen]
-#[no_mangle]
+//#[no_mangle]
 #[cfg(target_family = "wasm")]
 extern "C" {
     pub fn get_config() -> sapp_jsutils::JsObject;

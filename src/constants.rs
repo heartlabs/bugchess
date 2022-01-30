@@ -1,6 +1,11 @@
 use crate::*;
 use macroquad::prelude::mouse_position;
 
+#[cfg(target_family = "wasm")]
+pub const ONLINE: bool = true;
+#[cfg(not(target_family = "wasm"))]
+pub const ONLINE: bool = false;
+
 pub const CELL_SCALE: f32 = 1.1875;
 pub const CELL_WIDTH: u32 = 64;
 pub const CELL_ABSOLUTE_WIDTH: f32 = CELL_WIDTH as f32 * CELL_SCALE;

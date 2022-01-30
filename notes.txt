@@ -1,16 +1,28 @@
-Spielanleitung
-    * HTML
-    * Kurzer Text am Screen
+
+Spielbar machen
+    * Mobile
+    * Error Handling
+    * Wie verstecke ich den API Key?
     * Buttons für
         + next round
         + undo
 
-Gewinnen
-    * 20 unused pieces
-    * Gegner 0 pieces am Feld
+Refactor
+    * BoardRender -> Event handler
+    * States
+        * Core game states
+            + place / move from
+            + move to / special
+            + special target
+            + won
+            - wait for opponent
+        * Connect
+        * UI for player creation/login?
+        * Create / Choose game?
+    * wasm_bindgen / wasm-pack
 
-Spielbar machen
-    * Im Onlinemodus nicht Gegner steuern
-    * Mobile
-    * Error Handling
-    * Wie verstecke ich den API Key?
+
+
+Commands
+    * cargo +nightly fmt
+    * cargo fix

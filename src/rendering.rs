@@ -1,14 +1,14 @@
 use crate::{
     piece::PieceKind,
     ranges::*,
-    states::{CoreGameState, State},
+    states::core_game_state::{CoreGameSubstate},
     *,
 };
 use instant::{Duration, Instant};
 
 pub struct CustomRenderContext {
     pieces_texture: Texture2D,
-    pub game_state: CoreGameState,
+    pub game_state: CoreGameSubstate,
     start_time: Instant,
 }
 
@@ -19,7 +19,7 @@ impl CustomRenderContext {
                 include_bytes!("../resources/sprites/pieces.png"),
                 None,
             ),
-            game_state: CoreGameState::place(),
+            game_state: CoreGameSubstate::Place,
             start_time: Instant::now(),
         }
     }
@@ -113,6 +113,14 @@ impl BoardRender {
                 CELL_ABSOLUTE_WIDTH,
                 color,
             );
+            draw_rectangle_lines(
+                x_pos,
+                 y_pos,
+                 CELL_ABSOLUTE_WIDTH,
+                 CELL_ABSOLUTE_WIDTH,
+                 1.,
+                 BLACK,
+            );
         });
 
         board.for_each_cell(|cell| {
@@ -129,13 +137,14 @@ impl BoardRender {
             }
         });
 
+        let mut selected_point_option = Option::None;
         let hovered_point = cell_hovered();
         if let Some(hovered_piece) = board.get_piece_at(&hovered_point) {
-            let range_context = match render_context.game_state.state {
-                State::Place => RangeContext::Moving(*hovered_piece),
-                State::Move => RangeContext::Moving(*hovered_piece),
-                State::Activate => RangeContext::Special(*hovered_piece),
-                State::Won(_) => RangeContext::Moving(*hovered_piece),
+            let range_context = match render_context.game_state {
+                CoreGameSubstate::Place => RangeContext::Moving(*hovered_piece),
+                CoreGameSubstate::Move(selected_point) => { selected_point_option = Option::Some(selected_point); RangeContext::Moving(*hovered_piece)}
+                CoreGameSubstate::Activate(selected_point) => {selected_point_option = Option::Some(selected_point); RangeContext::Special(*hovered_piece)}
+                CoreGameSubstate::Won(_) => RangeContext::Moving(*hovered_piece),
             };
 
             if let Some(m) = hovered_piece.movement.as_ref() {
@@ -150,19 +159,19 @@ impl BoardRender {
             }
         }
 
-        if let Some(selected_point) = render_context.game_state.selected {
+        if let Some(selected_point) = selected_point_option {
             if let Some(selected_piece) = board.get_piece_at(&selected_point) {
-                let range_context = match render_context.game_state.state {
-                    State::Place => RangeContext::Moving(*selected_piece),
-                    State::Move => RangeContext::Moving(*selected_piece),
-                    State::Activate => RangeContext::Special(*selected_piece),
-                    State::Won(_) => RangeContext::Moving(*selected_piece),
+                let range_context = match render_context.game_state {
+                    CoreGameSubstate::Place => RangeContext::Moving(*selected_piece),
+                    CoreGameSubstate::Move(_) => RangeContext::Moving(*selected_piece),
+                    CoreGameSubstate::Activate(_) => RangeContext::Special(*selected_piece),
+                    CoreGameSubstate::Won(_) => RangeContext::Moving(*selected_piece),
                 };
-                let range_option: Option<Range> = match render_context.game_state.state {
-                    State::Place => Option::None,
-                    State::Move => selected_piece.movement.map(|m| m.range),
-                    State::Activate => selected_piece.activatable.map(|m| m.range),
-                    State::Won(_) => selected_piece.movement.map(|m| m.range),
+                let range_option: Option<Range> = match render_context.game_state {
+                    CoreGameSubstate::Place => Option::None,
+                    CoreGameSubstate::Move(_) => selected_piece.movement.map(|m| m.range),
+                    CoreGameSubstate::Activate(_) => selected_piece.activatable.map(|m| m.range),
+                    CoreGameSubstate::Won(_) => selected_piece.movement.map(|m| m.range),
                 };
                 if let Some(range) = range_option {
                     Self::highlight_range(
