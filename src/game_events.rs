@@ -1,4 +1,4 @@
-use crate::{game_events::GameEvent::*, info, rand::rand, Board, Piece, Point2};
+use crate::{game_events::GameEvent::*, info, rand::rand, Board, Piece, Point2, BoardRender};
 
 use nanoserde::{DeBin, SerBin};
 use std::{cell::RefCell, mem, rc::Rc};
@@ -27,7 +27,7 @@ impl GameEvent {
 #[derive(Debug, Clone, SerBin, DeBin)]
 pub struct GameEventObject {
     pub(crate) id: String,
-    event: GameEvent,
+    pub event: GameEvent,
 }
 
 impl GameEventObject {
@@ -194,6 +194,35 @@ pub struct BoardEventConsumer {
     pub(crate) board: Rc<RefCell<Box<Board>>>,
 }
 
+pub struct RenderEventConsumer {
+    pub(crate) board_render: Rc<RefCell<Box<BoardRender>>>,
+}
+
+impl RenderEventConsumer {
+    pub(crate) fn handle_event_internal(&self, events: &Vec<GameEvent>, t: &CompoundEventType) {
+        let mut board_render = (*self.board_render).borrow_mut();
+
+        match t {
+            CompoundEventType::Merge => {}
+            CompoundEventType::Attack => {}
+            CompoundEventType::Place => {
+                for event in events {
+                    if let Place(point, piece) = event {
+                        let mut unused = board_render.unused_pieces[piece.team_id].pop().expect("No unused piece left in BoardRender");
+                        unused.move_towards(point);
+                        //let color = board_render.team_colors[piece.team_id];
+                        //board_render.placed_pieces.push(PieceRender::from_piece(point, piece, color))
+                        board_render.placed_pieces.insert(*point, unused);
+                    }
+                }
+            }
+            CompoundEventType::Move => {}
+            CompoundEventType::Undo(_) => {}
+            CompoundEventType::FinishTurn => {}
+        }
+    }
+}
+
 impl BoardEventConsumer {
     fn handle_event_internal(&mut self, event: &GameEvent) {
         let mut board = (*self.board).borrow_mut();
@@ -265,5 +294,15 @@ impl EventConsumer for BoardEventConsumer {
         let event = &event_object.event;
         println!("Handling event {:?}", event);
         self.handle_event_internal(event);
+    }
+}
+
+impl EventConsumer for RenderEventConsumer {
+    fn handle_event(&mut self, event: &GameEventObject) {
+        match &event.event {
+            GameEvent::CompoundEvent(events, t) => {self.handle_event_internal(events, t);}
+            _ => {}
+
+        }
     }
 }

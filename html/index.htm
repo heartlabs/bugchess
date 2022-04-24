@@ -17,8 +17,10 @@
         #glcanvas {
             margin: 0px;
             padding: 0px;
-            width: 800px;
-            height: 800px;
+            width: 100%;
+            max-width: 100vw;
+            max-height: 100vh;
+            aspect-ratio: 8/9;
         }
 
         p {
@@ -98,32 +100,23 @@
 </section>
 
 <!-- Minified and statically hosted version of https://github.com/not-fl3/macroquad/blob/master/js/mq_js_bundle.js -->
-<script src="https://not-fl3.github.io/miniquad-samples/mq_js_bundle.js"></script>
 <!--<script src="https://v6p9d9t4.ssl.hwcdn.net/html/3660624-387905/mq_js_bundle.js"></script>-->
 
-<script>
-    function get_config() {
-      config = {
-        nakama: {
-            server: "heartlabs.tech",
-         //   server: "127.0.0.1",
-         //   server: "34.65.62.178",
-            port: "443",
-            protocol: "https"
+<script src="https://not-fl3.github.io/miniquad-samples/mq_js_bundle.js"></script>
+<script type="module">
+        import init, { set_wasm } from "./megachess.js";
+        async function run() {
+            let wbg = await init();
+            miniquad_add_plugin({
+                register_plugin: (a) => (a.wbg = wbg),
+                on_init: () => set_wasm(wasm_exports),
+                version: "0.0.1",
+                name: "wbg",
+            });
+            load("./megachess_bg.wasm");
         }
-      }
-      console.log({config});
-      return js_object(config);
-    }
-
-    register_plugin = function (importObject) {
-      importObject.env.get_config = get_config;
-    }
-
-// register this plugin in miniquad, required to make plugin's functions available from rust
-miniquad_add_plugin({ register_plugin });
+        run();
 </script>
-<script>load("/target/wasm32-unknown-unknown/release/megachess.wasm");</script>
 
 </body>
 

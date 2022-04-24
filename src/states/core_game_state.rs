@@ -4,13 +4,14 @@ use crate::{
     *,
 };
 
-use crate::nakama::NakamaClient;
+use macroquad::prelude::*;
+use crate::matchbox::MatchboxClient;
 
 pub struct CoreGameState {
     board: Rc<RefCell<Box<Board>>>,
     pub(crate) event_broker: EventBroker,
-    board_render: BoardRender,
-    pub nakama_events: Option<Rc<RefCell<Box<NakamaClient>>>>,
+    board_render: Rc<RefCell<Box<BoardRender>>>,
+    pub matchbox_events: Option<Rc<RefCell<Box<MatchboxClient>>>>,
     render_context: CustomRenderContext,
     own_player_id: Option<usize>,
 }
@@ -18,65 +19,72 @@ pub struct CoreGameState {
 impl CoreGameState {
     pub(crate) fn new(board: Rc<RefCell<Box<Board>>>,
                       event_broker: EventBroker,
-                      board_render: BoardRender,
-                      nakama_events: Option<Rc<RefCell<Box<NakamaClient>>>>) -> Self {
+                      board_render: Rc<RefCell<Box<BoardRender>>>,
+                      matchbox_events: Option<Rc<RefCell<Box<MatchboxClient>>>>) -> Self {
 
         CoreGameState {
             board,
             event_broker,
             board_render,
-            nakama_events,
+            matchbox_events,
             render_context: CustomRenderContext::new(),
             own_player_id: Option::None
         }
     }
+
+    pub fn set_sub_state(&mut self, sub_state: CoreGameSubstate) {
+        self.render_context.game_state = sub_state;
+    }
+
 }
 
 impl GameState for CoreGameState {
-    fn update(&mut self) -> Option<Box<dyn GameState>> {
+    fn update(&mut self, canvas: &Canvas2D) -> Option<Box<dyn GameState>> {
         if ONLINE {
-            (**self.nakama_events.as_mut().unwrap()).borrow_mut().try_recieve(&mut self.event_broker);
+            (**self.matchbox_events.as_mut().unwrap()).borrow_mut().try_recieve(&mut self.event_broker);
 
             if self.own_player_id.is_none() {
-                self.own_player_id = (**self.nakama_events.as_ref().unwrap()).borrow().as_ref().get_own_player_index();
+                self.own_player_id = (**self.matchbox_events.as_ref().unwrap()).borrow().as_ref().get_own_player_index();
                 info!("own player id: {:?}", self.own_player_id);
             }
         }
 
-        if can_control_player((*self.board).borrow().as_ref(), &mut self.own_player_id, ONLINE) {
-            for (i, text) in description(&self.render_context, (*self.board).borrow().as_ref())
-                .iter()
-                .enumerate()
-            {
-                draw_text(
-                    text.as_str(),
-                    10.,
-                    670. + (i * 50) as f32,
-                    50.,
-                    (*self.board).borrow().as_ref().current_team().color,
-                );
-            }
-
-            handle_player_input(&mut self.board, &mut self.event_broker, &mut self.render_context);
-        } else {
+        for (i, text) in description(&self.render_context, (*self.board).borrow().as_ref())
+            .iter()
+            .enumerate()
+        {
             draw_text(
-                "Please wait for opponent to finish",
+                text.as_str(),
                 10.,
-                670.,
+                670. + (i * 50) as f32,
                 50.,
                 (*self.board).borrow().as_ref().current_team().color,
             );
         }
 
+        match self.render_context.game_state {
+            CoreGameSubstate::Wait => {
+                if can_control_player((*self.board).borrow().as_ref(), &mut self.own_player_id, ONLINE) {
+                    self.render_context.game_state = CoreGameSubstate::Place;
+                }
+            }
+            CoreGameSubstate::Won(_) => {}
+            _ => {
+                handle_player_input(&mut self.board, &mut self.event_broker, &mut self.render_context, canvas);
+            }
+        }
+
         check_if_somebody_won((*self.board).borrow().as_ref(), &mut self.render_context);
 
-        self.board_render = BoardRender::new((*self.board).borrow().as_ref());
+        if true {
+            self.board_render = Rc::new(RefCell::new(Box::new(BoardRender::new((*self.board).borrow().as_ref()))));
+        }
 
         Option::None
     }
 
-    fn render(&self) {
-        self.board_render.render((*self.board).borrow().as_ref(), &self.render_context);
+    fn render(&self, canvas: &Canvas2D) {
+        (*self.board_render).borrow().as_ref().render((*self.board).borrow().as_ref(), &self.render_context, canvas);
     }
 }
 
@@ -86,6 +94,7 @@ pub enum CoreGameSubstate {
     Move(Point2),
     Activate(Point2),
     Won(usize),
+    Wait
 }
 
 impl CoreGameSubstate {
@@ -191,6 +200,9 @@ impl CoreGameSubstate {
             }
             CoreGameSubstate::Won(team) => {
                 return CoreGameSubstate::Won(*team);
+            }
+            CoreGameSubstate::Wait => {
+                return CoreGameSubstate::Wait
             }
         }
 
@@ -298,6 +310,9 @@ fn description(render_context: &CustomRenderContext, board: &Board) -> Vec<Strin
                     .unwrap(),
             );
         }
+        CoreGameSubstate::Wait => {
+            description.push("Please wait for opponent to finish".parse().unwrap());
+        }
     };
 
     description
@@ -319,11 +334,12 @@ fn handle_player_input(
     mut board: &mut Rc<RefCell<Box<Board>>>,
     mut event_broker: &mut EventBroker,
     render_context: &mut CustomRenderContext,
+    canvas: &Canvas2D
 ) {
     if is_mouse_button_pressed(MouseButton::Left) {
         info!("mouse button pressed");
         let next_game_state = render_context.game_state.on_click(
-            &cell_hovered(),
+            &cell_hovered(canvas),
             board.as_ref().borrow_mut().borrow_mut(),
             &mut event_broker,
         );
@@ -340,11 +356,12 @@ fn handle_player_input(
         info!("finish mouse button action");
     }
 
-    if is_key_pressed(KeyCode::Enter) || is_key_pressed(KeyCode::KpEnter) {
+    if is_key_pressed(KeyCode::Enter) || is_key_pressed(KeyCode::KpEnter) || render_context.button_next.clicked(canvas) {
         next_turn(&mut board, &mut event_broker);
+        render_context.game_state = CoreGameSubstate::Wait;
     }
 
-    if is_key_pressed(KeyCode::U) {
+    if is_key_pressed(KeyCode::U) || render_context.button_undo.clicked(canvas) {
         event_broker.undo();
     }
 }

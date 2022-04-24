@@ -1,16 +1,5 @@
-use crate::{
-    game_events::GameEventObject, get_configuration, rand::rand, EventBroker, EventConsumer,
-    MyObject,
-};
-use macroquad::prelude::*;
-use nakama_rs::{
-    api_client::{ApiClient, Event},
-    matchmaker::{Matchmaker, QueryItemBuilder},
-    rt_api::Presence,
-};
-use nanoserde::DeBin;
-use std::{cell::RefCell, collections::HashSet, rc::Rc};
 
+/*
 pub fn join_match(client: &mut ApiClient) {
     if let Some(error) = client.error().clone() {
         panic!("{}", error)
@@ -168,3 +157,4 @@ impl EventConsumer for NakamaEventConsumer {
         }
     }
 }
+*/

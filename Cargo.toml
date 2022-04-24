@@ -7,14 +7,21 @@ edition = "2021"
 
 [dependencies]
 macroquad = "0.3"
-nakama-rs = "*"
+egui-macroquad = "0.8.0"
+#nakama-rs = "*"
+matchbox_socket = { path = "../matchbox/matchbox_socket" }
+# matchbox_socket = { git = "https://github.com/johanhelsing/matchbox" }
+# matchbox_socket = "0.3.0"
+async-executor = "1.4.1"
 nanoserde = "0.1.29"
 futures = "0.3.15"
 instant = "0.1.12"
+macroquad-canvas = "0.3.0"
 # wasm-bindgen = "0.2.78"
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 sapp-jsutils = "0.1.5"
+wasm-bindgen-futures = "0.4.29"
 
 [target.'cfg(target_os = "windows")'.dependencies]
 openssl = { version = "0.10", features = ["vendored"] }

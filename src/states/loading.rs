@@ -7,17 +7,21 @@ use std::thread::Thread;
 use futures::{Future, FutureExt, TryFutureExt};
 use futures::future::{BoxFuture, LocalBoxFuture, OptionFuture};
 use futures::task::LocalSpawnExt;
-use crate::{Board, BoardEventConsumer, BoardRender, CompoundEventType, CoreGameState, EventBroker, GameEvent, GameState, nakama, NakamaClient, NakamaEventConsumer, ONLINE, Piece, PieceKind, Point2, Team};
+use crate::{Board, BoardEventConsumer, BoardRender, CompoundEventType, CoreGameState, EventBroker, GameEvent, GameState, matchbox, ONLINE, Piece, PieceKind, Point2, Team};
 
 use instant::Instant;
 use macroquad::prelude::*;
 use macroquad::rand::srand;
-use nakama_rs::api_client::ApiClient;
+use macroquad_canvas::Canvas2D;
+use matchbox_socket::WebRtcSocket;
+use crate::game_events::RenderEventConsumer;
+use crate::matchbox::{MatchboxClient, MatchboxEventConsumer};
+use crate::states::core_game_state::CoreGameSubstate;
 
 pub struct LoadingState {
     core_game_state: Option<CoreGameState>,
     sub_state: LoadingSubState,
-    client: Option<ApiClient>
+    client: Option<MatchboxClient>
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -40,7 +44,8 @@ impl LoadingState {
 
         set_up_pieces(&mut board, &mut event_broker);
 
-        let mut board_render = BoardRender::new((*board).borrow().as_ref());
+        let mut board_render = Rc::new(RefCell::new(Box::new(BoardRender::new((*board).borrow().as_ref()))));
+       //TODO event_broker.subscribe(Box::new(RenderEventConsumer { board_render: board_render.clone() }));
 
         info!(
             "{}ns to set up pieces. {}",
@@ -60,55 +65,57 @@ impl LoadingState {
                 board_render,
                 Option::None)),
             sub_state: if ONLINE {LoadingSubState::Register} else {LoadingSubState::Finished},
-            client: if ONLINE {Option::Some(nakama::start_registration())} else {Option::None},
+            client: Option::None,
         }
     }
 }
 
 impl GameState for LoadingState {
-    fn update(&mut self) -> Option<Box<dyn GameState>> {
+    fn update(&mut self, _canvas: &Canvas2D) -> Option<Box<dyn GameState>> {
         match &self.sub_state {
             LoadingSubState::Register => {
-                let client = self.client.as_mut().unwrap();
-                if client.authenticated() == true {
-                    nakama::add_matchmaker(client);
-                    self.sub_state = LoadingSubState::Matchmaking;
-                }
+                let client = matchbox::connect();
+                self.client = Some(client);
+                self.sub_state = LoadingSubState::Matchmaking;
+
             }
             LoadingSubState::Matchmaking => {
                 let client = self.client.as_mut().unwrap();
-                if client.matchmaker_token.is_some() {
-                    nakama::join_match(client);
+                client.matchmaking();
+
+                if client.is_ready() {
                     self.sub_state = LoadingSubState::JoinMatch;
                 }
             }
             LoadingSubState::JoinMatch => {
-                if !self.client.as_ref().unwrap().in_progress() {
                     self.sub_state = LoadingSubState::Finished;
-                }
             }
             LoadingSubState::Finished => {
                 let mut core_game_state = self.core_game_state.take().unwrap();
 
                 if ONLINE {
-                    let nakama_client = NakamaClient::new(self.client.take().unwrap());
-                    let nakama_events = Option::Some(Rc::new(RefCell::new(Box::new(nakama_client))));
-                    core_game_state.event_broker.subscribe_committed(Box::new(NakamaEventConsumer {
-                        nakama_client: Rc::clone(nakama_events.as_ref().unwrap()),
+                    let matchbox_client = self.client.take().unwrap();
+
+                    if matchbox_client.get_own_player_index().unwrap() != 0 {
+                        core_game_state.set_sub_state(CoreGameSubstate::Wait);
+                    }
+
+                    let matchbox_events = Option::Some(Rc::new(RefCell::new(Box::new(matchbox_client))));
+                    core_game_state.event_broker.subscribe_committed(Box::new(MatchboxEventConsumer {
+                        client: Rc::clone(matchbox_events.as_ref().unwrap()),
                     }));
 
-                    core_game_state.nakama_events = nakama_events;
+                    core_game_state.matchbox_events = matchbox_events;
+
                 }
                 return Option::Some(Box::new(core_game_state))
             }
         }
 
-        self.client.as_mut().unwrap().tick();
-
         Option::None
     }
 
-    fn render(&self) {
+    fn render(&self, _canvas: &Canvas2D) {
         draw_text(
             &*format!("Loading: {:?}... ", self.sub_state),
             10.,

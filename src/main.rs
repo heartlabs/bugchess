@@ -1,33 +1,30 @@
 mod board;
-mod conf;
 mod constants;
 mod game_events;
-mod nakama;
 mod piece;
 mod ranges;
 mod rendering;
 mod states;
+mod matchbox;
+mod ui;
 
 use crate::{
     board::*,
-    conf::*,
     constants::*,
-    game_events::{BoardEventConsumer, CompoundEventType, EventBroker, EventConsumer, GameEvent},
-    nakama::NakamaEventConsumer,
+    game_events::{BoardEventConsumer, CompoundEventType, EventBroker, GameEvent},
     piece::*,
     ranges::*,
     rendering::{BoardRender, CustomRenderContext},
-    states::core_game_state::{CoreGameSubstate},
 };
 
 use macroquad::{prelude::*, rand::srand};
+use macroquad_canvas::Canvas2D;
 
 use std::{
     borrow::{BorrowMut},
     cell::RefCell,
     rc::Rc,
 };
-use crate::nakama::NakamaClient;
 use crate::states::{
     GameState,
     core_game_state::CoreGameState,
@@ -39,8 +36,8 @@ use crate::states::loading::LoadingState;
 fn window_conf() -> Conf {
     Conf {
         window_title: "Makrochess".to_owned(),
-        window_width: 800,
-        window_height: 800,
+        window_width: WINDOW_WIDTH,
+        window_height: WINDOW_HEIGHT,
         ..Default::default()
     }
 }
@@ -48,13 +45,21 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
     let mut state: Box<dyn GameState> = Box::new(LoadingState::new());
+    let canvas = Canvas2D::new(WINDOW_WIDTH as f32, WINDOW_HEIGHT as f32);
 
     loop {
-        if let Some(new_state) = state.update() {
+        set_camera(&canvas.camera);
+        clear_background(BLACK);
+
+        if let Some(new_state) = state.update(&canvas) {
             state = new_state;
         }
+        state.render(&canvas);
 
-        state.render();
+        set_default_camera();
+
+        clear_background(BLACK);
+        canvas.draw();
 
         next_frame().await;
     }

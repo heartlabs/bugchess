@@ -1,14 +1,18 @@
-use crate::{
-    piece::PieceKind,
-    ranges::*,
-    states::core_game_state::{CoreGameSubstate},
-    *,
-};
+use std::cell::Cell;
+use std::collections::HashMap;
+use std::rc::Rc;
+use egui_macroquad::egui::TextBuffer;
+use crate::{Board, constants::*, Piece, piece::PieceKind, Point2, ranges::*, states::core_game_state::{CoreGameSubstate}};
 use instant::{Duration, Instant};
+use macroquad::prelude::*;
+use macroquad_canvas::Canvas2D;
+use crate::ui::Button;
 
 pub struct CustomRenderContext {
     pieces_texture: Texture2D,
     pub game_state: CoreGameSubstate,
+    pub button_next: Button,
+    pub button_undo: Button,
     start_time: Instant,
 }
 
@@ -20,6 +24,8 @@ impl CustomRenderContext {
                 None,
             ),
             game_state: CoreGameSubstate::Place,
+            button_next: Button::new(10., "End Turn".to_string()),
+            button_undo: Button::new(120., "Undo".to_string()),
             start_time: Instant::now(),
         }
     }
@@ -33,15 +39,23 @@ impl CustomRenderContext {
     }
 }
 
+pub struct Animation {
+    animated: Rc<Cell<PieceAnimationPoint>>,
+    from: PieceAnimationPoint,
+    to: PieceAnimationPoint,
+    elapsed_time_ms: u32,
+}
+
 pub struct BoardRender {
-    unused_pieces: Vec<PieceRender>,
-    placed_pieces: Vec<PieceRender>,
+    pub(crate) unused_pieces: Vec<Vec<PieceRender>>,
+    pub(crate) placed_pieces: HashMap<Point2, PieceRender>,
+    pub(crate) team_colors: Vec<Color>
 }
 
 impl BoardRender {
     pub fn new(board: &Board) -> Self {
-        let mut unused_pieces = vec![];
-        let mut placed_pieces = vec![];
+        let mut unused_pieces = vec![vec![],vec![]];
+        let mut placed_pieces = HashMap::new();
 
         {
             let (upb_x, mut upb_y) = cell_coords_tuple(board.w, board.h - 1);
@@ -50,7 +64,7 @@ impl BoardRender {
             let first_team = board.get_team(0);
             let color = first_team.color;
             for i in 0..first_team.unused_pieces {
-                unused_pieces.push(PieceRender::new(
+                unused_pieces[0].push(PieceRender::new(
                     upb_x,
                     upb_y - i as f32 * 32.,
                     color,
@@ -65,7 +79,7 @@ impl BoardRender {
             let second_team = board.get_team(1);
             let color = second_team.color;
             for i in 0..second_team.unused_pieces {
-                unused_pieces.push(PieceRender::new(
+                unused_pieces[1].push(PieceRender::new(
                     upb_x,
                     upb_y + i as f32 * 32.,
                     color,
@@ -75,29 +89,25 @@ impl BoardRender {
         }
 
         board.for_each_placed_piece(|point, piece| {
-            let (x_pos, y_pos) = cell_coords(&point);
-            let piece_scale = 60.;
-            let shift = (CELL_ABSOLUTE_WIDTH - piece_scale) / 2.;
-
-            placed_pieces.push(PieceRender::new(
-                x_pos + shift,
-                y_pos + shift,
-                board.get_team(piece.team_id).color,
-                piece.piece_kind,
+            placed_pieces.insert(point, PieceRender::from_piece(
+                &point,
+                piece,
+                board.get_team(piece.team_id).color
             ));
         });
 
         BoardRender {
             unused_pieces,
             placed_pieces,
+            team_colors: board.teams.iter().map(|t| t.color).collect()
         }
     }
 
-    pub fn render(&self, board: &Board, render_context: &CustomRenderContext) {
+    pub fn render(&self, board: &Board, render_context: &CustomRenderContext, canvas: &Canvas2D) {
         board.for_each_cell(|cell| {
             let (x_pos, y_pos) = cell_coords(&cell.point);
 
-            let mouse_point = cell_hovered();
+            let mouse_point = cell_hovered(canvas);
 
             let color = if cell.point == mouse_point {
                 BLUE
@@ -138,13 +148,14 @@ impl BoardRender {
         });
 
         let mut selected_point_option = Option::None;
-        let hovered_point = cell_hovered();
+        let hovered_point = cell_hovered(canvas);
         if let Some(hovered_piece) = board.get_piece_at(&hovered_point) {
             let range_context = match render_context.game_state {
                 CoreGameSubstate::Place => RangeContext::Moving(*hovered_piece),
                 CoreGameSubstate::Move(selected_point) => { selected_point_option = Option::Some(selected_point); RangeContext::Moving(*hovered_piece)}
                 CoreGameSubstate::Activate(selected_point) => {selected_point_option = Option::Some(selected_point); RangeContext::Special(*hovered_piece)}
                 CoreGameSubstate::Won(_) => RangeContext::Moving(*hovered_piece),
+                CoreGameSubstate::Wait => RangeContext::Moving(*hovered_piece),
             };
 
             if let Some(m) = hovered_piece.movement.as_ref() {
@@ -166,12 +177,14 @@ impl BoardRender {
                     CoreGameSubstate::Move(_) => RangeContext::Moving(*selected_piece),
                     CoreGameSubstate::Activate(_) => RangeContext::Special(*selected_piece),
                     CoreGameSubstate::Won(_) => RangeContext::Moving(*selected_piece),
+                    CoreGameSubstate::Wait => RangeContext::Moving(*selected_piece)
                 };
                 let range_option: Option<Range> = match render_context.game_state {
                     CoreGameSubstate::Place => Option::None,
                     CoreGameSubstate::Move(_) => selected_piece.movement.map(|m| m.range),
                     CoreGameSubstate::Activate(_) => selected_piece.activatable.map(|m| m.range),
                     CoreGameSubstate::Won(_) => selected_piece.movement.map(|m| m.range),
+                    CoreGameSubstate::Wait => Option::None
                 };
                 if let Some(range) = range_option {
                     Self::highlight_range(
@@ -186,12 +199,18 @@ impl BoardRender {
         }
 
         //println!("rendered {:?}", self.unused_pieces.len());
-        self.unused_pieces.iter().for_each(|p| {
+        self.unused_pieces.iter().flat_map(|p|p.iter()).for_each(|p| {
             p.render(render_context);
         });
         self.placed_pieces
             .iter()
-            .for_each(|p| p.render(render_context));
+            .for_each(|(_,p)| p.render(render_context));
+
+
+
+
+        render_context.button_next.render(canvas);
+        render_context.button_undo.render(canvas);
     }
 
     fn highlight_range(
@@ -257,15 +276,30 @@ impl PieceRender {
         Self::animated(pap, pap, color, piece_kind)
     }
 
+    pub(crate) fn from_piece(point: &Point2, piece: &Piece, color: Color) -> PieceRender{
+        let (x_pos, y_pos) = Self::render_pos(point);
+
+        PieceRender::new(
+            x_pos,
+            y_pos,
+            color,
+            piece.piece_kind,
+        )
+    }
+
+    fn render_pos(point: &Point2) -> (f32, f32) {
+        let (x_pos, y_pos) = cell_coords(point);
+        let piece_scale = 60.;
+        let shift = (CELL_ABSOLUTE_WIDTH - piece_scale) / 2.;
+        (x_pos + shift, y_pos + shift)
+    }
+
     fn animated(
         from: PieceAnimationPoint,
         to: PieceAnimationPoint,
         color: Color,
         piece_kind: PieceKind,
     ) -> Self {
-        const PIECE_SCALE: f32 = 60.;
-        const SPRITE_WIDTH: f32 = 64.;
-
         let (sprite_x, sprite_y) = match piece_kind {
             PieceKind::Simple => (0, 0),
             PieceKind::HorizontalBar => (1, 0),
@@ -289,6 +323,20 @@ impl PieceRender {
             color,
             rect_in_sprite,
         }
+    }
+
+    pub fn move_towards(&mut self, point: &Point2) {
+        self.from = self.to;
+        self.from.elapsed_time_ms = 0;
+
+        let (x_pos, y_pos) = Self::render_pos(point);
+
+        self.to = PieceAnimationPoint {
+            x_pos,
+            y_pos,
+            scale: PIECE_SCALE,
+            elapsed_time_ms: 1000,
+        };
     }
 
     fn render(&self, render_context: &CustomRenderContext) {

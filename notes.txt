@@ -1,4 +1,14 @@
 
+Bis Mi
+  - Deploy
+     * Matchbox deployen
+     * CI anpassen
+     * Doku und Screencasts
+  - Spiel
+     * Für handy spielbar machen - ausprobieren
+     * Meldungen polieren
+
+========
 Spielbar machen
     * Mobile
     * Error Handling
@@ -26,3 +36,19 @@ Refactor
 Commands
     * cargo +nightly fmt
     * cargo fix
+
+
+Animation:
+
+    Place + merge:
+      1. unused -> point
+      2. merge
+
+    shoot + merge:
+      a.
+          1. shoot left
+          2. die
+          3. merge
+      b.
+          1. shoot right
+
