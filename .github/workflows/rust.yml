@@ -21,7 +21,7 @@ jobs:
         rust-target: wasm32-unknown-unknown  
     - uses: actions/checkout@v2
     - name: Build
-      run: ./build.sh
+      run: chmod a+x ./build.sh && ./build.sh
 #    - name: Compress
 #      run: >
 #        cd target/wasm32-unknown-unknown/release/
