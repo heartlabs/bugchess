@@ -19,6 +19,8 @@ jobs:
       uses: raftario/setup-rust-action@v1.0.0
       with:
         rust-target: wasm32-unknown-unknown  
+    - name: Setup wasm-bindgen
+      run: cargo install -f wasm-bindgen-cli
     - uses: actions/checkout@v2
     - name: Build
       run: chmod a+x ./build.sh && ./build.sh

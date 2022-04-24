@@ -1523,6 +1523,7 @@ dependencies = [
 [[package]]
 name = "matchbox_socket"
 version = "0.3.0"
+source = "git+https://github.com/heartlabs/matchbox?branch=feature/ice-server-config#f623ce7bb4c85261f3c5203572f2b5fc534de8be"
 dependencies = [
  "async-compat",
  "async-tungstenite",
