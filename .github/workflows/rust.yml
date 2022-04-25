@@ -12,6 +12,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: heartlabs.tech
     steps:
     - name: Install prerequisites
       run: sudo apt-get -y install libasound2-dev libgl1-mesa-dev xorg-dev binaryen wabt
