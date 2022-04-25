@@ -11,13 +11,13 @@ use async_executor::LocalExecutor;
 use futures::FutureExt;
 
 pub fn connect() -> MatchboxClient {
-    let (mut socket, loop_fut) = WebRtcSocket::new_with_config(WebRtcSocketConfig {
+/*    let (mut socket, loop_fut) = WebRtcSocket::new_with_config(WebRtcSocketConfig {
         room_url: "wss://heartlabs.tech:3537/example_room?next=2"
             .parse()
             .unwrap(),
         ice_server: RtcIceServerConfig { urls: vec![] },
-    });
-    //let (mut socket, loop_fut) = WebRtcSocket::new("ws://localhost:3536/example_room?next=2");
+    });*/
+    let (mut socket, loop_fut) = WebRtcSocket::new("wss://heartlabs.tech:3537/example_room?next=2");
 
     info!("my id is {:?}", socket.id());
 
