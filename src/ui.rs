@@ -1,14 +1,14 @@
+use crate::constants::*;
 use egui_macroquad::egui::TextBuffer;
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
-use crate::constants::*;
 
 pub struct Button {
     x: f32,
     y: f32,
     width: f32,
     height: f32,
-    text: String
+    text: String,
 }
 
 impl Button {
@@ -24,29 +24,23 @@ impl Button {
     }
 
     pub(crate) fn render(&self, canvas: &Canvas2D) {
-        let (button_color, text_color) = if self.hovered(canvas) {(DARKGREEN, WHITE)} else {(WHITE, DARKGREEN)};
+        let (button_color, text_color) = if self.hovered(canvas) {
+            (DARKGREEN, WHITE)
+        } else {
+            (WHITE, DARKGREEN)
+        };
 
-        draw_rectangle(
-            self.x,
-            self.y,
-            self.width,
-            self.height,
-            button_color,
-        );
-        draw_text(
-            &*self.text,
-            self.x + 10.,
-            self.y + 40.,
-            40.,
-            text_color,
-        );
+        draw_rectangle(self.x, self.y, self.width, self.height, button_color);
+        draw_text(&*self.text, self.x + 10., self.y + 40., 40., text_color);
     }
 
     pub fn hovered(&self, canvas: &Canvas2D) -> bool {
         let (mouse_x, mouse_y) = canvas.mouse_position();
 
-        mouse_x >= self.x && mouse_x <= self.x + self.width
-          && mouse_y >= self.y && mouse_y <= self.y + self.height
+        mouse_x >= self.x
+            && mouse_x <= self.x + self.width
+            && mouse_y >= self.y
+            && mouse_y <= self.y + self.height
     }
 
     pub fn clicked(&self, canvas: &Canvas2D) -> bool {

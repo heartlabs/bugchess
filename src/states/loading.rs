@@ -1,27 +1,30 @@
+use crate::{
+    matchbox, Board, BoardEventConsumer, BoardRender, CompoundEventType, CoreGameState,
+    EventBroker, GameEvent, GameState, Piece, PieceKind, Point2, Team, ONLINE,
+};
+use futures::future::{BoxFuture, LocalBoxFuture, OptionFuture};
+use futures::task::LocalSpawnExt;
+use futures::{Future, FutureExt, TryFutureExt};
 use std::borrow::BorrowMut;
 use std::cell::RefCell;
 use std::pin::Pin;
 use std::rc::Rc;
 use std::task::{Context, Poll, RawWaker, Waker};
 use std::thread::Thread;
-use futures::{Future, FutureExt, TryFutureExt};
-use futures::future::{BoxFuture, LocalBoxFuture, OptionFuture};
-use futures::task::LocalSpawnExt;
-use crate::{Board, BoardEventConsumer, BoardRender, CompoundEventType, CoreGameState, EventBroker, GameEvent, GameState, matchbox, ONLINE, Piece, PieceKind, Point2, Team};
 
+use crate::game_events::RenderEventConsumer;
+use crate::matchbox::{MatchboxClient, MatchboxEventConsumer};
+use crate::states::core_game_state::CoreGameSubstate;
 use instant::Instant;
 use macroquad::prelude::*;
 use macroquad::rand::srand;
 use macroquad_canvas::Canvas2D;
 use matchbox_socket::WebRtcSocket;
-use crate::game_events::RenderEventConsumer;
-use crate::matchbox::{MatchboxClient, MatchboxEventConsumer};
-use crate::states::core_game_state::CoreGameSubstate;
 
 pub struct LoadingState {
     core_game_state: Option<CoreGameState>,
     sub_state: LoadingSubState,
-    client: Option<MatchboxClient>
+    client: Option<MatchboxClient>,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -29,7 +32,7 @@ pub enum LoadingSubState {
     Register,
     Matchmaking,
     JoinMatch,
-    Finished
+    Finished,
 }
 
 impl LoadingState {
@@ -44,8 +47,10 @@ impl LoadingState {
 
         set_up_pieces(&mut board, &mut event_broker);
 
-        let mut board_render = Rc::new(RefCell::new(Box::new(BoardRender::new((*board).borrow().as_ref()))));
-       //TODO event_broker.subscribe(Box::new(RenderEventConsumer { board_render: board_render.clone() }));
+        let mut board_render = Rc::new(RefCell::new(Box::new(BoardRender::new(
+            (*board).borrow().as_ref(),
+        ))));
+        //TODO event_broker.subscribe(Box::new(RenderEventConsumer { board_render: board_render.clone() }));
 
         info!(
             "{}ns to set up pieces. {}",
@@ -63,8 +68,13 @@ impl LoadingState {
                 board,
                 event_broker,
                 board_render,
-                Option::None)),
-            sub_state: if ONLINE {LoadingSubState::Register} else {LoadingSubState::Finished},
+                Option::None,
+            )),
+            sub_state: if ONLINE {
+                LoadingSubState::Register
+            } else {
+                LoadingSubState::Finished
+            },
             client: Option::None,
         }
     }
@@ -77,7 +87,6 @@ impl GameState for LoadingState {
                 let client = matchbox::connect();
                 self.client = Some(client);
                 self.sub_state = LoadingSubState::Matchmaking;
-
             }
             LoadingSubState::Matchmaking => {
                 let client = self.client.as_mut().unwrap();
@@ -88,7 +97,7 @@ impl GameState for LoadingState {
                 }
             }
             LoadingSubState::JoinMatch => {
-                    self.sub_state = LoadingSubState::Finished;
+                self.sub_state = LoadingSubState::Finished;
             }
             LoadingSubState::Finished => {
                 let mut core_game_state = self.core_game_state.take().unwrap();
@@ -100,15 +109,17 @@ impl GameState for LoadingState {
                         core_game_state.set_sub_state(CoreGameSubstate::Wait);
                     }
 
-                    let matchbox_events = Option::Some(Rc::new(RefCell::new(Box::new(matchbox_client))));
-                    core_game_state.event_broker.subscribe_committed(Box::new(MatchboxEventConsumer {
-                        client: Rc::clone(matchbox_events.as_ref().unwrap()),
-                    }));
+                    let matchbox_events =
+                        Option::Some(Rc::new(RefCell::new(Box::new(matchbox_client))));
+                    core_game_state.event_broker.subscribe_committed(Box::new(
+                        MatchboxEventConsumer {
+                            client: Rc::clone(matchbox_events.as_ref().unwrap()),
+                        },
+                    ));
 
                     core_game_state.matchbox_events = matchbox_events;
-
                 }
-                return Option::Some(Box::new(core_game_state))
+                return Option::Some(Box::new(core_game_state));
             }
         }
 

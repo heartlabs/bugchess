@@ -1,12 +1,15 @@
-use std::cell::Cell;
-use std::collections::HashMap;
-use std::rc::Rc;
+use crate::ui::Button;
+use crate::{
+    constants::*, piece::PieceKind, ranges::*, states::core_game_state::CoreGameSubstate, Board,
+    Piece, Point2,
+};
 use egui_macroquad::egui::TextBuffer;
-use crate::{Board, constants::*, Piece, piece::PieceKind, Point2, ranges::*, states::core_game_state::{CoreGameSubstate}};
 use instant::{Duration, Instant};
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
-use crate::ui::Button;
+use std::cell::Cell;
+use std::collections::HashMap;
+use std::rc::Rc;
 
 pub struct CustomRenderContext {
     pieces_texture: Texture2D,
@@ -49,12 +52,12 @@ pub struct Animation {
 pub struct BoardRender {
     pub(crate) unused_pieces: Vec<Vec<PieceRender>>,
     pub(crate) placed_pieces: HashMap<Point2, PieceRender>,
-    pub(crate) team_colors: Vec<Color>
+    pub(crate) team_colors: Vec<Color>,
 }
 
 impl BoardRender {
     pub fn new(board: &Board) -> Self {
-        let mut unused_pieces = vec![vec![],vec![]];
+        let mut unused_pieces = vec![vec![], vec![]];
         let mut placed_pieces = HashMap::new();
 
         {
@@ -89,17 +92,16 @@ impl BoardRender {
         }
 
         board.for_each_placed_piece(|point, piece| {
-            placed_pieces.insert(point, PieceRender::from_piece(
-                &point,
-                piece,
-                board.get_team(piece.team_id).color
-            ));
+            placed_pieces.insert(
+                point,
+                PieceRender::from_piece(&point, piece, board.get_team(piece.team_id).color),
+            );
         });
 
         BoardRender {
             unused_pieces,
             placed_pieces,
-            team_colors: board.teams.iter().map(|t| t.color).collect()
+            team_colors: board.teams.iter().map(|t| t.color).collect(),
         }
     }
 
@@ -125,11 +127,11 @@ impl BoardRender {
             );
             draw_rectangle_lines(
                 x_pos,
-                 y_pos,
-                 CELL_ABSOLUTE_WIDTH,
-                 CELL_ABSOLUTE_WIDTH,
-                 1.,
-                 BLACK,
+                y_pos,
+                CELL_ABSOLUTE_WIDTH,
+                CELL_ABSOLUTE_WIDTH,
+                1.,
+                BLACK,
             );
         });
 
@@ -152,8 +154,14 @@ impl BoardRender {
         if let Some(hovered_piece) = board.get_piece_at(&hovered_point) {
             let range_context = match render_context.game_state {
                 CoreGameSubstate::Place => RangeContext::Moving(*hovered_piece),
-                CoreGameSubstate::Move(selected_point) => { selected_point_option = Option::Some(selected_point); RangeContext::Moving(*hovered_piece)}
-                CoreGameSubstate::Activate(selected_point) => {selected_point_option = Option::Some(selected_point); RangeContext::Special(*hovered_piece)}
+                CoreGameSubstate::Move(selected_point) => {
+                    selected_point_option = Option::Some(selected_point);
+                    RangeContext::Moving(*hovered_piece)
+                }
+                CoreGameSubstate::Activate(selected_point) => {
+                    selected_point_option = Option::Some(selected_point);
+                    RangeContext::Special(*hovered_piece)
+                }
                 CoreGameSubstate::Won(_) => RangeContext::Moving(*hovered_piece),
                 CoreGameSubstate::Wait => RangeContext::Moving(*hovered_piece),
             };
@@ -177,14 +185,14 @@ impl BoardRender {
                     CoreGameSubstate::Move(_) => RangeContext::Moving(*selected_piece),
                     CoreGameSubstate::Activate(_) => RangeContext::Special(*selected_piece),
                     CoreGameSubstate::Won(_) => RangeContext::Moving(*selected_piece),
-                    CoreGameSubstate::Wait => RangeContext::Moving(*selected_piece)
+                    CoreGameSubstate::Wait => RangeContext::Moving(*selected_piece),
                 };
                 let range_option: Option<Range> = match render_context.game_state {
                     CoreGameSubstate::Place => Option::None,
                     CoreGameSubstate::Move(_) => selected_piece.movement.map(|m| m.range),
                     CoreGameSubstate::Activate(_) => selected_piece.activatable.map(|m| m.range),
                     CoreGameSubstate::Won(_) => selected_piece.movement.map(|m| m.range),
-                    CoreGameSubstate::Wait => Option::None
+                    CoreGameSubstate::Wait => Option::None,
                 };
                 if let Some(range) = range_option {
                     Self::highlight_range(
@@ -199,15 +207,15 @@ impl BoardRender {
         }
 
         //println!("rendered {:?}", self.unused_pieces.len());
-        self.unused_pieces.iter().flat_map(|p|p.iter()).for_each(|p| {
-            p.render(render_context);
-        });
+        self.unused_pieces
+            .iter()
+            .flat_map(|p| p.iter())
+            .for_each(|p| {
+                p.render(render_context);
+            });
         self.placed_pieces
             .iter()
-            .for_each(|(_,p)| p.render(render_context));
-
-
-
+            .for_each(|(_, p)| p.render(render_context));
 
         render_context.button_next.render(canvas);
         render_context.button_undo.render(canvas);
@@ -276,15 +284,10 @@ impl PieceRender {
         Self::animated(pap, pap, color, piece_kind)
     }
 
-    pub(crate) fn from_piece(point: &Point2, piece: &Piece, color: Color) -> PieceRender{
+    pub(crate) fn from_piece(point: &Point2, piece: &Piece, color: Color) -> PieceRender {
         let (x_pos, y_pos) = Self::render_pos(point);
 
-        PieceRender::new(
-            x_pos,
-            y_pos,
-            color,
-            piece.piece_kind,
-        )
+        PieceRender::new(x_pos, y_pos, color, piece.piece_kind)
     }
 
     fn render_pos(point: &Point2) -> (f32, f32) {

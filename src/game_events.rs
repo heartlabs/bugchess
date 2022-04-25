@@ -1,4 +1,4 @@
-use crate::{game_events::GameEvent::*, info, rand::rand, Board, Piece, Point2, BoardRender};
+use crate::{game_events::GameEvent::*, info, rand::rand, Board, BoardRender, Piece, Point2};
 
 use nanoserde::{DeBin, SerBin};
 use std::{cell::RefCell, mem, rc::Rc};
@@ -208,7 +208,9 @@ impl RenderEventConsumer {
             CompoundEventType::Place => {
                 for event in events {
                     if let Place(point, piece) = event {
-                        let mut unused = board_render.unused_pieces[piece.team_id].pop().expect("No unused piece left in BoardRender");
+                        let mut unused = board_render.unused_pieces[piece.team_id]
+                            .pop()
+                            .expect("No unused piece left in BoardRender");
                         unused.move_towards(point);
                         //let color = board_render.team_colors[piece.team_id];
                         //board_render.placed_pieces.push(PieceRender::from_piece(point, piece, color))
@@ -300,9 +302,10 @@ impl EventConsumer for BoardEventConsumer {
 impl EventConsumer for RenderEventConsumer {
     fn handle_event(&mut self, event: &GameEventObject) {
         match &event.event {
-            GameEvent::CompoundEvent(events, t) => {self.handle_event_internal(events, t);}
+            GameEvent::CompoundEvent(events, t) => {
+                self.handle_event_internal(events, t);
+            }
             _ => {}
-
         }
     }
 }

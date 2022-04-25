@@ -1,24 +1,21 @@
-use crate::{
-    game_events::GameEventObject,rand::rand, EventBroker
-};
+use crate::game_events::EventConsumer;
+use crate::{game_events::GameEventObject, rand::rand, EventBroker};
 use macroquad::prelude::*;
-use matchbox_socket::{WebRtcSocket, WebRtcSocketConfig, RtcIceServerConfig};
+use matchbox_socket::{RtcIceServerConfig, WebRtcSocket, WebRtcSocketConfig};
 use nanoserde::{DeBin, SerBin};
-use std::{cell::RefCell, collections::HashSet, rc::Rc};
 use std::future::Future;
 use std::pin::Pin;
-use crate::game_events::EventConsumer;
+use std::{cell::RefCell, collections::HashSet, rc::Rc};
 
 use async_executor::LocalExecutor;
 use futures::FutureExt;
 
 pub fn connect() -> MatchboxClient {
-    let (mut socket, loop_fut) = WebRtcSocket::new_with_config(
-    WebRtcSocketConfig {
-        room_url: "ws://v2202204174441188151.happysrv.de:3536/example_room?next=2".parse().unwrap(),
-        ice_server: RtcIceServerConfig {
-            urls: vec![]
-        }
+    let (mut socket, loop_fut) = WebRtcSocket::new_with_config(WebRtcSocketConfig {
+        room_url: "wss://heartlabs.tech:3537/example_room?next=2"
+            .parse()
+            .unwrap(),
+        ice_server: RtcIceServerConfig { urls: vec![] },
     });
     //let (mut socket, loop_fut) = WebRtcSocket::new("ws://localhost:3536/example_room?next=2");
 
@@ -29,7 +26,7 @@ pub fn connect() -> MatchboxClient {
 
     MatchboxClient::new(socket, loop_fut)
 
-/*    let timeout = Delay::new(Duration::from_millis(100));
+    /*    let timeout = Delay::new(Duration::from_millis(100));
     futures::pin_mut!(timeout);*/
 }
 
@@ -69,7 +66,7 @@ pub struct MatchboxClient {
 }
 
 impl MatchboxClient {
-    pub fn new(client: WebRtcSocket, message_loop: Pin<Box<dyn Future<Output=()>>>) -> Self {
+    pub fn new(client: WebRtcSocket, message_loop: Pin<Box<dyn Future<Output = ()>>>) -> Self {
         let own_player_id = client.id().to_string();
         let client = MatchboxClient {
             sent_events: HashSet::new(),

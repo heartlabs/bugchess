@@ -1,11 +1,11 @@
 mod board;
 mod constants;
 mod game_events;
+mod matchbox;
 mod piece;
 mod ranges;
 mod rendering;
 mod states;
-mod matchbox;
 mod ui;
 
 use crate::{
@@ -20,16 +20,9 @@ use crate::{
 use macroquad::{prelude::*, rand::srand};
 use macroquad_canvas::Canvas2D;
 
-use std::{
-    borrow::{BorrowMut},
-    cell::RefCell,
-    rc::Rc,
-};
-use crate::states::{
-    GameState,
-    core_game_state::CoreGameState,
-};
 use crate::states::loading::LoadingState;
+use crate::states::{core_game_state::CoreGameState, GameState};
+use std::{borrow::BorrowMut, cell::RefCell, rc::Rc};
 
 //use wasm_bindgen::prelude::*;
 
@@ -64,7 +57,3 @@ async fn main() {
         next_frame().await;
     }
 }
-
-
-
-
