@@ -2,6 +2,7 @@ use crate::{game_events::GameEvent::*, info, rand::rand, Board, BoardRender, Pie
 
 use nanoserde::{DeBin, SerBin};
 use std::{cell::RefCell, mem, rc::Rc};
+use crate::game::Game;
 
 #[derive(Debug, Clone, SerBin, DeBin)]
 pub enum GameEvent {
@@ -191,7 +192,7 @@ impl EventConsumer for EventBroker {
 }
 
 pub struct BoardEventConsumer {
-    pub(crate) board: Rc<RefCell<Box<Board>>>,
+    pub(crate) game: Rc<RefCell<Box<Game>>>,
 }
 
 pub struct RenderEventConsumer {
@@ -227,7 +228,8 @@ impl RenderEventConsumer {
 
 impl BoardEventConsumer {
     fn handle_event_internal(&mut self, event: &GameEvent) {
-        let mut board = (*self.board).borrow_mut();
+        let mut game = (*self.game).borrow_mut();
+        let board = &mut game.board;
 
         match event {
             GameEvent::Place(at, piece) => {
@@ -237,10 +239,10 @@ impl BoardEventConsumer {
                 board.remove_piece_at(at);
             }
             GameEvent::AddUnusedPiece(team_id) => {
-                board.add_unused_piece_for(*team_id);
+                game.add_unused_piece_for(*team_id);
             }
             GameEvent::RemoveUnusedPiece(team_id) => {
-                board.remove_unused_piece(*team_id);
+                game.remove_unused_piece(*team_id);
             }
             Exhaust(special, point) => {
                 let exhaustion = &mut board
@@ -276,11 +278,11 @@ impl BoardEventConsumer {
             }
             GameEvent::CompoundEvent(_events, _) => {}
             NextTurn => {
-                board.next_team();
+                game.next_team();
             }
         }
 
-        mem::drop(board);
+        mem::drop(game);
 
         match event {
             GameEvent::CompoundEvent(events, _) => {

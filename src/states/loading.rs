@@ -1,6 +1,6 @@
 use crate::{
     matchbox, Board, BoardEventConsumer, BoardRender, CompoundEventType, CoreGameState,
-    EventBroker, GameEvent, GameState, Piece, PieceKind, Point2, Team, ONLINE,
+    EventBroker, GameEvent, GameState, Piece, PieceKind, Point2, ONLINE,
 };
 use futures::future::{BoxFuture, LocalBoxFuture, OptionFuture};
 use futures::task::LocalSpawnExt;
@@ -20,6 +20,7 @@ use macroquad::prelude::*;
 use macroquad::rand::srand;
 use macroquad_canvas::Canvas2D;
 use matchbox_socket::WebRtcSocket;
+use crate::game::{Game, Team};
 
 pub struct LoadingState {
     core_game_state: Option<CoreGameState>,
@@ -39,23 +40,24 @@ impl LoadingState {
     pub fn new() -> Self {
         let start_time = Instant::now();
 
-        let mut board = Rc::new(RefCell::new(Box::new(init_board())));
+        let mut game = Rc::new(RefCell::new(Box::new(init_game())));
         let mut event_broker = EventBroker::new();
         event_broker.subscribe(Box::new(BoardEventConsumer {
-            board: Rc::clone(&board),
+            game: Rc::clone(&game),
         }));
 
-        set_up_pieces(&mut board, &mut event_broker);
+        let num_teams = (*game).borrow().as_ref().teams.len();
+        set_up_pieces(num_teams, &mut event_broker);
 
         let mut board_render = Rc::new(RefCell::new(Box::new(BoardRender::new(
-            (*board).borrow().as_ref(),
+            (*game).borrow().as_ref(),
         ))));
         //TODO event_broker.subscribe(Box::new(RenderEventConsumer { board_render: board_render.clone() }));
 
         info!(
             "{}ns to set up pieces. {}",
             start_time.elapsed().as_nanos(),
-            (*board).borrow().as_ref().teams[0].unused_pieces
+            (*game).borrow().as_ref().teams[0].unused_pieces
         );
 
         srand((start_time.elapsed().as_nanos() % u64::MAX as u128) as u64);
@@ -65,7 +67,7 @@ impl LoadingState {
 
         LoadingState {
             core_game_state: Option::Some(CoreGameState::new(
-                board,
+                game,
                 event_broker,
                 board_render,
                 Option::None,
@@ -137,9 +139,7 @@ impl GameState for LoadingState {
     }
 }
 
-fn set_up_pieces(board: &mut Rc<RefCell<Box<Board>>>, event_broker: &mut EventBroker) {
-    let team_count = (**board).borrow().teams.len();
-
+fn set_up_pieces(team_count: usize, event_broker: &mut EventBroker) {
     let start_pieces = 4;
 
     for team_id in 0..team_count {
@@ -157,7 +157,7 @@ fn set_up_pieces(board: &mut Rc<RefCell<Box<Board>>>, event_broker: &mut EventBr
     event_broker.delete_history();
 }
 
-fn init_board() -> Board {
+fn init_game() -> Game {
     let teams = vec![
         Team {
             name: "Red",
@@ -180,5 +180,5 @@ fn init_board() -> Board {
         },
     ];
 
-    Board::new(teams)
+    Game::new(teams)
 }

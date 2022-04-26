@@ -7,6 +7,7 @@ mod ranges;
 mod rendering;
 mod states;
 mod ui;
+mod game;
 
 use crate::{
     board::*,

@@ -1,16 +1,6 @@
 use crate::{constants::*, piece::*, RangeContext};
 use macroquad::prelude::*;
 use nanoserde::{DeBin, SerBin};
-
-#[derive(Clone, Copy)]
-pub struct Team {
-    pub id: usize,
-    pub color: Color,
-    pub name: &'static str,
-    pub lost: bool,
-    pub unused_pieces: u8,
-}
-
 #[derive(Clone)]
 pub struct Cell {
     pub point: Point2,
@@ -19,16 +9,13 @@ pub struct Cell {
 }
 
 pub struct Board {
-    //pub(crate) placed_pieces: Vec<Vec<Option<Piece>>>,
     pub(crate) cells: Vec<Vec<Cell>>,
-    pub(crate) teams: Vec<Team>,
-    pub(crate) current_team_index: usize,
     pub w: u8,
     pub h: u8,
 }
 
 impl Board {
-    pub fn new(teams: Vec<Team>) -> Board {
+    pub fn new() -> Board {
         let mut cells = vec![];
 
         for x in 0..BOARD_WIDTH {
@@ -45,8 +32,6 @@ impl Board {
 
         Board {
             cells,
-            teams,
-            current_team_index: 0,
             w: BOARD_WIDTH,
             h: BOARD_HEIGHT,
         }
@@ -107,13 +92,6 @@ impl Board {
         pieces
     }
 
-    pub fn num_unused_pieces(&self) -> u8 {
-        self.current_team().unused_pieces
-    }
-    pub fn num_unused_pieces_of(&self, team_id: usize) -> u8 {
-        self.get_team(team_id).unused_pieces
-    }
-
     pub fn has_effect_at(&self, effect: &EffectKind, pos: &Point2) -> bool {
         self.get_cell(pos).effects.contains(effect)
     }
@@ -135,47 +113,6 @@ impl Board {
 
     pub fn has_cell(&self, point: &Point2) -> bool {
         point.x < self.w && point.y < self.h
-    }
-
-    pub fn current_team(&self) -> Team {
-        self.teams[self.current_team_index]
-    }
-
-    pub fn is_current_team(&self, team_id: usize) -> bool {
-        self.current_team_index == team_id
-    }
-
-    pub fn get_team(&self, team_id: usize) -> &Team {
-        &self.teams[team_id]
-    }
-
-    pub fn num_teams(&self) -> usize {
-        self.teams.len()
-    }
-
-    pub fn mark_team_as_lost(&mut self, team_id: usize) {
-        println!("Team {} lost.", team_id);
-        self.teams[team_id].lost = true;
-    }
-
-    pub fn next_team(&mut self) -> Option<Team> {
-        let initial_team_index = self.current_team_index;
-        println!("From team {} to next team.", self.current_team_index);
-
-        loop {
-            self.current_team_index += 1;
-            if self.current_team_index >= self.teams.len() {
-                self.current_team_index = 0;
-            }
-
-            if self.current_team_index == initial_team_index {
-                println!("No next team. Current team {}", self.current_team_index);
-                return None; // All (other) teams lost
-            } else if !self.current_team().lost {
-                println!("Next team is {}", self.current_team_index);
-                return Some(self.current_team());
-            }
-        }
     }
 
     pub fn match_pattern(
@@ -208,23 +145,6 @@ impl Board {
     }
 
     // publicly accessible with events:
-
-    pub(crate) fn add_unused_piece_for(&mut self, team_id: usize) {
-        self.teams[team_id].unused_pieces += 1;
-    }
-
-    pub fn remove_unused_piece(&mut self, team_id: usize) -> bool {
-        if self.teams[team_id].unused_pieces <= 0 {
-            false
-        } else {
-            self.teams[team_id].unused_pieces -= 1;
-            true
-        }
-    }
-
-    pub fn unused_piece_available(&self) -> bool {
-        self.current_team().unused_pieces > 0
-    }
 
     pub(crate) fn place_piece_at(&mut self, piece: Piece, pos: &Point2) {
         self.get_cell_mut(pos).piece = Some(piece);
@@ -309,7 +229,7 @@ pub struct Pattern {
 }
 
 impl Pattern {
-    pub fn all_patterns() -> [Pattern; 6] {
+    pub fn all_patterns() -> [Pattern; 6] { // TODO make static var instead
         [
             Pattern {
                 components: vec![

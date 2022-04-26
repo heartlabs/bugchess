@@ -6,9 +6,10 @@ use crate::{
 
 use crate::matchbox::MatchboxClient;
 use macroquad::prelude::*;
+use crate::game::Game;
 
 pub struct CoreGameState {
-    board: Rc<RefCell<Box<Board>>>,
+    game: Rc<RefCell<Box<Game>>>,
     pub(crate) event_broker: EventBroker,
     board_render: Rc<RefCell<Box<BoardRender>>>,
     pub matchbox_events: Option<Rc<RefCell<Box<MatchboxClient>>>>,
@@ -18,13 +19,13 @@ pub struct CoreGameState {
 
 impl CoreGameState {
     pub(crate) fn new(
-        board: Rc<RefCell<Box<Board>>>,
+        game: Rc<RefCell<Box<Game>>>,
         event_broker: EventBroker,
         board_render: Rc<RefCell<Box<BoardRender>>>,
         matchbox_events: Option<Rc<RefCell<Box<MatchboxClient>>>>,
     ) -> Self {
         CoreGameState {
-            board,
+            game,
             event_broker,
             board_render,
             matchbox_events,
@@ -54,7 +55,7 @@ impl GameState for CoreGameState {
             }
         }
 
-        for (i, text) in description(&self.render_context, (*self.board).borrow().as_ref())
+        for (i, text) in description(&self.render_context, (*self.game).borrow().as_ref())
             .iter()
             .enumerate()
         {
@@ -63,14 +64,14 @@ impl GameState for CoreGameState {
                 10.,
                 670. + (i * 50) as f32,
                 50.,
-                (*self.board).borrow().as_ref().current_team().color,
+                (*self.game).borrow().as_ref().current_team().color,
             );
         }
 
         match self.render_context.game_state {
             CoreGameSubstate::Wait => {
                 if can_control_player(
-                    (*self.board).borrow().as_ref(),
+                    (*self.game).borrow().as_ref(),
                     &mut self.own_player_id,
                     ONLINE,
                 ) {
@@ -80,7 +81,7 @@ impl GameState for CoreGameState {
             CoreGameSubstate::Won(_) => {}
             _ => {
                 handle_player_input(
-                    &mut self.board,
+                    &mut self.game,
                     &mut self.event_broker,
                     &mut self.render_context,
                     canvas,
@@ -88,11 +89,11 @@ impl GameState for CoreGameState {
             }
         }
 
-        check_if_somebody_won((*self.board).borrow().as_ref(), &mut self.render_context);
+        check_if_somebody_won((*self.game).borrow().as_ref(), &mut self.render_context);
 
         if true {
             self.board_render = Rc::new(RefCell::new(Box::new(BoardRender::new(
-                (*self.board).borrow().as_ref(),
+                (*self.game).borrow().as_ref(),
             ))));
         }
 
@@ -101,7 +102,7 @@ impl GameState for CoreGameState {
 
     fn render(&self, canvas: &Canvas2D) {
         (*self.board_render).borrow().as_ref().render(
-            (*self.board).borrow().as_ref(),
+            &(*self.game).borrow().as_ref().board,
             &self.render_context,
             canvas,
         );
@@ -121,9 +122,10 @@ impl CoreGameSubstate {
     pub(crate) fn on_click(
         &self,
         target_point: &Point2,
-        board: &mut Board,
+        game: &mut Game,
         event_consumer: &mut EventBroker,
     ) -> CoreGameSubstate {
+        let board = &mut game.board;
         if !board.has_cell(target_point) {
             return CoreGameSubstate::Place;
         }
@@ -131,20 +133,20 @@ impl CoreGameSubstate {
         match self {
             CoreGameSubstate::Place => {
                 if let Some(target_piece) = board.get_piece_at(target_point) {
-                    if target_piece.team_id == board.current_team_index {
+                    if target_piece.team_id == game.current_team_index {
                         if target_piece.can_move() {
                             return CoreGameSubstate::Move(*target_point);
                         } else if target_piece.can_use_special() {
                             return CoreGameSubstate::Activate(*target_point);
                         }
                     }
-                } else if board.unused_piece_available() {
+                } else if game.unused_piece_available() {
                     let event = GameEvent::CompoundEvent(
                         vec![
-                            GameEvent::RemoveUnusedPiece(board.current_team_index),
+                            GameEvent::RemoveUnusedPiece(game.current_team_index),
                             GameEvent::Place(
                                 *target_point,
-                                Piece::new(board.current_team_index, PieceKind::Simple),
+                                Piece::new(game.current_team_index, PieceKind::Simple),
                             ),
                         ],
                         CompoundEventType::Place,
@@ -179,7 +181,7 @@ impl CoreGameSubstate {
                             };
                         }
                     }
-                    if target_piece.team_id == board.current_team_index && target_piece.can_move() {
+                    if target_piece.team_id == game.current_team_index && target_piece.can_move() {
                         return CoreGameSubstate::Move(*target_point);
                     }
                 }
@@ -201,7 +203,7 @@ impl CoreGameSubstate {
             CoreGameSubstate::Activate(active_piece_pos) => {
                 let active_piece = board.get_piece_at(active_piece_pos).unwrap();
                 if let Some(target_piece) = board.get_piece_at(target_point) {
-                    if target_piece.team_id != board.current_team_index
+                    if target_piece.team_id != game.current_team_index
                         && active_piece.can_use_special()
                     {
                         event_consumer.handle_new_event(&CompoundEvent(
@@ -270,28 +272,30 @@ impl CoreGameSubstate {
     }
 }
 
-fn check_if_somebody_won(board: &Board, render_context: &mut CustomRenderContext) {
-    if board.placed_pieces(0).is_empty() || board.num_unused_pieces_of(1) >= 20 {
+fn check_if_somebody_won(game: &Game, render_context: &mut CustomRenderContext) {
+    let board = &game.board;
+    if board.placed_pieces(0).is_empty() || game.num_unused_pieces_of(1) >= 20 {
         info!("Team 1 won");
         render_context.game_state = CoreGameSubstate::Won(1);
     }
-    if board.placed_pieces(1).is_empty() || board.num_unused_pieces_of(0) >= 20 {
+    if board.placed_pieces(1).is_empty() || game.num_unused_pieces_of(0) >= 20 {
         info!("Team 0 won");
         render_context.game_state = CoreGameSubstate::Won(0);
     }
 }
 
-fn description(render_context: &CustomRenderContext, board: &Board) -> Vec<String> {
+fn description(render_context: &CustomRenderContext, game: &Game) -> Vec<String> {
     let mut description = vec![];
+    let board = &game.board;
 
     match render_context.game_state {
         CoreGameSubstate::Place => {
             let all_pieces_exhausted = board
-                .placed_pieces(board.current_team_index)
+                .placed_pieces(game.current_team_index)
                 .iter()
                 .all(|&piece| !piece.can_use_special() && !piece.can_move());
 
-            if board.unused_piece_available() {
+            if game.unused_piece_available() {
                 description.push("Click on a square to place a piece".parse().unwrap());
             }
 
@@ -315,7 +319,7 @@ fn description(render_context: &CustomRenderContext, board: &Board) -> Vec<Strin
         }
         CoreGameSubstate::Won(team) => {
             description.push(
-                format!("The {} team won", board.teams[team].name)
+                format!("The {} team won", game.teams[team].name)
                     .parse()
                     .unwrap(),
             );
@@ -328,20 +332,20 @@ fn description(render_context: &CustomRenderContext, board: &Board) -> Vec<Strin
     description
 }
 
-fn can_control_player(board: &Board, own_player_id: &mut Option<usize>, is_online: bool) -> bool {
+fn can_control_player(game: &Game, own_player_id: &mut Option<usize>, is_online: bool) -> bool {
     if !is_online {
         return true;
     }
 
     if let Some(pid) = own_player_id {
-        *pid == board.current_team_index
+        *pid == game.current_team_index
     } else {
         false
     }
 }
 
 fn handle_player_input(
-    mut board: &mut Rc<RefCell<Box<Board>>>,
+    mut game: &mut Rc<RefCell<Box<Game>>>,
     mut event_broker: &mut EventBroker,
     render_context: &mut CustomRenderContext,
     canvas: &Canvas2D,
@@ -350,7 +354,7 @@ fn handle_player_input(
         info!("mouse button pressed");
         let next_game_state = render_context.game_state.on_click(
             &cell_hovered(canvas),
-            board.as_ref().borrow_mut().borrow_mut(),
+            game.as_ref().borrow_mut().borrow_mut(),
             &mut event_broker,
         );
         info!("{:?} -> {:?}", render_context.game_state, next_game_state);
@@ -358,7 +362,7 @@ fn handle_player_input(
         render_context.reset_elapsed_time();
 
         event_broker.flush();
-        CoreGameSubstate::merge_patterns((**board).borrow_mut().as_mut(), &mut event_broker);
+        CoreGameSubstate::merge_patterns(&mut (**game).borrow_mut().as_mut().board, &mut event_broker);
         event_broker.commit(CompoundEventType::Merge);
         info!("finish mouse button action");
     }
@@ -367,7 +371,7 @@ fn handle_player_input(
         || is_key_pressed(KeyCode::KpEnter)
         || render_context.button_next.clicked(canvas)
     {
-        next_turn(&mut board, &mut event_broker);
+        next_turn(&mut game, &mut event_broker);
         render_context.game_state = CoreGameSubstate::Wait;
     }
 
@@ -376,15 +380,15 @@ fn handle_player_input(
     }
 }
 
-fn next_turn(board: &mut Rc<RefCell<Box<Board>>>, event_broker: &mut EventBroker) {
+fn next_turn(game: &mut Rc<RefCell<Box<Game>>>, event_broker: &mut EventBroker) {
     {
-        let mut b = (**board).borrow_mut();
-        let current_team_index = b.current_team_index;
+        let mut g = (**game).borrow_mut();
+        let current_team_index = g.current_team_index;
         event_broker.handle_new_event(&GameEvent::NextTurn);
         event_broker.handle_new_event(&GameEvent::AddUnusedPiece(current_team_index));
         event_broker.handle_new_event(&GameEvent::AddUnusedPiece(current_team_index));
 
-        b.for_each_placed_piece_mut(|_point, piece| piece.exhaustion.reset());
+        g.board.for_each_placed_piece_mut(|_point, piece| piece.exhaustion.reset());
     }
     event_broker.commit(CompoundEventType::FinishTurn);
     event_broker.delete_history();

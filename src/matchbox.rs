@@ -9,11 +9,19 @@ use std::{cell::RefCell, collections::HashSet, rc::Rc};
 
 use async_executor::LocalExecutor;
 use futures::FutureExt;
+
+#[cfg(target_family = "wasm")]
 use wasm_bindgen::prelude::*;
 
+#[cfg(target_family = "wasm")]
 #[wasm_bindgen]
 extern "C" {
     fn getStunUrl() -> String;
+}
+
+#[cfg(not(target_family = "wasm"))]
+fn getStunUrl() -> String {
+    "".to_string()
 }
 
 pub fn connect() -> MatchboxClient {
@@ -36,34 +44,6 @@ pub fn connect() -> MatchboxClient {
     /*    let timeout = Delay::new(Duration::from_millis(100));
     futures::pin_mut!(timeout);*/
 }
-
-/*
-let mut server = String::from("34.65.62.178");
-    let mut protocol = String::from("http");
-    let mut port = 7350;
-
-    let config: Box<dyn MyObject> = get_configuration();
-    if let Some(s) = config
-        .get_field("nakama")
-        .and_then(|n| n.get_field("server"))
-    {
-        s.to_string(&mut server);
-    }
-    if let Some(s) = config
-        .get_field("nakama")
-        .and_then(|n| n.get_field("protocol"))
-    {
-        s.to_string(&mut protocol);
-    }
-    if let Some(s) = config.get_field("nakama").and_then(|n| n.get_field("port")) {
-        let mut port_str: String = String::new();
-        s.to_string(&mut port_str);
-        port = port_str.parse().unwrap();
-    }
-
-    info!("Got {}, {}, {}", protocol, server, port);
-    */
-
 pub struct MatchboxClient {
     sent_events: HashSet<String>,
     client: WebRtcSocket,

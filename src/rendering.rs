@@ -10,6 +10,7 @@ use macroquad_canvas::Canvas2D;
 use std::cell::Cell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use crate::game::Game;
 
 pub struct CustomRenderContext {
     pieces_texture: Texture2D,
@@ -56,15 +57,17 @@ pub struct BoardRender {
 }
 
 impl BoardRender {
-    pub fn new(board: &Board) -> Self {
+    pub fn new(game: &Game) -> Self {
         let mut unused_pieces = vec![vec![], vec![]];
         let mut placed_pieces = HashMap::new();
+
+        let board = &game.board;
 
         {
             let (upb_x, mut upb_y) = cell_coords_tuple(board.w, board.h - 1);
             upb_y += CELL_ABSOLUTE_WIDTH / 4.;
 
-            let first_team = board.get_team(0);
+            let first_team = game.get_team(0);
             let color = first_team.color;
             for i in 0..first_team.unused_pieces {
                 unused_pieces[0].push(PieceRender::new(
@@ -79,7 +82,7 @@ impl BoardRender {
             let (mut upb_x, upb_y) = cell_coords_tuple(0, 0);
             upb_x -= CELL_ABSOLUTE_WIDTH / 1.25;
 
-            let second_team = board.get_team(1);
+            let second_team = game.get_team(1);
             let color = second_team.color;
             for i in 0..second_team.unused_pieces {
                 unused_pieces[1].push(PieceRender::new(
@@ -94,14 +97,14 @@ impl BoardRender {
         board.for_each_placed_piece(|point, piece| {
             placed_pieces.insert(
                 point,
-                PieceRender::from_piece(&point, piece, board.get_team(piece.team_id).color),
+                PieceRender::from_piece(&point, piece, game.get_team(piece.team_id).color),
             );
         });
 
         BoardRender {
             unused_pieces,
             placed_pieces,
-            team_colors: board.teams.iter().map(|t| t.color).collect(),
+            team_colors: game.teams.iter().map(|t| t.color).collect(),
         }
     }
 
