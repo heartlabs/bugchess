@@ -9,13 +9,20 @@ use std::{cell::RefCell, collections::HashSet, rc::Rc};
 
 use async_executor::LocalExecutor;
 use futures::FutureExt;
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen]
+extern "C" {
+    fn getStunUrl() -> String;
+}
 
 pub fn connect() -> MatchboxClient {
+    info!("Stun URL: {}", getStunUrl());
     let (mut socket, loop_fut) = WebRtcSocket::new_with_config(WebRtcSocketConfig {
         room_url: "wss://heartlabs.tech:3537/example_room?next=2"
             .parse()
             .unwrap(),
-        ice_server: RtcIceServerConfig { urls: vec!["stun:stun.johanhelsing.studio:3478".to_string()] },
+        ice_server: RtcIceServerConfig { urls: vec![getStunUrl()] },
     });
     //let (mut socket, loop_fut) = WebRtcSocket::new("wss://heartlabs.tech:3537/example_room?next=2");
 
