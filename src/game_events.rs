@@ -1,8 +1,13 @@
-use crate::{game_events::GameEvent::*, info, rand::rand, Board, BoardRender, Piece, Point2};
+use crate::{game_events::GameEvent::*, info, rand::rand,
+            game_logic::{
+                board::*,
+                piece::*,
+                game::*
+            },
+            BoardRender};
 
 use nanoserde::{DeBin, SerBin};
 use std::{cell::RefCell, mem, rc::Rc};
-use crate::game::Game;
 
 #[derive(Debug, Clone, SerBin, DeBin)]
 pub enum GameEvent {

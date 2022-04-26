@@ -1,8 +1,5 @@
 use crate::ui::Button;
-use crate::{
-    constants::*, piece::PieceKind, ranges::*, states::core_game_state::CoreGameSubstate, Board,
-    Piece, Point2,
-};
+use crate::{constants::*, states::core_game_state::CoreGameSubstate};
 use egui_macroquad::egui::TextBuffer;
 use instant::{Duration, Instant};
 use macroquad::prelude::*;
@@ -10,7 +7,12 @@ use macroquad_canvas::Canvas2D;
 use std::cell::Cell;
 use std::collections::HashMap;
 use std::rc::Rc;
-use crate::game::Game;
+use crate::game_logic::{
+    game::*,
+    piece::*,
+    board::*,
+    ranges::*
+};
 
 pub struct CustomRenderContext {
     pieces_texture: Texture2D,

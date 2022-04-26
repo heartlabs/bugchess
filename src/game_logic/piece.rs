@@ -1,4 +1,4 @@
-use crate::ranges::*;
+use crate::game_logic::ranges::*;
 use nanoserde::{DeBin, SerBin};
 use std::fmt::Debug;
 

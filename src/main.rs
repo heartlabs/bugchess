@@ -1,20 +1,19 @@
-mod board;
 mod constants;
 mod game_events;
 mod matchbox;
-mod piece;
-mod ranges;
 mod rendering;
 mod states;
 mod ui;
-mod game;
+mod game_logic;
 
 use crate::{
-    board::*,
+    game_logic::{
+        board::*,
+        piece::*,
+        ranges::*,
+    },
     constants::*,
     game_events::{BoardEventConsumer, CompoundEventType, EventBroker, GameEvent},
-    piece::*,
-    ranges::*,
     rendering::{BoardRender, CustomRenderContext},
 };
 

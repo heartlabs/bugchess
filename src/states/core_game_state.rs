@@ -6,7 +6,9 @@ use crate::{
 
 use crate::matchbox::MatchboxClient;
 use macroquad::prelude::*;
-use crate::game::Game;
+use crate::game_logic::{
+    game::Game
+};
 
 pub struct CoreGameState {
     game: Rc<RefCell<Box<Game>>>,

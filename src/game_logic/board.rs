@@ -1,6 +1,11 @@
-use crate::{constants::*, piece::*, RangeContext};
+use crate::{constants::*};
 use macroquad::prelude::*;
 use nanoserde::{DeBin, SerBin};
+use crate::game_logic::{
+    piece::*,
+    ranges::*,
+};
+
 #[derive(Clone)]
 pub struct Cell {
     pub point: Point2,

@@ -1,6 +1,6 @@
 use crate::{
     matchbox, Board, BoardEventConsumer, BoardRender, CompoundEventType, CoreGameState,
-    EventBroker, GameEvent, GameState, Piece, PieceKind, Point2, ONLINE,
+    EventBroker, GameEvent, GameState, ONLINE,
 };
 use futures::future::{BoxFuture, LocalBoxFuture, OptionFuture};
 use futures::task::LocalSpawnExt;
@@ -20,7 +20,11 @@ use macroquad::prelude::*;
 use macroquad::rand::srand;
 use macroquad_canvas::Canvas2D;
 use matchbox_socket::WebRtcSocket;
-use crate::game::{Game, Team};
+use crate::game_logic::{
+    board::*,
+    game::*,
+    piece::*,
+};
 
 pub struct LoadingState {
     core_game_state: Option<CoreGameState>,
