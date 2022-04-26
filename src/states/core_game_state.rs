@@ -300,7 +300,7 @@ fn description(render_context: &CustomRenderContext, board: &Board) -> Vec<Strin
             }
 
             if description.is_empty() {
-                description.push("Press 'ENTER' to end your turn".parse().unwrap());
+                description.push("Click \"End Turn\" or press ENTER".parse().unwrap());
             }
         }
         CoreGameSubstate::Move(selected) => {

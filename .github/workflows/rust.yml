@@ -54,5 +54,6 @@ jobs:
         password: ${{ secrets.DEPLOY_USER_PASSWORD }}
         source: "html/*"
         target: "/var/www/heartlabs.tech/html/megachess"
+        strip_components: 1
 #    - name: Run tests
 #      run: cargo test --verbose

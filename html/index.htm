@@ -17,9 +17,8 @@
         #glcanvas {
             margin: 0px;
             padding: 0px;
-            width: 100%;
-            max-width: 100vw;
-            max-height: 100vh;
+            width: min(100%, 100vw);
+            height: min(100%, 100vw);
             aspect-ratio: 8/9;
         }
 
@@ -79,9 +78,9 @@
         <dt>Special Abilities</dt>
             <dd>Burst: Destroys any neighboring enemy piece</dd>
     </dl>
-    <h3>Sniper</h3>
+    <h3>Sniper ( X )</h3>
     <dl>
-        <dt>Pattern ( X )</dt>
+        <dt>Pattern</dt>
             <dd>an X of five pieces</dd>
         <dt>Moves</dt>
             <dd>Doesn't move</dd>
@@ -105,7 +104,7 @@
 <script src="https://not-fl3.github.io/miniquad-samples/mq_js_bundle.js"></script>
 <script type="module">
         window.getStunUrl = () => {
-            return "stun:stun.johanhelsing.studio:3478"
+            return "stun:stun.l.google.com:19302"
         }
         import init, { set_wasm } from "./megachess.js";
         async function run() {
