@@ -4,11 +4,8 @@ use crate::{
     *,
 };
 
-use crate::matchbox::MatchboxClient;
+use crate::{game_logic::game::Game, matchbox::MatchboxClient};
 use macroquad::prelude::*;
-use crate::game_logic::{
-    game::Game
-};
 
 pub struct CoreGameState {
     game: Rc<RefCell<Box<Game>>>,
@@ -364,7 +361,10 @@ fn handle_player_input(
         render_context.reset_elapsed_time();
 
         event_broker.flush();
-        CoreGameSubstate::merge_patterns(&mut (**game).borrow_mut().as_mut().board, &mut event_broker);
+        CoreGameSubstate::merge_patterns(
+            &mut (**game).borrow_mut().as_mut().board,
+            &mut event_broker,
+        );
         event_broker.commit(CompoundEventType::Merge);
         info!("finish mouse button action");
     }
@@ -390,7 +390,8 @@ fn next_turn(game: &mut Rc<RefCell<Box<Game>>>, event_broker: &mut EventBroker) 
         event_broker.handle_new_event(&GameEvent::AddUnusedPiece(current_team_index));
         event_broker.handle_new_event(&GameEvent::AddUnusedPiece(current_team_index));
 
-        g.board.for_each_placed_piece_mut(|_point, piece| piece.exhaustion.reset());
+        g.board
+            .for_each_placed_piece_mut(|_point, piece| piece.exhaustion.reset());
     }
     event_broker.commit(CompoundEventType::FinishTurn);
     event_broker.delete_history();

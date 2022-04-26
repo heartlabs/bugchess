@@ -1,5 +1,5 @@
+use crate::Board;
 use macroquad::prelude::Color;
-use crate::{Board};
 
 pub struct Game {
     pub board: Board,
@@ -21,7 +21,7 @@ impl Game {
         Game {
             board: Board::new(),
             teams,
-            current_team_index: 0
+            current_team_index: 0,
         }
     }
 
@@ -89,5 +89,4 @@ impl Game {
     pub fn unused_piece_available(&self) -> bool {
         self.current_team().unused_pieces > 0
     }
-
 }

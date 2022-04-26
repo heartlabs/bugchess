@@ -2,29 +2,30 @@ use crate::{
     matchbox, Board, BoardEventConsumer, BoardRender, CompoundEventType, CoreGameState,
     EventBroker, GameEvent, GameState, ONLINE,
 };
-use futures::future::{BoxFuture, LocalBoxFuture, OptionFuture};
-use futures::task::LocalSpawnExt;
-use futures::{Future, FutureExt, TryFutureExt};
-use std::borrow::BorrowMut;
-use std::cell::RefCell;
-use std::pin::Pin;
-use std::rc::Rc;
-use std::task::{Context, Poll, RawWaker, Waker};
-use std::thread::Thread;
+use futures::{
+    future::{BoxFuture, LocalBoxFuture, OptionFuture},
+    task::LocalSpawnExt,
+    Future, FutureExt, TryFutureExt,
+};
+use std::{
+    borrow::BorrowMut,
+    cell::RefCell,
+    pin::Pin,
+    rc::Rc,
+    task::{Context, Poll, RawWaker, Waker},
+    thread::Thread,
+};
 
-use crate::game_events::RenderEventConsumer;
-use crate::matchbox::{MatchboxClient, MatchboxEventConsumer};
-use crate::states::core_game_state::CoreGameSubstate;
+use crate::{
+    game_events::RenderEventConsumer,
+    game_logic::{board::*, game::*, piece::*},
+    matchbox::{MatchboxClient, MatchboxEventConsumer},
+    states::core_game_state::CoreGameSubstate,
+};
 use instant::Instant;
-use macroquad::prelude::*;
-use macroquad::rand::srand;
+use macroquad::{prelude::*, rand::srand};
 use macroquad_canvas::Canvas2D;
 use matchbox_socket::WebRtcSocket;
-use crate::game_logic::{
-    board::*,
-    game::*,
-    piece::*,
-};
 
 pub struct LoadingState {
     core_game_state: Option<CoreGameState>,

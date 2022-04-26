@@ -1,18 +1,14 @@
-use crate::ui::Button;
-use crate::{constants::*, states::core_game_state::CoreGameSubstate};
+use crate::{
+    constants::*,
+    game_logic::{board::*, game::*, piece::*, ranges::*},
+    states::core_game_state::CoreGameSubstate,
+    ui::Button,
+};
 use egui_macroquad::egui::TextBuffer;
 use instant::{Duration, Instant};
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
-use std::cell::Cell;
-use std::collections::HashMap;
-use std::rc::Rc;
-use crate::game_logic::{
-    game::*,
-    piece::*,
-    board::*,
-    ranges::*
-};
+use std::{cell::Cell, collections::HashMap, rc::Rc};
 
 pub struct CustomRenderContext {
     pieces_texture: Texture2D,

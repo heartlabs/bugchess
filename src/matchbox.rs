@@ -1,11 +1,12 @@
-use crate::game_events::EventConsumer;
-use crate::{game_events::GameEventObject, rand::rand, EventBroker};
+use crate::{
+    game_events::{EventConsumer, GameEventObject},
+    rand::rand,
+    EventBroker,
+};
 use macroquad::prelude::*;
 use matchbox_socket::{RtcIceServerConfig, WebRtcSocket, WebRtcSocketConfig};
 use nanoserde::{DeBin, SerBin};
-use std::future::Future;
-use std::pin::Pin;
-use std::{cell::RefCell, collections::HashSet, rc::Rc};
+use std::{cell::RefCell, collections::HashSet, future::Future, pin::Pin, rc::Rc};
 
 use async_executor::LocalExecutor;
 use futures::FutureExt;
@@ -30,7 +31,9 @@ pub fn connect() -> MatchboxClient {
         room_url: "wss://heartlabs.tech:3537/example_room?next=2"
             .parse()
             .unwrap(),
-        ice_server: RtcIceServerConfig { urls: vec![getStunUrl()] },
+        ice_server: RtcIceServerConfig {
+            urls: vec![getStunUrl()],
+        },
     });
     //let (mut socket, loop_fut) = WebRtcSocket::new("wss://heartlabs.tech:3537/example_room?next=2");
 

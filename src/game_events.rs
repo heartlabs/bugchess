@@ -1,10 +1,10 @@
-use crate::{game_events::GameEvent::*, info, rand::rand,
-            game_logic::{
-                board::*,
-                piece::*,
-                game::*
-            },
-            BoardRender};
+use crate::{
+    game_events::GameEvent::*,
+    game_logic::{board::*, game::*, piece::*},
+    info,
+    rand::rand,
+    BoardRender,
+};
 
 use nanoserde::{DeBin, SerBin};
 use std::{cell::RefCell, mem, rc::Rc};

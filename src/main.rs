@@ -1,27 +1,22 @@
 mod constants;
 mod game_events;
+mod game_logic;
 mod matchbox;
 mod rendering;
 mod states;
 mod ui;
-mod game_logic;
 
 use crate::{
-    game_logic::{
-        board::*,
-        piece::*,
-        ranges::*,
-    },
     constants::*,
     game_events::{BoardEventConsumer, CompoundEventType, EventBroker, GameEvent},
+    game_logic::{board::*, piece::*, ranges::*},
     rendering::{BoardRender, CustomRenderContext},
 };
 
 use macroquad::{prelude::*, rand::srand};
 use macroquad_canvas::Canvas2D;
 
-use crate::states::loading::LoadingState;
-use crate::states::{core_game_state::CoreGameState, GameState};
+use crate::states::{core_game_state::CoreGameState, loading::LoadingState, GameState};
 use std::{borrow::BorrowMut, cell::RefCell, rc::Rc};
 
 //use wasm_bindgen::prelude::*;

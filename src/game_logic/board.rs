@@ -1,10 +1,9 @@
-use crate::{constants::*};
+use crate::{
+    constants::*,
+    game_logic::{piece::*, ranges::*},
+};
 use macroquad::prelude::*;
 use nanoserde::{DeBin, SerBin};
-use crate::game_logic::{
-    piece::*,
-    ranges::*,
-};
 
 #[derive(Clone)]
 pub struct Cell {
@@ -234,7 +233,8 @@ pub struct Pattern {
 }
 
 impl Pattern {
-    pub fn all_patterns() -> [Pattern; 6] { // TODO make static var instead
+    pub fn all_patterns() -> [Pattern; 6] {
+        // TODO make static var instead
         [
             Pattern {
                 components: vec![
