@@ -3,6 +3,7 @@ use egui_macroquad::egui::TextBuffer;
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
 
+#[derive(Debug, Clone)]
 pub struct Button {
     x: f32,
     y: f32,

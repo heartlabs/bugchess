@@ -2,14 +2,16 @@ use crate::{
     constants::*,
     game_logic::{board::*, game::*, piece::*, ranges::*},
     states::core_game_state::CoreGameSubstate,
-    ui::Button,
+    rendering::animation::*
 };
 use egui_macroquad::egui::TextBuffer;
 use instant::{Duration, Instant};
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
 use std::{cell::Cell, collections::HashMap, rc::Rc};
+use crate::rendering::ui::Button;
 
+#[derive(Debug, Clone)]
 pub struct CustomRenderContext {
     pieces_texture: Texture2D,
     pub game_state: CoreGameSubstate,
@@ -22,7 +24,7 @@ impl CustomRenderContext {
     pub(crate) fn new() -> Self {
         CustomRenderContext {
             pieces_texture: Texture2D::from_file_with_format(
-                include_bytes!("../resources/sprites/pieces.png"),
+                include_bytes!("../../resources/sprites/pieces.png"),
                 None,
             ),
             game_state: CoreGameSubstate::Place,
@@ -36,22 +38,16 @@ impl CustomRenderContext {
         self.start_time.elapsed()
     }
 
-    pub fn reset_elapsed_time(&mut self) {
+/*    pub fn reset_elapsed_time(&mut self) {
         self.start_time = Instant::now();
-    }
-}
-
-pub struct Animation {
-    animated: Rc<Cell<PieceAnimationPoint>>,
-    from: PieceAnimationPoint,
-    to: PieceAnimationPoint,
-    elapsed_time_ms: u32,
+    }*/
 }
 
 pub struct BoardRender {
     pub(crate) unused_pieces: Vec<Vec<PieceRender>>,
     pub(crate) placed_pieces: HashMap<Point2, PieceRender>,
     pub(crate) team_colors: Vec<Color>,
+    animations: Vec<Animation>
 }
 
 impl BoardRender {
@@ -61,37 +57,6 @@ impl BoardRender {
 
         let board = &game.board;
 
-        {
-            let (upb_x, mut upb_y) = cell_coords_tuple(board.w, board.h - 1);
-            upb_y += CELL_ABSOLUTE_WIDTH / 4.;
-
-            let first_team = game.get_team(0);
-            let color = first_team.color;
-            for i in 0..first_team.unused_pieces {
-                unused_pieces[0].push(PieceRender::new(
-                    upb_x,
-                    upb_y - i as f32 * 32.,
-                    color,
-                    PieceKind::Simple,
-                ));
-            }
-        }
-        {
-            let (mut upb_x, upb_y) = cell_coords_tuple(0, 0);
-            upb_x -= CELL_ABSOLUTE_WIDTH / 1.25;
-
-            let second_team = game.get_team(1);
-            let color = second_team.color;
-            for i in 0..second_team.unused_pieces {
-                unused_pieces[1].push(PieceRender::new(
-                    upb_x,
-                    upb_y + i as f32 * 32.,
-                    color,
-                    PieceKind::Simple,
-                ));
-            }
-        }
-
         board.for_each_placed_piece(|point, piece| {
             placed_pieces.insert(
                 point,
@@ -99,57 +64,100 @@ impl BoardRender {
             );
         });
 
+        info!("!! New board with {}&{} unused and {} placed pieces", unused_pieces[0].len(), unused_pieces[1].len(), placed_pieces.len());
+
         BoardRender {
             unused_pieces,
             placed_pieces,
             team_colors: game.teams.iter().map(|t| t.color).collect(),
+            animations: vec![]
         }
     }
 
+    pub fn add_unused_piece(&mut self, team_id: usize) {
+        let unused_pieces = &mut self.unused_pieces[team_id];
+
+        let (x_pos, y_pos) = if team_id == 0 {
+            let (upb_x, mut upb_y) = cell_coords_tuple(BOARD_WIDTH, BOARD_HEIGHT - 1);
+            upb_y += CELL_ABSOLUTE_WIDTH / 4.;
+
+            (upb_x, upb_y - unused_pieces.len() as f32 * 32.)
+
+        } else {
+            let (mut upb_x, upb_y) = cell_coords_tuple(0, 0);
+            upb_x -= CELL_ABSOLUTE_WIDTH / 1.25;
+
+            (upb_x, upb_y + unused_pieces.len() as f32 * 32.)
+        };
+
+        unused_pieces.push(PieceRender::new(
+            x_pos,
+            y_pos,
+            self.team_colors[team_id],
+            PieceKind::Simple,
+        ));
+    }
+
+    pub fn add_animation(&mut self, mut animation: Animation) {
+        if let Some(last) = self.animations.last_mut() {
+            info!("Append animation");
+            last.next_animations.push(animation);
+        } else {
+            info!("New Animation");
+            animation.start(self);
+            self.animations.push(animation);
+        }
+    }
+
+    pub fn add_placed_piece(&mut self, point: &Point2, piece_kind: PieceKind, team_id: usize){
+        let (x_pos, y_pos) = PieceRender::render_pos(point);
+        self.placed_pieces.insert(*point, PieceRender::new(x_pos, y_pos, self.team_colors[team_id], piece_kind));
+    }
+
+    pub fn update(&mut self) {
+        let mut new_animations = vec![];
+        self.animations.iter_mut()
+            .filter(|a|a.finished_at <= Instant::now())
+            .for_each(|a| {
+                new_animations.append(&mut a.next_animations);
+            });
+
+        let anim_count = self.animations.len();
+        self.animations.retain(|a|a.finished_at > Instant::now());
+
+        if anim_count != self.animations.len() || !new_animations.is_empty() {
+       //     info!("animation count {} -> {}; {} new", anim_count, self.animations.len(), new_animations.len());
+        }
+
+        for animation in new_animations.iter_mut() {
+            animation.start(self);
+        }
+
+        self.animations.append(&mut new_animations);
+    }
+
     pub fn render(&self, board: &Board, render_context: &CustomRenderContext, canvas: &Canvas2D) {
-        board.for_each_cell(|cell| {
-            let (x_pos, y_pos) = cell_coords(&cell.point);
 
-            let mouse_point = cell_hovered(canvas);
+        Self::render_cells(board, canvas);
 
-            let color = if cell.point == mouse_point {
-                BLUE
-            } else if (cell.point.x + cell.point.y + 1) % 2 == 0 {
-                Color::from_rgba(187, 173, 160, 255)
-            } else {
-                Color::from_rgba(238, 228, 218, 255)
-            };
-            draw_rectangle(
-                x_pos,
-                y_pos,
-                CELL_ABSOLUTE_WIDTH,
-                CELL_ABSOLUTE_WIDTH,
-                color,
-            );
-            draw_rectangle_lines(
-                x_pos,
-                y_pos,
-                CELL_ABSOLUTE_WIDTH,
-                CELL_ABSOLUTE_WIDTH,
-                1.,
-                BLACK,
-            );
-        });
+        Self::render_highlights(board, render_context, canvas);
 
-        board.for_each_cell(|cell| {
-            let (x_pos, y_pos) = cell_coords(&cell.point);
+        //println!("rendered {:?}", self.unused_pieces.len());
+        self.unused_pieces
+            .iter()
+            .flat_map(|p| p.iter())
+            .for_each(|p| {
+                p.render(render_context);
+            });
+        self.placed_pieces
+            .iter()
+            .for_each(|(_, p)| p.render(render_context));
 
-            if !cell.effects.is_empty() {
-                draw_rectangle(
-                    x_pos,
-                    y_pos,
-                    CELL_ABSOLUTE_WIDTH,
-                    CELL_ABSOLUTE_WIDTH,
-                    Color::new(80., 0., 100., 0.6),
-                );
-            }
-        });
+        render_context.button_next.render(canvas);
+        render_context.button_undo.render(canvas);
+    }
 
+    fn render_highlights(board: &Board, render_context: &CustomRenderContext, canvas: &Canvas2D) {
         let mut selected_point_option = Option::None;
         let hovered_point = cell_hovered(canvas);
         if let Some(hovered_piece) = board.get_piece_at(&hovered_point) {
@@ -206,20 +214,51 @@ impl BoardRender {
                 }
             }
         }
+    }
 
-        //println!("rendered {:?}", self.unused_pieces.len());
-        self.unused_pieces
-            .iter()
-            .flat_map(|p| p.iter())
-            .for_each(|p| {
-                p.render(render_context);
-            });
-        self.placed_pieces
-            .iter()
-            .for_each(|(_, p)| p.render(render_context));
+    fn render_cells(board: &Board, canvas: &Canvas2D) {
+        board.for_each_cell(|cell| {
+            let (x_pos, y_pos) = cell_coords(&cell.point);
 
-        render_context.button_next.render(canvas);
-        render_context.button_undo.render(canvas);
+            let mouse_point = cell_hovered(canvas);
+
+            let color = if cell.point == mouse_point {
+                BLUE
+            } else if (cell.point.x + cell.point.y + 1) % 2 == 0 {
+                Color::from_rgba(187, 173, 160, 255)
+            } else {
+                Color::from_rgba(238, 228, 218, 255)
+            };
+            draw_rectangle(
+                x_pos,
+                y_pos,
+                CELL_ABSOLUTE_WIDTH,
+                CELL_ABSOLUTE_WIDTH,
+                color,
+            );
+            draw_rectangle_lines(
+                x_pos,
+                y_pos,
+                CELL_ABSOLUTE_WIDTH,
+                CELL_ABSOLUTE_WIDTH,
+                1.,
+                BLACK,
+            );
+        });
+
+        board.for_each_cell(|cell| {
+            let (x_pos, y_pos) = cell_coords(&cell.point);
+
+            if !cell.effects.is_empty() {
+                draw_rectangle(
+                    x_pos,
+                    y_pos,
+                    CELL_ABSOLUTE_WIDTH,
+                    CELL_ABSOLUTE_WIDTH,
+                    Color::new(80., 0., 100., 0.6),
+                );
+            }
+        });
     }
 
     fn highlight_range(
@@ -257,29 +296,23 @@ impl BoardRender {
 
 #[derive(Clone, Copy, Debug)]
 pub struct PieceRender {
-    from: PieceAnimationPoint,
-    to: PieceAnimationPoint,
+    from: AnimationPoint,
+    to: AnimationPoint,
     color: Color,
     rect_in_sprite: Rect,
 }
 
-#[derive(Clone, Copy, Debug)]
-pub struct PieceAnimationPoint {
-    x_pos: f32,
-    y_pos: f32,
-    scale: f32,
-    elapsed_time_ms: u32,
-}
+
 
 impl PieceRender {
-    fn new(x_pos: f32, y_pos: f32, color: Color, piece_kind: PieceKind) -> Self {
+    pub fn new(x_pos: f32, y_pos: f32, color: Color, piece_kind: PieceKind) -> Self {
         const PIECE_SCALE: f32 = 60.;
 
-        let pap = PieceAnimationPoint {
+        let pap = AnimationPoint {
             x_pos,
             y_pos,
             scale: PIECE_SCALE,
-            elapsed_time_ms: 0,
+            instant: Instant::now(),
         };
 
         Self::animated(pap, pap, color, piece_kind)
@@ -299,8 +332,8 @@ impl PieceRender {
     }
 
     fn animated(
-        from: PieceAnimationPoint,
-        to: PieceAnimationPoint,
+        from: AnimationPoint,
+        to: AnimationPoint,
         color: Color,
         piece_kind: PieceKind,
     ) -> Self {
@@ -331,22 +364,22 @@ impl PieceRender {
 
     pub fn move_towards(&mut self, point: &Point2) {
         self.from = self.to;
-        self.from.elapsed_time_ms = 0;
+        self.from.instant = Instant::now();
 
         let (x_pos, y_pos) = Self::render_pos(point);
 
-        self.to = PieceAnimationPoint {
+        self.to = AnimationPoint {
             x_pos,
             y_pos,
             scale: PIECE_SCALE,
-            elapsed_time_ms: 1000,
+            instant: Instant::now() + Duration::from_millis(PLACE_PIECE_SPEED),
         };
     }
 
     fn render(&self, render_context: &CustomRenderContext) {
         let animation = self
             .from
-            .interpolate(self.to, render_context.elapsed_time());
+            .interpolate(self.to, Instant::now());
         draw_texture_ex(
             render_context.pieces_texture,
             animation.x_pos,
@@ -358,44 +391,5 @@ impl PieceRender {
                 ..Default::default()
             },
         );
-    }
-}
-
-impl PieceAnimationPoint {
-    pub fn interpolate(
-        &self,
-        towards: PieceAnimationPoint,
-        elapsed_time: Duration,
-    ) -> PieceAnimationPoint {
-        if true {
-            return towards;
-        }
-
-        let elapsed_time_ms = elapsed_time.as_millis() as u32;
-        let progress = if elapsed_time_ms < self.elapsed_time_ms {
-            0.
-        } else if elapsed_time_ms > towards.elapsed_time_ms {
-            1.
-        } else {
-            let diff = towards.elapsed_time_ms - self.elapsed_time_ms;
-            let local_elapsed = elapsed_time_ms - self.elapsed_time_ms;
-
-            //println!("interpolating after {}ms diff is {} and local_elapsed {} leading to {}", elapsed_time_ms, diff, local_elapsed, local_elapsed as f32 / diff as f32);
-
-            local_elapsed as f32 / diff as f32
-        };
-
-        PieceAnimationPoint {
-            x_pos: Self::interpolate_value(self.x_pos, towards.x_pos, progress),
-            y_pos: Self::interpolate_value(self.y_pos, towards.y_pos, progress),
-            scale: Self::interpolate_value(self.scale, towards.scale, progress),
-            elapsed_time_ms,
-        }
-    }
-
-    fn interpolate_value(from: f32, to: f32, progress: f32) -> f32 {
-        let diff = to - from;
-        let p = diff * progress;
-        from + p
     }
 }

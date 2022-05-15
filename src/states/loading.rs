@@ -1,11 +1,11 @@
 use crate::{
-    matchbox, Board, BoardEventConsumer, BoardRender, CompoundEventType, CoreGameState,
-    EventBroker, GameEvent, GameState, ONLINE,
+    Board, BoardEventConsumer, BoardRender, CompoundEventType, CoreGameState, EventBroker,
+    GameEvent, GameState, matchbox, ONLINE,
 };
 use futures::{
     future::{BoxFuture, LocalBoxFuture, OptionFuture},
-    task::LocalSpawnExt,
-    Future, FutureExt, TryFutureExt,
+    Future,
+    FutureExt, task::LocalSpawnExt, TryFutureExt,
 };
 use std::{
     borrow::BorrowMut,
@@ -15,17 +15,21 @@ use std::{
     task::{Context, Poll, RawWaker, Waker},
     thread::Thread,
 };
+use std::borrow::Borrow;
 
 use crate::{
-    game_events::RenderEventConsumer,
     game_logic::{board::*, game::*, piece::*},
     matchbox::{MatchboxClient, MatchboxEventConsumer},
     states::core_game_state::CoreGameSubstate,
 };
 use instant::Instant;
 use macroquad::{prelude::*, rand::srand};
+use macroquad::ui::Drag::No;
 use macroquad_canvas::Canvas2D;
 use matchbox_socket::WebRtcSocket;
+use uuid::Uuid;
+use crate::game_events::EventComposer;
+use crate::rendering::render_events::RenderEventConsumer;
 
 pub struct LoadingState {
     core_game_state: Option<CoreGameState>,
@@ -46,18 +50,18 @@ impl LoadingState {
         let start_time = Instant::now();
 
         let mut game = Rc::new(RefCell::new(Box::new(init_game())));
-        let mut event_broker = EventBroker::new();
-        event_broker.subscribe(Box::new(BoardEventConsumer {
+        let own_sender_id = Uuid::new_v4().to_string();
+        let mut event_broker = EventBroker::new(own_sender_id.clone());
+        let mut event_composer = EventComposer::new(Rc::clone(&game));
+        event_broker.subscribe_committed(Box::new(BoardEventConsumer {
+            own_sender_id,
             game: Rc::clone(&game),
         }));
-
-        let num_teams = (*game).borrow().as_ref().teams.len();
-        set_up_pieces(num_teams, &mut event_broker);
 
         let mut board_render = Rc::new(RefCell::new(Box::new(BoardRender::new(
             (*game).borrow().as_ref(),
         ))));
-        //TODO event_broker.subscribe(Box::new(RenderEventConsumer { board_render: board_render.clone() }));
+        event_broker.subscribe_committed(Box::new(RenderEventConsumer { board_render: board_render.clone() }));
 
         info!(
             "{}ns to set up pieces. {}",
@@ -74,6 +78,7 @@ impl LoadingState {
             core_game_state: Option::Some(CoreGameState::new(
                 game,
                 event_broker,
+                event_composer,
                 board_render,
                 Option::None,
             )),
@@ -104,29 +109,54 @@ impl GameState for LoadingState {
                 }
             }
             LoadingSubState::JoinMatch => {
+                let mut core_game_state = self.core_game_state.as_mut().unwrap();
+
+                let matchbox_client = self.client.take().unwrap();
+
+                if matchbox_client.get_own_player_index().unwrap() != 0 {
+                    core_game_state.set_sub_state(CoreGameSubstate::Wait);
+                } else {
+                    let num_teams = 2;
+                    set_up_pieces(num_teams, &mut core_game_state.event_composer);
+                }
+
+                let matchbox_events =
+                    Option::Some(Rc::new(RefCell::new(Box::new(matchbox_client))));
+                core_game_state.event_broker.subscribe_committed(Box::new(
+                    MatchboxEventConsumer {
+                        client: Rc::clone(matchbox_events.as_ref().unwrap()),
+                    },
+                ));
+
+                core_game_state.matchbox_events = matchbox_events;
+
                 self.sub_state = LoadingSubState::Finished;
+
             }
             LoadingSubState::Finished => {
-                let mut core_game_state = self.core_game_state.take().unwrap();
 
                 if ONLINE {
-                    let matchbox_client = self.client.take().unwrap();
-
-                    if matchbox_client.get_own_player_index().unwrap() != 0 {
-                        core_game_state.set_sub_state(CoreGameSubstate::Wait);
+                    let mut core_game_state = self.core_game_state.as_mut().unwrap();
+                    let wait_for_opponent = {
+                        let client = core_game_state.matchbox_events.as_ref().unwrap().as_ref().borrow();
+                        client.get_own_player_index().unwrap() != 0 && client.recieved_events.is_empty()
+                    };
+                    if wait_for_opponent {
+                        let events = {
+                            let mut client = core_game_state.matchbox_events.as_ref().unwrap().as_ref().borrow_mut();
+                            client.try_recieve()
+                        };
+                        events.iter()
+                            .for_each(|e| core_game_state.event_broker.handle_remote_event(e));
+                        return None;
                     }
 
-                    let matchbox_events =
-                        Option::Some(Rc::new(RefCell::new(Box::new(matchbox_client))));
-                    core_game_state.event_broker.subscribe_committed(Box::new(
-                        MatchboxEventConsumer {
-                            client: Rc::clone(matchbox_events.as_ref().unwrap()),
-                        },
-                    ));
-
-                    core_game_state.matchbox_events = matchbox_events;
+                } else {
+                    let mut core_game_state = self.core_game_state.as_mut().unwrap();
+                    let num_teams = 2;
+                    set_up_pieces(num_teams, &mut core_game_state.event_composer);
                 }
-                return Option::Some(Box::new(core_game_state));
+                return Option::Some(Box::new(self.core_game_state.take().unwrap()));
             }
         }
 
@@ -144,22 +174,23 @@ impl GameState for LoadingState {
     }
 }
 
-fn set_up_pieces(team_count: usize, event_broker: &mut EventBroker) {
+fn set_up_pieces(team_count: usize, event_composer: &mut EventComposer) {
     let start_pieces = 4;
+
+    event_composer.start_transaction(CompoundEventType::FinishTurn);
 
     for team_id in 0..team_count {
         let target_point = Point2::new((2 + team_id * 3) as u8, (2 + team_id * 3) as u8);
         let mut piece = Piece::new(team_id, PieceKind::Simple);
         piece.exhaustion.reset();
-        event_broker.handle_new_event(&GameEvent::Place(target_point, piece));
+        event_composer.push_event(GameEvent::Place(target_point, piece));
 
         for _ in 0..start_pieces {
-            event_broker.handle_new_event(&GameEvent::AddUnusedPiece(team_id));
+            event_composer.push_event(GameEvent::AddUnusedPiece(team_id));
         }
     }
 
-    event_broker.commit(CompoundEventType::FinishTurn);
-    event_broker.delete_history();
+    event_composer.commit();
 }
 
 fn init_game() -> Game {
