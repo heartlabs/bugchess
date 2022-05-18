@@ -52,3 +52,53 @@ Animation:
       b.
           1. shoot right
 
+
+Animation
+   - from/to x/y & duration
+   - Can find and mutably access or create XAnimation
+   - Next Animations
+
+
+PieceAnimation
+   - piece (point or unused), to
+
+BulletAnimation
+   - from, to
+   - fancy pre-/after animations?
+
+=======
+
+Game Events
+1) "Atoms"
+2) Whole "Moves", composed of Atoms
+
+Event Consumers
+1) Board (consumes atoms AND moves)
+2) Matchbox/Nakama (consumes moves)
+3) Render (consumes moves)
+
+Event Producers
+1) Board (produces atoms)
+2) Matchbox/Nakama (produces moves)
+
+==
+
+EventBroker: Recieves and Broadcasts Moves
+EventComposer: Recieves Atoms, passes them over to the board and commits them to a Move in the end
+
+TODO: Board now recieves flushed AND compound events
+
+==
+
+Local events (clicks)
+=> Board ignores gets them directly before
+
+=> Matchbox needs to send
+=> Render needs to render
+=> EventBroker
+
+Remote events (recieved via network)
+=> Board needs
+=> Render needs
+
+=> Matchbox ignores

@@ -4,7 +4,6 @@ mod game_logic;
 mod matchbox;
 mod rendering;
 mod states;
-mod ui;
 
 use crate::{
     constants::*,

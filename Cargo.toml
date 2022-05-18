@@ -15,8 +15,9 @@ matchbox_socket = { git = "https://github.com/heartlabs/matchbox", branch = "fea
 async-executor = "1.4.1"
 nanoserde = "0.1.29"
 futures = "0.3.15"
-instant = "0.1.12"
+instant = { version = "0.1.12", features = ["wasm-bindgen"] }
 macroquad-canvas = "0.3.0"
+uuid = {version = "1.0.0", features = ["v4"]}
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 sapp-jsutils = "0.1.5"

@@ -49,6 +49,7 @@ pub fn connect() -> MatchboxClient {
 }
 pub struct MatchboxClient {
     sent_events: HashSet<String>,
+    pub recieved_events: HashSet<String>,
     client: WebRtcSocket,
     own_player_id: String,
     pub(crate) opponent_id: Option<String>,
@@ -60,6 +61,7 @@ impl MatchboxClient {
         let own_player_id = client.id().to_string();
         let client = MatchboxClient {
             sent_events: HashSet::new(),
+            recieved_events: HashSet::new(),
             client,
             own_player_id,
             opponent_id: None,
@@ -96,13 +98,17 @@ impl MatchboxClient {
         return None;
     }
 
-    pub fn try_recieve(&mut self, event_broker: &mut EventBroker) {
+    pub fn try_recieve(&mut self) -> Vec<GameEventObject> {
+        let mut events = vec![];
         for (_peer, packet) in self.client.receive() {
             let event_object: GameEventObject = DeBin::deserialize_bin(&packet).unwrap();
             if self.register_event(&event_object) {
-                event_broker.handle_remote_event(&event_object);
+                self.recieved_events.insert(event_object.id.clone());
+                events.push(event_object);
             }
         }
+
+        events
     }
 
     fn register_event(&mut self, event_object: &GameEventObject) -> bool {

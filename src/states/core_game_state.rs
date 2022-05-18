@@ -1,15 +1,22 @@
 use crate::{
     game_events::{CompoundEventType, EventBroker},
-    GameEvent::{CompoundEvent, Exhaust, Remove},
+    GameEvent::{Exhaust, Remove},
     *,
 };
 
-use crate::{game_logic::game::Game, matchbox::MatchboxClient};
+use crate::{
+    game_events::{EventComposer, EventConsumer},
+    game_logic::game::Game,
+    matchbox::MatchboxClient,
+    GameEvent::Place,
+    Power::{Blast, TargetedShoot},
+};
 use macroquad::prelude::*;
 
 pub struct CoreGameState {
     game: Rc<RefCell<Box<Game>>>,
     pub(crate) event_broker: EventBroker,
+    pub(crate) event_composer: EventComposer,
     board_render: Rc<RefCell<Box<BoardRender>>>,
     pub matchbox_events: Option<Rc<RefCell<Box<MatchboxClient>>>>,
     render_context: CustomRenderContext,
@@ -20,12 +27,14 @@ impl CoreGameState {
     pub(crate) fn new(
         game: Rc<RefCell<Box<Game>>>,
         event_broker: EventBroker,
+        event_composer: EventComposer,
         board_render: Rc<RefCell<Box<BoardRender>>>,
         matchbox_events: Option<Rc<RefCell<Box<MatchboxClient>>>>,
     ) -> Self {
         CoreGameState {
             game,
             event_broker,
+            event_composer,
             board_render,
             matchbox_events,
             render_context: CustomRenderContext::new(),
@@ -41,9 +50,13 @@ impl CoreGameState {
 impl GameState for CoreGameState {
     fn update(&mut self, canvas: &Canvas2D) -> Option<Box<dyn GameState>> {
         if ONLINE {
-            (**self.matchbox_events.as_mut().unwrap())
+            let recieved_events = (**self.matchbox_events.as_mut().unwrap())
                 .borrow_mut()
-                .try_recieve(&mut self.event_broker);
+                .try_recieve();
+
+            recieved_events
+                .iter()
+                .for_each(|e| self.event_broker.handle_remote_event(&e));
 
             if self.own_player_id.is_none() {
                 self.own_player_id = (**self.matchbox_events.as_ref().unwrap())
@@ -82,6 +95,7 @@ impl GameState for CoreGameState {
                 handle_player_input(
                     &mut self.game,
                     &mut self.event_broker,
+                    &mut self.event_composer,
                     &mut self.render_context,
                     canvas,
                 );
@@ -90,11 +104,13 @@ impl GameState for CoreGameState {
 
         check_if_somebody_won((*self.game).borrow().as_ref(), &mut self.render_context);
 
-        if true {
+        if false {
             self.board_render = Rc::new(RefCell::new(Box::new(BoardRender::new(
                 (*self.game).borrow().as_ref(),
             ))));
         }
+
+        (*self.board_render).borrow_mut().as_mut().update();
 
         Option::None
     }
@@ -122,7 +138,7 @@ impl CoreGameSubstate {
         &self,
         target_point: &Point2,
         game: &mut Game,
-        event_consumer: &mut EventBroker,
+        event_composer: &mut EventComposer,
     ) -> CoreGameSubstate {
         let board = &mut game.board;
         if !board.has_cell(target_point) {
@@ -140,17 +156,16 @@ impl CoreGameSubstate {
                         }
                     }
                 } else if game.unused_piece_available() {
-                    let event = GameEvent::CompoundEvent(
+                    event_composer.init_new_transaction(
                         vec![
-                            GameEvent::RemoveUnusedPiece(game.current_team_index),
                             GameEvent::Place(
                                 *target_point,
                                 Piece::new(game.current_team_index, PieceKind::Simple),
                             ),
+                            GameEvent::RemoveUnusedPiece(game.current_team_index),
                         ],
                         CompoundEventType::Place,
                     );
-                    event_consumer.handle_new_event(&event);
                 }
             }
             CoreGameSubstate::Move(itself) => {
@@ -170,10 +185,10 @@ impl CoreGameSubstate {
                                         }
                                     }
 
-                                    event_consumer.handle_new_event(&CompoundEvent(
+                                    event_composer.init_new_transaction(
                                         game_events,
-                                        CompoundEventType::Attack,
-                                    ));
+                                        CompoundEventType::Attack(target_piece.piece_kind),
+                                    );
                                     CoreGameSubstate::Place
                                 }
                                 Power::TargetedShoot => CoreGameSubstate::Activate(*target_point),
@@ -191,11 +206,14 @@ impl CoreGameSubstate {
                         .reachable_points(&itself, board, &RangeContext::Moving(*selected_piece))
                         .contains(target_point)
                     {
-                        event_consumer.handle_new_event(&GameEvent::new_move(
-                            *selected_piece,
-                            *itself,
-                            *target_point,
-                        ));
+                        event_composer.init_new_transaction(
+                            vec![
+                                Remove(*itself, *selected_piece),
+                                Place(*target_point, *selected_piece),
+                                Exhaust(false, *target_point),
+                            ],
+                            CompoundEventType::Move,
+                        );
                     }
                 }
             }
@@ -205,13 +223,13 @@ impl CoreGameSubstate {
                     if target_piece.team_id != game.current_team_index
                         && active_piece.can_use_special()
                     {
-                        event_consumer.handle_new_event(&CompoundEvent(
+                        event_composer.init_new_transaction(
                             vec![
                                 Exhaust(true, *active_piece_pos),
                                 Remove(*target_point, *target_piece),
                             ],
-                            CompoundEventType::Attack,
-                        ));
+                            CompoundEventType::Attack(active_piece.piece_kind),
+                        );
                     }
                 }
             }
@@ -224,7 +242,7 @@ impl CoreGameSubstate {
         CoreGameSubstate::Place
     }
 
-    pub(crate) fn merge_patterns(board: &mut Board, event_consumer: &mut EventBroker) {
+    pub(crate) fn merge_patterns(board: &mut Board, event_composer: &mut EventComposer) {
         //let mut remove_pieces = vec![];
         //let mut place_pieces = vec![];
 
@@ -244,8 +262,8 @@ impl CoreGameSubstate {
                             matched_entities.iter_mut().for_each(|point| {
                                 // println!("Going to remove matched piece {:?}", matched_piece);
                                 let matched_piece = board.get_piece_mut_at(point).unwrap();
-                                event_consumer
-                                    .handle_new_event(&GameEvent::Remove(*point, *matched_piece));
+                                event_composer
+                                    .push_event(GameEvent::Remove(*point, *matched_piece));
                                 matched_piece.dying = true;
                             });
 
@@ -254,15 +272,15 @@ impl CoreGameSubstate {
                             let new_piece_x = x as u8 + pattern.new_piece_relative_position.x;
                             let new_piece_y = y as u8 + pattern.new_piece_relative_position.y;
 
-                            event_consumer.handle_new_event(&GameEvent::Place(
+                            event_composer.push_event(GameEvent::Place(
                                 Point2::new(new_piece_x, new_piece_y),
                                 new_piece,
                             ));
 
-                            println!(
+                            /* println!(
                                 "Matched pattern at {}:{}; new piece at {}:{}",
                                 x, y, new_piece_x, new_piece_y
-                            );
+                            );*/
                         }
                     }
                 }
@@ -346,53 +364,57 @@ fn can_control_player(game: &Game, own_player_id: &mut Option<usize>, is_online:
 fn handle_player_input(
     mut game: &mut Rc<RefCell<Box<Game>>>,
     mut event_broker: &mut EventBroker,
+    mut event_composer: &mut EventComposer,
     render_context: &mut CustomRenderContext,
     canvas: &Canvas2D,
 ) {
     if is_mouse_button_pressed(MouseButton::Left) {
-        info!("mouse button pressed");
         let next_game_state = render_context.game_state.on_click(
             &cell_hovered(canvas),
             game.as_ref().borrow_mut().borrow_mut(),
-            &mut event_broker,
+            &mut event_composer,
         );
         info!("{:?} -> {:?}", render_context.game_state, next_game_state);
         render_context.game_state = next_game_state;
-        render_context.reset_elapsed_time();
 
-        event_broker.flush();
+        event_composer.flush();
         CoreGameSubstate::merge_patterns(
             &mut (**game).borrow_mut().as_mut().board,
-            &mut event_broker,
+            &mut event_composer,
         );
-        event_broker.commit(CompoundEventType::Merge);
-        info!("finish mouse button action");
+        event_composer.commit();
     }
 
     if is_key_pressed(KeyCode::Enter)
         || is_key_pressed(KeyCode::KpEnter)
         || render_context.button_next.clicked(canvas)
     {
-        next_turn(&mut game, &mut event_broker);
+        next_turn(&mut game, &mut event_composer);
         render_context.game_state = CoreGameSubstate::Wait;
     }
 
     if is_key_pressed(KeyCode::U) || render_context.button_undo.clicked(canvas) {
         event_broker.undo();
     }
+
+    event_composer.flush();
+    event_composer
+        .drain_commits()
+        .iter()
+        .for_each(|e| event_broker.handle_new_event(e));
 }
 
-fn next_turn(game: &mut Rc<RefCell<Box<Game>>>, event_broker: &mut EventBroker) {
+fn next_turn(game: &mut Rc<RefCell<Box<Game>>>, event_composer: &mut EventComposer) {
     {
         let mut g = (**game).borrow_mut();
         let current_team_index = g.current_team_index;
-        event_broker.handle_new_event(&GameEvent::NextTurn);
-        event_broker.handle_new_event(&GameEvent::AddUnusedPiece(current_team_index));
-        event_broker.handle_new_event(&GameEvent::AddUnusedPiece(current_team_index));
+        event_composer.start_transaction(CompoundEventType::FinishTurn);
+        event_composer.push_event(GameEvent::NextTurn);
+        event_composer.push_event(GameEvent::AddUnusedPiece(current_team_index));
+        event_composer.push_event(GameEvent::AddUnusedPiece(current_team_index));
 
         g.board
             .for_each_placed_piece_mut(|_point, piece| piece.exhaustion.reset());
     }
-    event_broker.commit(CompoundEventType::FinishTurn);
-    event_broker.delete_history();
+    event_composer.commit();
 }
