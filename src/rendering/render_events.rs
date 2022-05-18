@@ -1,11 +1,10 @@
 use std::rc::Rc;
 use std::cell::{RefCell, RefMut};
 use macroquad::miniquad::info;
-use crate::{BoardRender, CompoundEventType, GameEvent};
+use crate::{BoardRender, CompoundEventType, GameEvent, PieceKind, Power};
 use crate::game_events::{CompoundEvent, EventConsumer, GameEventObject};
-use crate::GameEvent::{Place, Remove};
+use crate::GameEvent::{Exhaust, Place, Remove};
 use crate::rendering::animation::{Animation, AnimationExpert, MovePieceAnimation, NewPieceAnimation, PlacePieceAnimation, RemovePieceAnimation};
-use crate::rendering::PieceRender;
 
 pub struct RenderEventConsumer {
     pub(crate) board_render: Rc<RefCell<Box<BoardRender>>>,
@@ -16,17 +15,43 @@ impl RenderEventConsumer {
         let mut board_render = (*self.board_render).borrow_mut();
         info!("Handling {} Render Events: {:?}", events.len(), t);
         match t {
-            CompoundEventType::Attack => {
-                for event in events {
-                    match event {
-                        GameEvent::Exhaust (_,_) => {
-                        }
-                        GameEvent::Remove(point,piece) => {
-                            board_render.add_animation(Animation::new(Box::new(RemovePieceAnimation { at: *point })));
-                        }
-                        e => panic!("Unexpected subevent of CompoundEventType::Merge: {:?}", e)
+            CompoundEventType::Attack(piece_kind) => {
+                let from = if let Some(Exhaust(_, from)) = events.get(0) {
+                    from
+                } else {
+                    panic!("CompoundEventType::Attack must start with an an Exhaust");
+                };
+
+                let mut i=1;
+                let mut animations: Vec<Animation> = vec![];
+
+                while let Some(GameEvent::Remove(to, _)) = events.get(i) {
+                    let mut bullet_animation = match piece_kind {
+                        PieceKind::Queen => Animation::new_blast(*from),
+                        PieceKind::HorizontalBar | PieceKind::VerticalBar | PieceKind::Sniper => Animation::new_bullet(*from, *to),
+                        _ => panic!("Unknown piece_kind - can't generate bullet animation")
                     };
+
+                    bullet_animation.next_animations.push(Animation::new_remove(*to));
+
+                    info!("Attack Anim: {:?}", bullet_animation);
+
+                    animations.push(bullet_animation);
+
+                    i = i+1;
                 }
+
+                let merge_events = &events[i..];
+                let mut merge_animations = Self::handle_merge_events(merge_events);
+
+                for mut a in &mut animations {
+                    // No idea how else to access a single elem of a vec mutably
+                    a.next_animations.append(&mut merge_animations);
+                    break;
+                }
+
+                animations.into_iter().for_each(|a| board_render.add_animation(a));
+
             }
             CompoundEventType::Place => {
                 let place_piece = if let Some(Place(point, piece)) = events.get(0) {
@@ -36,16 +61,18 @@ impl RenderEventConsumer {
                 };
                 let mut animation = Animation::new(Box::new(place_piece));
 
-                board_render.add_animation(animation);
                 if let Some(GameEvent::RemoveUnusedPiece(_)) = events.get(1) {
                     //
                 } else {
                     panic!("CompoundEventType::Place must have an RemoveUnusedPiece as second event");
                 }
 
-
                 let merge_events = &events[2..];
-                Self::handle_merge_events(&mut board_render, merge_events);
+                let mut merge_animations = Self::handle_merge_events(merge_events);
+
+                animation.next_animations.append(&mut merge_animations);
+
+                board_render.add_animation(animation);
             }
             CompoundEventType::Move => {
                 let (piece, from) = if let Some(Remove(point, piece)) = events.get(0) {
@@ -60,9 +87,6 @@ impl RenderEventConsumer {
                     panic!("CompoundEventType::Move must have a Place event at second but got: {:?}", events.get(1))
                 };
 
-                let mut animation = Animation::new(Box::new(MovePieceAnimation {from, to}));
-
-                board_render.add_animation(animation);
                 if let Some(GameEvent::Exhaust(_,_)) = events.get(2) {
                     //
                 } else {
@@ -71,7 +95,11 @@ impl RenderEventConsumer {
 
 
                 let merge_events = &events[3..];
-                Self::handle_merge_events(&mut board_render, merge_events);
+                let mut merge_animations = Self::handle_merge_events(merge_events);
+
+                let mut move_animation = Animation::new_move(from, to);
+                move_animation.next_animations.append(&mut merge_animations);
+                board_render.add_animation(move_animation);
             }
             CompoundEventType::Undo(t) => {
                 for event in events {
@@ -80,13 +108,10 @@ impl RenderEventConsumer {
                             board_render.add_unused_piece(*team_id);
                         }
                         GameEvent::Place(point,piece) => {
-                            board_render.add_placed_piece(point, piece.piece_kind, piece.team_id);
+                            board_render.add_animation(Animation::new_piece(piece.team_id, *point, piece.piece_kind ));
                         }
                         GameEvent::Remove(point,piece) => {
-                            board_render.placed_pieces.remove(point);
-                        }
-                        GameEvent::AddUnusedPiece(team) => {
-                            board_render.add_unused_piece(*team);
+                            board_render.add_animation(Animation::new_remove(*point ));
                         }
                         GameEvent::UndoExhaustion(p, point) => {}
                         e => panic!("Unexpected subevent of CompoundEventType::Undo: {:?}", e)
@@ -100,7 +125,7 @@ impl RenderEventConsumer {
                             board_render.add_unused_piece(*team_id);
                         }
                         GameEvent::Place(point,piece) => {
-                            board_render.add_placed_piece(point, piece.piece_kind, piece.team_id);
+                            board_render.add_animation(Animation::new_piece(piece.team_id, *point, piece.piece_kind ));
                         }
                         GameEvent::NextTurn => {}
                         e => panic!("Unexpected subevent of CompoundEventType::Merge: {:?}", e)
@@ -110,28 +135,28 @@ impl RenderEventConsumer {
         }
     }
 
-    fn handle_merge_events(board_render: &mut RefMut<Box<BoardRender>>, merge_events: &[GameEvent]) {
+    #[must_use]
+    fn handle_merge_events(merge_events: &[GameEvent]) -> Vec<Animation> {
+        let mut animations = vec![];
         for event in merge_events {
             match event {
-                GameEvent::Remove(point, piece) => {
-                    board_render.add_animation(Animation::new(Box::new(
-                        RemovePieceAnimation { at: *point }
-                    )));
+                Remove(point, piece) => {
+                    animations.push(Animation::new_remove(*point));
                 }
-                GameEvent::Place(point, piece) => {
-                    board_render.add_animation(Animation::new(Box::new(
-                        NewPieceAnimation { piece_kind: piece.piece_kind, to: *point, team: piece.team_id }
-                    )));
+                Place(point, piece) => {
+                    animations.push(Animation::new_piece(piece.team_id, *point, piece.piece_kind));
                 }
                 e => panic!("Unexpected subevent during merge phase: {:?}", e)
             };
         }
+
+        animations
     }
 }
 
 impl EventConsumer for RenderEventConsumer {
     fn handle_event(&mut self, event: &GameEventObject) {
-        let CompoundEvent { events: events, kind: t } = &event.event;
+        let CompoundEvent { events, kind: t } = &event.event;
         self.handle_event_internal(events, t);
     }
 }

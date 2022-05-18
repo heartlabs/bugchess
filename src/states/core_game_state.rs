@@ -8,6 +8,7 @@ use crate::{game_logic::game::Game, matchbox::MatchboxClient};
 use macroquad::prelude::*;
 use crate::game_events::{EventComposer, EventConsumer};
 use crate::GameEvent::Place;
+use crate::Power::{Blast, TargetedShoot};
 
 pub struct CoreGameState {
     game: Rc<RefCell<Box<Game>>>,
@@ -182,7 +183,7 @@ impl CoreGameSubstate {
 
                                     event_composer.init_new_transaction(
                                         game_events,
-                                        CompoundEventType::Attack,
+                                        CompoundEventType::Attack(target_piece.piece_kind),
                                     );
                                     CoreGameSubstate::Place
                                 }
@@ -223,7 +224,7 @@ impl CoreGameSubstate {
                                 Exhaust(true, *active_piece_pos),
                                 Remove(*target_point, *target_piece),
                             ],
-                            CompoundEventType::Attack,
+                            CompoundEventType::Attack(active_piece.piece_kind),
                         );
                     }
                 }
@@ -272,10 +273,10 @@ impl CoreGameSubstate {
                                 new_piece,
                             ));
 
-                            println!(
+                           /* println!(
                                 "Matched pattern at {}:{}; new piece at {}:{}",
                                 x, y, new_piece_x, new_piece_y
-                            );
+                            );*/
                         }
                     }
                 }

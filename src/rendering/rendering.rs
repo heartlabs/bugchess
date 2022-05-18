@@ -9,11 +9,13 @@ use instant::{Duration, Instant};
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
 use std::{cell::Cell, collections::HashMap, rc::Rc};
+use futures::sink::drain;
 use crate::rendering::ui::Button;
 
 #[derive(Debug, Clone)]
 pub struct CustomRenderContext {
     pieces_texture: Texture2D,
+    special_texture: Texture2D,
     pub game_state: CoreGameSubstate,
     pub button_next: Button,
     pub button_undo: Button,
@@ -25,6 +27,10 @@ impl CustomRenderContext {
         CustomRenderContext {
             pieces_texture: Texture2D::from_file_with_format(
                 include_bytes!("../../resources/sprites/pieces.png"),
+                None,
+            ),
+            special_texture: Texture2D::from_file_with_format(
+                include_bytes!("../../resources/sprites/special.png"),
                 None,
             ),
             game_state: CoreGameSubstate::Place,
@@ -44,8 +50,9 @@ impl CustomRenderContext {
 }
 
 pub struct BoardRender {
-    pub(crate) unused_pieces: Vec<Vec<PieceRender>>,
-    pub(crate) placed_pieces: HashMap<Point2, PieceRender>,
+    pub(crate) special_sprites: HashMap<u32, SpriteRender>,
+    pub(crate) unused_pieces: Vec<Vec<SpriteRender>>,
+    pub(crate) placed_pieces: HashMap<Point2, SpriteRender>,
     pub(crate) team_colors: Vec<Color>,
     animations: Vec<Animation>
 }
@@ -60,7 +67,7 @@ impl BoardRender {
         board.for_each_placed_piece(|point, piece| {
             placed_pieces.insert(
                 point,
-                PieceRender::from_piece(&point, piece, game.get_team(piece.team_id).color),
+                SpriteRender::for_piece(&point, piece.piece_kind, game.get_team(piece.team_id).color),
             );
         });
 
@@ -70,6 +77,7 @@ impl BoardRender {
             unused_pieces,
             placed_pieces,
             team_colors: game.teams.iter().map(|t| t.color).collect(),
+            special_sprites: HashMap::new(),
             animations: vec![]
         }
     }
@@ -90,28 +98,23 @@ impl BoardRender {
             (upb_x, upb_y + unused_pieces.len() as f32 * 32.)
         };
 
-        unused_pieces.push(PieceRender::new(
+        unused_pieces.push(SpriteRender::new(
             x_pos,
             y_pos,
+            PIECE_SCALE,
             self.team_colors[team_id],
-            PieceKind::Simple,
+            SpriteKind::Piece,
+            SpriteRender::piece_sprite_rect(PieceKind::Simple)
         ));
     }
 
     pub fn add_animation(&mut self, mut animation: Animation) {
-        if let Some(last) = self.animations.last_mut() {
-            info!("Append animation");
-            last.next_animations.push(animation);
-        } else {
-            info!("New Animation");
-            animation.start(self);
-            self.animations.push(animation);
-        }
+        animation.start(self);
+        self.animations.push(animation);
     }
 
     pub fn add_placed_piece(&mut self, point: &Point2, piece_kind: PieceKind, team_id: usize){
-        let (x_pos, y_pos) = PieceRender::render_pos(point);
-        self.placed_pieces.insert(*point, PieceRender::new(x_pos, y_pos, self.team_colors[team_id], piece_kind));
+        self.placed_pieces.insert(*point, SpriteRender::for_piece(point, piece_kind, self.team_colors[team_id]));
     }
 
     pub fn update(&mut self) {
@@ -149,9 +152,17 @@ impl BoardRender {
             .for_each(|p| {
                 p.render(render_context);
             });
+
+
         self.placed_pieces
             .iter()
             .for_each(|(_, p)| p.render(render_context));
+
+        self.special_sprites
+            .values()
+            .for_each(|s| {
+                s.render(render_context)
+            });
 
         render_context.button_next.render(canvas);
         render_context.button_undo.render(canvas);
@@ -295,39 +306,47 @@ impl BoardRender {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct PieceRender {
+pub struct SpriteRender {
     from: AnimationPoint,
     to: AnimationPoint,
     color: Color,
+    sprite_kind: SpriteKind,
     rect_in_sprite: Rect,
 }
 
+#[derive(Clone, Copy, Debug)]
+pub enum SpriteKind {
+    Piece,
+    Special
+}
 
-
-impl PieceRender {
-    pub fn new(x_pos: f32, y_pos: f32, color: Color, piece_kind: PieceKind) -> Self {
-        const PIECE_SCALE: f32 = 60.;
+impl SpriteRender {
+    pub fn new(x_pos: f32, y_pos: f32, scale: f32, color: Color, sprite_kind: SpriteKind, rect_in_sprite: Rect) -> Self {
 
         let pap = AnimationPoint {
             x_pos,
             y_pos,
-            scale: PIECE_SCALE,
+            sprite_width: scale,
             instant: Instant::now(),
         };
 
-        Self::animated(pap, pap, color, piece_kind)
+        Self::animated(pap, pap, color, sprite_kind, rect_in_sprite)
     }
 
-    pub(crate) fn from_piece(point: &Point2, piece: &Piece, color: Color) -> PieceRender {
-        let (x_pos, y_pos) = Self::render_pos(point);
+    pub(crate) fn new_at_point(point: &Point2, sprite_width: f32, color: Color, sprite_kind: SpriteKind, rect_in_sprite: Rect) -> SpriteRender {
+        let (x_pos, y_pos) = Self::render_pos(sprite_width, point);
 
-        PieceRender::new(x_pos, y_pos, color, piece.piece_kind)
+        SpriteRender::new(x_pos, y_pos, sprite_width, color, sprite_kind, rect_in_sprite)
     }
 
-    fn render_pos(point: &Point2) -> (f32, f32) {
+    pub(crate) fn for_piece(point: &Point2, piece_kind: PieceKind, color: Color) -> SpriteRender {
+
+        SpriteRender::new_at_point(point, PIECE_SCALE, color, SpriteKind::Piece, Self::piece_sprite_rect(piece_kind))
+    }
+
+    fn render_pos(sprite_width: f32, point: &Point2) -> (f32, f32) {
         let (x_pos, y_pos) = cell_coords(point);
-        let piece_scale = 60.;
-        let shift = (CELL_ABSOLUTE_WIDTH - piece_scale) / 2.;
+        let shift = (CELL_ABSOLUTE_WIDTH - sprite_width) / 2.;
         (x_pos + shift, y_pos + shift)
     }
 
@@ -335,8 +354,20 @@ impl PieceRender {
         from: AnimationPoint,
         to: AnimationPoint,
         color: Color,
-        piece_kind: PieceKind,
+        sprite_kind: SpriteKind,
+        rect_in_sprite: Rect,
     ) -> Self {
+
+        SpriteRender {
+            from,
+            to,
+            color,
+            sprite_kind,
+            rect_in_sprite,
+        }
+    }
+
+    fn piece_sprite_rect(piece_kind: PieceKind) -> Rect {
         let (sprite_x, sprite_y) = match piece_kind {
             PieceKind::Simple => (0, 0),
             PieceKind::HorizontalBar => (1, 0),
@@ -347,49 +378,73 @@ impl PieceRender {
             PieceKind::Sniper => (0, 3),
         };
 
-        let rect_in_sprite = Rect {
+        Rect {
             x: sprite_x as f32 * SPRITE_WIDTH,
             y: sprite_y as f32 * SPRITE_WIDTH,
             w: SPRITE_WIDTH,
             h: SPRITE_WIDTH,
-        };
-
-        PieceRender {
-            from,
-            to,
-            color,
-            rect_in_sprite,
         }
     }
 
-    pub fn move_towards(&mut self, point: &Point2) {
+    pub fn move_towards(&mut self, point: &Point2, speed_ms: u64) {
         self.from = self.to;
         self.from.instant = Instant::now();
 
-        let (x_pos, y_pos) = Self::render_pos(point);
+        let (x_pos, y_pos) = Self::render_pos(self.from.sprite_width, point);
 
         self.to = AnimationPoint {
             x_pos,
             y_pos,
-            scale: PIECE_SCALE,
-            instant: Instant::now() + Duration::from_millis(PLACE_PIECE_SPEED),
+            sprite_width: self.from.sprite_width,
+            instant: Instant::now() + Duration::from_millis(speed_ms),
         };
+    }
+
+    pub fn scale(&mut self, sprite_width: f32, speed_ms: u64) {
+        self.from.instant = Instant::now();
+
+        let shift = (CELL_ABSOLUTE_WIDTH - sprite_width) / 2.;
+
+        self.to = AnimationPoint {
+            x_pos: self.from.x_pos + self.from.sprite_width/2. - CELL_ABSOLUTE_WIDTH/2. + shift,
+            y_pos: self.from.y_pos + self.from.sprite_width/2. - CELL_ABSOLUTE_WIDTH/2. + shift,
+            sprite_width,
+            instant: Instant::now() + Duration::from_millis(speed_ms),
+        };
+
     }
 
     fn render(&self, render_context: &CustomRenderContext) {
         let animation = self
             .from
             .interpolate(self.to, Instant::now());
+
+        let texture = match self.sprite_kind {
+            SpriteKind::Piece => render_context.pieces_texture,
+            SpriteKind::Special => {
+                render_context.special_texture
+            },
+        };
+
         draw_texture_ex(
-            render_context.pieces_texture,
+            texture,
             animation.x_pos,
             animation.y_pos,
             self.color,
             DrawTextureParams {
-                dest_size: Some(Vec2::new(animation.scale, animation.scale)),
+                dest_size: Some(Vec2::new(animation.sprite_width, animation.sprite_width)),
                 source: Some(self.rect_in_sprite),
                 ..Default::default()
             },
         );
+
+        /*draw_rectangle_lines(
+            animation.x_pos,
+            animation.y_pos,
+            animation.sprite_width,
+            animation.sprite_width,
+            2.,
+            GREEN
+        )*/
     }
 }

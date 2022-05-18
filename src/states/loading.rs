@@ -175,7 +175,7 @@ impl GameState for LoadingState {
 }
 
 fn set_up_pieces(team_count: usize, event_composer: &mut EventComposer) {
-    let start_pieces = 4;
+    let start_pieces = 14;
 
     event_composer.start_transaction(CompoundEventType::FinishTurn);
 

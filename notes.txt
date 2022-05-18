@@ -87,3 +87,18 @@ EventBroker: Recieves and Broadcasts Moves
 EventComposer: Recieves Atoms, passes them over to the board and commits them to a Move in the end
 
 TODO: Board now recieves flushed AND compound events
+
+==
+
+Local events (clicks)
+=> Board ignores gets them directly before
+
+=> Matchbox needs to send
+=> Render needs to render
+=> EventBroker
+
+Remote events (recieved via network)
+=> Board needs
+=> Render needs
+
+=> Matchbox ignores

@@ -52,7 +52,7 @@ impl GameEventObject {
 
 #[derive(Debug, Clone, SerBin, DeBin)]
 pub enum CompoundEventType {
-    Attack,
+    Attack(PieceKind),
     Place,
     Move,
     Undo(Box<CompoundEventType>),
@@ -266,16 +266,16 @@ impl BoardEventConsumer {
         let board = &mut game.board;
 
         match event {
-            GameEvent::Place(at, piece) => {
+            Place(at, piece) => {
                 board.place_piece_at(*piece, at);
             }
-            GameEvent::Remove(at, _) => {
+            Remove(at, _) => {
                 board.remove_piece_at(at);
             }
-            GameEvent::AddUnusedPiece(team_id) => {
+            AddUnusedPiece(team_id) => {
                 game.add_unused_piece_for(*team_id);
             }
-            GameEvent::RemoveUnusedPiece(team_id) => {
+            RemoveUnusedPiece(team_id) => {
                 game.remove_unused_piece(*team_id);
             }
             Exhaust(special, point) => {
