@@ -245,9 +245,7 @@ pub struct BoardEventConsumer {
 
 impl EventConsumer for BoardEventConsumer {
     fn handle_event(&mut self, event_object: &GameEventObject) {
-        if let Undo(x) = &event_object.event.kind {
-            // TODO nicer
-        } else if event_object.sender == self.own_sender_id {
+        if !matches!(event_object.event.kind, Undo(_)) && event_object.sender == self.own_sender_id {
             return;
         }
 

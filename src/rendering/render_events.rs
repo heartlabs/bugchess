@@ -89,36 +89,53 @@ impl RenderEventConsumer {
                 board_render.add_animation_sequence(vec![animation]);
             }
             CompoundEventType::Move => {
-                let (piece, from) = if let Some(Remove(point, piece)) = events.get(0) {
+                let mut animations = vec![];
+                let mut i = 0;
+
+                if matches!(events.get(1), Some(Remove(_,_))) {
+                    // Another piece was attacked during the move
+                    if let Some(Remove(point, piece)) = events.get(0) {
+                        animations.push(Animation::new_remove(*point));
+                        i += 1;
+                    } else {
+                        panic!(
+                            "CompoundEventType::Move must begin with a Remove event but got: {:?}",
+                            events.get(0)
+                        )
+                    };
+                }
+
+                let (piece, from) = if let Some(Remove(point, piece)) = events.get(i) {
                     (*piece, *point)
                 } else {
                     panic!(
-                        "CompoundEventType::Move must begin with a Remove event but got: {:?}",
-                        events.get(0)
+                        "CompoundEventType::Move expected a Remove event but got: {:?}",
+                        events.get(i)
                     )
                 };
 
-                let to = if let Some(Place(point, piece)) = events.get(1) {
+                let to = if let Some(Place(point, piece)) = events.get(i+1) {
                     *point
                 } else {
                     panic!(
-                        "CompoundEventType::Move must have a Place event at second but got: {:?}",
-                        events.get(1)
+                        "CompoundEventType::Move expected a Place event but got: {:?}",
+                        events.get(i+1)
                     )
                 };
 
-                if let Some(GameEvent::Exhaust(_, _)) = events.get(2) {
+                if let Some(GameEvent::Exhaust(_, _)) = events.get(i+2) {
                     //
                 } else {
-                    panic!("CompoundEventType::Place must have an Exhaust as third event");
+                    panic!("CompoundEventType::Move expected an Exhaust event");
                 }
 
-                let merge_events = &events[3..];
+                let merge_events = &events[i+3..];
                 let mut merge_animations = Self::handle_merge_events(merge_events);
 
                 let mut move_animation = Animation::new_move(from, to);
                 move_animation.next_animations.append(&mut merge_animations);
-                board_render.add_animation_sequence(vec![move_animation]);
+                animations.push(move_animation);
+                board_render.add_animation_sequence(animations);
             }
             CompoundEventType::Undo(t) => {
                 let mut animations = vec![];

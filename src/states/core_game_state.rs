@@ -206,14 +206,15 @@ impl CoreGameSubstate {
                         .reachable_points(&itself, board, &RangeContext::Moving(*selected_piece))
                         .contains(target_point)
                     {
-                        event_composer.init_new_transaction(
-                            vec![
-                                Remove(*itself, *selected_piece),
-                                Place(*target_point, *selected_piece),
-                                Exhaust(false, *target_point),
-                            ],
-                            CompoundEventType::Move,
-                        );
+                        event_composer.start_transaction(CompoundEventType::Move);
+
+                        if let Some(target_piece) = board.get_piece_at(target_point) {
+                            event_composer.push_event(Remove(*target_point, *target_piece));
+                        }
+
+                        event_composer.push_event(Remove(*itself, *selected_piece));
+                        event_composer.push_event(Place(*target_point, *selected_piece));
+                        event_composer.push_event(Exhaust(false, *target_point));
                     }
                 }
             }

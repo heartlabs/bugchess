@@ -151,7 +151,11 @@ impl Board {
     // publicly accessible with events:
 
     pub(crate) fn place_piece_at(&mut self, piece: Piece, pos: &Point2) {
-        self.get_cell_mut(pos).piece = Some(piece);
+        let target_cell = self.get_cell_mut(pos);
+
+        assert!(target_cell.piece.is_none(), "Can't place on top of another piece at {:?}", pos);
+
+        target_cell.piece = Some(piece);
 
         if let Some(effect) = piece.effect {
             for point in effect
