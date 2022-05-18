@@ -1,11 +1,16 @@
-use std::fmt::{Debug, Formatter};
+use crate::{
+    constants::*,
+    rendering::{SpriteKind, SpriteRender},
+    BoardRender, PieceKind, Point2,
+};
 use instant::{Duration, Instant};
-use macroquad::color::{Color, WHITE};
-use macroquad::logging::info;
-use macroquad::math::Rect;
-use macroquad::rand::rand;
-use crate::{constants::*, BoardRender, Point2, PieceKind};
-use crate::rendering::{SpriteKind, SpriteRender};
+use macroquad::{
+    color::{Color, WHITE},
+    logging::info,
+    math::Rect,
+    rand::rand,
+};
+use std::fmt::{Debug, Formatter};
 
 #[derive(Clone, Copy, Debug)]
 pub struct AnimationPoint {
@@ -16,11 +21,7 @@ pub struct AnimationPoint {
 }
 
 impl AnimationPoint {
-    pub fn interpolate(
-        &self,
-        towards: AnimationPoint,
-        at_instant: Instant,
-    ) -> AnimationPoint {
+    pub fn interpolate(&self, towards: AnimationPoint, at_instant: Instant) -> AnimationPoint {
         //let elapsed_time_ms = elapsed_time.as_millis() as u32;
         let progress = if at_instant < self.instant {
             0.
@@ -38,7 +39,11 @@ impl AnimationPoint {
         let animation_point = AnimationPoint {
             x_pos: Self::interpolate_value(self.x_pos, towards.x_pos, progress),
             y_pos: Self::interpolate_value(self.y_pos, towards.y_pos, progress),
-            sprite_width: Self::interpolate_value(self.sprite_width, towards.sprite_width, progress),
+            sprite_width: Self::interpolate_value(
+                self.sprite_width,
+                towards.sprite_width,
+                progress,
+            ),
             instant: at_instant,
         };
 
@@ -57,7 +62,7 @@ pub struct Animation {
     pub duration: Duration,
     pub finished_at: Instant,
     pub next_animations: Vec<Animation>,
-    pub expert: Box<dyn AnimationExpert>
+    pub expert: Box<dyn AnimationExpert>,
 }
 
 impl Animation {
@@ -66,7 +71,7 @@ impl Animation {
             duration: Duration::from_millis(ANIMATION_SPEED),
             finished_at: Instant::now(),
             next_animations: vec![],
-            expert
+            expert,
         }
     }
 
@@ -75,10 +80,7 @@ impl Animation {
             duration: Duration::from_millis(ANIMATION_SPEED),
             finished_at: Instant::now(),
             next_animations: vec![],
-            expert: Box::new(PlacePieceAnimation {
-                team,
-                to
-            })
+            expert: Box::new(PlacePieceAnimation { team, to }),
         }
     }
 
@@ -87,9 +89,7 @@ impl Animation {
             duration: Duration::from_millis(0),
             finished_at: Instant::now(),
             next_animations: vec![],
-            expert: Box::new(RemovePieceAnimation {
-                at
-            })
+            expert: Box::new(RemovePieceAnimation { at }),
         }
     }
 
@@ -101,8 +101,8 @@ impl Animation {
             expert: Box::new(NewPieceAnimation {
                 team,
                 to,
-                piece_kind
-            })
+                piece_kind,
+            }),
         }
     }
     pub fn new_move(from: Point2, to: Point2) -> Self {
@@ -110,10 +110,7 @@ impl Animation {
             duration: Duration::from_millis(MOVE_PIECE_SPEED),
             finished_at: Instant::now(),
             next_animations: vec![],
-            expert: Box::new(MovePieceAnimation {
-                from,
-                to
-            })
+            expert: Box::new(MovePieceAnimation { from, to }),
         }
     }
 
@@ -121,16 +118,16 @@ impl Animation {
         let bullet = BulletAnimation {
             from,
             to,
-            id: rand()
+            id: rand(),
         };
 
         Animation {
             duration: Duration::from_millis(BULLET_SPEED),
             finished_at: Instant::now(),
             next_animations: vec![Animation::new(Box::new(RemoveSpriteAnimation {
-                id: bullet.id
+                id: bullet.id,
             }))],
-            expert: Box::new(bullet)
+            expert: Box::new(bullet),
         }
     }
 
@@ -138,16 +135,16 @@ impl Animation {
         let bullet = BlastAnimation {
             from,
             span_cells: 3.,
-            id: rand()
+            id: rand(),
         };
 
         Animation {
             duration: Duration::from_millis(BULLET_SPEED),
             finished_at: Instant::now(),
             next_animations: vec![Animation::new(Box::new(RemoveSpriteAnimation {
-                id: bullet.id
+                id: bullet.id,
             }))],
-            expert: Box::new(bullet)
+            expert: Box::new(bullet),
         }
     }
 
@@ -162,7 +159,7 @@ impl Animation {
     }
 }
 
-pub trait AnimationExpert : Debug {
+pub trait AnimationExpert: Debug {
     fn start(&self, board_render: &mut BoardRender);
 }
 
@@ -170,14 +167,14 @@ pub trait AnimationExpert : Debug {
 pub struct BulletAnimation {
     pub(crate) from: Point2,
     pub(crate) to: Point2,
-    pub id: u32
+    pub id: u32,
 }
 
 #[derive(Debug, Clone)]
 pub struct BlastAnimation {
     pub(crate) from: Point2,
     pub(crate) span_cells: f32,
-    pub id: u32
+    pub id: u32,
 }
 
 #[derive(Debug, Clone)]
@@ -196,19 +193,18 @@ pub struct PlacePieceAnimation {
 pub struct NewPieceAnimation {
     pub(crate) team: usize,
     pub(crate) to: Point2,
-    pub(crate) piece_kind: PieceKind
+    pub(crate) piece_kind: PieceKind,
 }
 
 #[derive(Debug, Clone)]
 pub struct RemovePieceAnimation {
-    pub at: Point2
+    pub at: Point2,
 }
 
 #[derive(Debug, Clone)]
 pub struct RemoveSpriteAnimation {
-    pub id: u32
+    pub id: u32,
 }
-
 
 impl AnimationExpert for NewPieceAnimation {
     fn start(&self, board_render: &mut BoardRender) {
@@ -224,10 +220,7 @@ impl AnimationExpert for RemovePieceAnimation {
 
 impl PlacePieceAnimation {
     pub fn new(team: usize, to: Point2) -> Self {
-        PlacePieceAnimation {
-            team,
-            to
-        }
+        PlacePieceAnimation { team, to }
     }
 }
 
@@ -245,7 +238,9 @@ impl AnimationExpert for PlacePieceAnimation {
 
 impl AnimationExpert for MovePieceAnimation {
     fn start(&self, board_render: &mut BoardRender) {
-        let mut piece_render = board_render.placed_pieces.remove(&self.from)
+        let mut piece_render = board_render
+            .placed_pieces
+            .remove(&self.from)
             .expect(&*format!("No piece found at {:?}", self.from));
 
         piece_render.move_towards(&self.to, MOVE_PIECE_SPEED);
@@ -256,7 +251,13 @@ impl AnimationExpert for MovePieceAnimation {
 
 impl AnimationExpert for BulletAnimation {
     fn start(&self, board_render: &mut BoardRender) {
-        let mut sprite_render = SpriteRender::new_at_point(&self.from, PIECE_SCALE, WHITE, SpriteKind::Special, Rect::new(0., 0., SPRITE_WIDTH, SPRITE_WIDTH));
+        let mut sprite_render = SpriteRender::new_at_point(
+            &self.from,
+            PIECE_SCALE,
+            WHITE,
+            SpriteKind::Special,
+            Rect::new(0., 0., SPRITE_WIDTH, SPRITE_WIDTH),
+        );
         sprite_render.move_towards(&self.to, BULLET_SPEED);
         board_render.special_sprites.insert(self.id, sprite_render);
     }
@@ -264,9 +265,15 @@ impl AnimationExpert for BulletAnimation {
 
 impl AnimationExpert for BlastAnimation {
     fn start(&self, board_render: &mut BoardRender) {
-        let mut sprite_render = SpriteRender::new_at_point(&self.from, 0., WHITE, SpriteKind::Special, Rect::new(SPRITE_WIDTH, 0., SPRITE_WIDTH, SPRITE_WIDTH));
+        let mut sprite_render = SpriteRender::new_at_point(
+            &self.from,
+            0.,
+            WHITE,
+            SpriteKind::Special,
+            Rect::new(SPRITE_WIDTH, 0., SPRITE_WIDTH, SPRITE_WIDTH),
+        );
 
-        let (x,y) = cell_coords(&self.from);
+        let (x, y) = cell_coords(&self.from);
 
         sprite_render.scale(self.span_cells * CELL_ABSOLUTE_WIDTH, BULLET_SPEED);
 

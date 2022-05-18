@@ -25,7 +25,7 @@ pub const WINDOW_HEIGHT: i32 = 800;
 pub const ANIMATION_SPEED: u64 = 400;
 pub const PLACE_PIECE_SPEED: u64 = ANIMATION_SPEED;
 pub const MOVE_PIECE_SPEED: u64 = ANIMATION_SPEED;
-pub const BULLET_SPEED: u64 = ANIMATION_SPEED*3;
+pub const BULLET_SPEED: u64 = ANIMATION_SPEED * 3;
 
 pub fn cell_coords(point: &Point2) -> (f32, f32) {
     cell_coords_tuple(point.x, point.y)

@@ -5,14 +5,16 @@ use crate::{
     rand::rand,
 };
 
+use crate::{rendering::BoardRender, CompoundEventType::Undo};
+use macroquad::{logging::warn, ui::Drag::No};
 use nanoserde::{DeBin, SerBin};
-use std::{cell::RefCell, mem, rc::Rc};
-use std::borrow::{Borrow, BorrowMut};
-use std::vec::Drain;
-use macroquad::logging::warn;
-use macroquad::ui::Drag::No;
-use crate::CompoundEventType::Undo;
-use crate::rendering::BoardRender;
+use std::{
+    borrow::{Borrow, BorrowMut},
+    cell::RefCell,
+    mem,
+    rc::Rc,
+    vec::Drain,
+};
 
 #[derive(Debug, Clone, SerBin, DeBin)]
 pub struct CompoundEvent {
@@ -63,7 +65,7 @@ impl CompoundEvent {
     pub fn anti_event(&self) -> CompoundEvent {
         CompoundEvent {
             events: self.events.iter().map(|e| e.anti_event()).rev().collect(),
-            kind: CompoundEventType::Undo(Box::new(self.kind.clone()))
+            kind: CompoundEventType::Undo(Box::new(self.kind.clone())),
         }
     }
 }
@@ -94,9 +96,8 @@ pub struct EventComposer {
     current_transaction: Vec<GameEvent>,
     current_transaction_type: Option<CompoundEventType>,
     committed: Vec<CompoundEvent>,
-    pub(crate) game: Rc<RefCell<Box<Game>>>
+    pub(crate) game: Rc<RefCell<Box<Game>>>,
 }
-
 
 impl EventComposer {
     pub fn new(game: Rc<RefCell<Box<Game>>>) -> Self {
@@ -105,12 +106,15 @@ impl EventComposer {
             current_transaction: vec![],
             current_transaction_type: None,
             committed: vec![],
-            game
+            game,
         }
     }
 
     pub fn drain_commits(&mut self) -> Vec<CompoundEvent> {
-       assert!(self.unflushed.is_empty(), "There are still unflushed events");
+        assert!(
+            self.unflushed.is_empty(),
+            "There are still unflushed events"
+        );
 
         self.committed.drain(..).collect()
     }
@@ -155,16 +159,19 @@ impl EventComposer {
     }
 
     pub fn commit(&mut self) {
-        if  self.current_transaction.is_empty() {
+        if self.current_transaction.is_empty() {
             return;
         }
 
         let events: Vec<GameEvent> = self.current_transaction.drain(..).collect();
 
-        let event_type = self.current_transaction_type.take().expect("Can't commit because there was no transaction started");
+        let event_type = self
+            .current_transaction_type
+            .take()
+            .expect("Can't commit because there was no transaction started");
         let compound_event = CompoundEvent {
             events,
-            kind: event_type
+            kind: event_type,
         };
 
         info!("Compound event: {:?}", compound_event);
@@ -175,7 +182,6 @@ impl EventComposer {
     fn commit_without_history(&mut self) {
         self.current_transaction.clear();
     }
-
 }
 
 pub struct EventBroker {
@@ -241,21 +247,16 @@ impl EventConsumer for BoardEventConsumer {
     fn handle_event(&mut self, event_object: &GameEventObject) {
         if let Undo(x) = &event_object.event.kind {
             // TODO nicer
-        }
-        else if event_object.sender == self.own_sender_id {
+        } else if event_object.sender == self.own_sender_id {
             return;
         }
 
         let event = &event_object.event;
         println!("Handling event {:?}", event);
 
-        event.events
-            .iter()
-            .for_each(|e| BoardEventConsumer::handle_event_internal(
-                (*self.game).borrow_mut().as_mut(),
-                e
-              )
-            );
+        event.events.iter().for_each(|e| {
+            BoardEventConsumer::handle_event_internal((*self.game).borrow_mut().as_mut(), e)
+        });
     }
 }
 impl BoardEventConsumer {
@@ -312,6 +313,5 @@ impl BoardEventConsumer {
                 game.next_team();
             }
         }
-
     }
 }

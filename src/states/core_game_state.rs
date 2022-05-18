@@ -4,11 +4,14 @@ use crate::{
     *,
 };
 
-use crate::{game_logic::game::Game, matchbox::MatchboxClient};
+use crate::{
+    game_events::{EventComposer, EventConsumer},
+    game_logic::game::Game,
+    matchbox::MatchboxClient,
+    GameEvent::Place,
+    Power::{Blast, TargetedShoot},
+};
 use macroquad::prelude::*;
-use crate::game_events::{EventComposer, EventConsumer};
-use crate::GameEvent::Place;
-use crate::Power::{Blast, TargetedShoot};
 
 pub struct CoreGameState {
     game: Rc<RefCell<Box<Game>>>,
@@ -51,7 +54,8 @@ impl GameState for CoreGameState {
                 .borrow_mut()
                 .try_recieve();
 
-            recieved_events.iter()
+            recieved_events
+                .iter()
                 .for_each(|e| self.event_broker.handle_remote_event(&e));
 
             if self.own_player_id.is_none() {
@@ -160,7 +164,7 @@ impl CoreGameSubstate {
                             ),
                             GameEvent::RemoveUnusedPiece(game.current_team_index),
                         ],
-                        CompoundEventType::Place
+                        CompoundEventType::Place,
                     );
                 }
             }
@@ -206,7 +210,7 @@ impl CoreGameSubstate {
                             vec![
                                 Remove(*itself, *selected_piece),
                                 Place(*target_point, *selected_piece),
-                                Exhaust(false, *target_point)
+                                Exhaust(false, *target_point),
                             ],
                             CompoundEventType::Move,
                         );
@@ -273,7 +277,7 @@ impl CoreGameSubstate {
                                 new_piece,
                             ));
 
-                           /* println!(
+                            /* println!(
                                 "Matched pattern at {}:{}; new piece at {}:{}",
                                 x, y, new_piece_x, new_piece_y
                             );*/
@@ -394,7 +398,8 @@ fn handle_player_input(
     }
 
     event_composer.flush();
-    event_composer.drain_commits()
+    event_composer
+        .drain_commits()
         .iter()
         .for_each(|e| event_broker.handle_new_event(e));
 }

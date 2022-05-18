@@ -1,36 +1,34 @@
 use crate::{
-    Board, BoardEventConsumer, BoardRender, CompoundEventType, CoreGameState, EventBroker,
-    GameEvent, GameState, matchbox, ONLINE,
+    matchbox, Board, BoardEventConsumer, BoardRender, CompoundEventType, CoreGameState,
+    EventBroker, GameEvent, GameState, ONLINE,
 };
 use futures::{
     future::{BoxFuture, LocalBoxFuture, OptionFuture},
-    Future,
-    FutureExt, task::LocalSpawnExt, TryFutureExt,
+    task::LocalSpawnExt,
+    Future, FutureExt, TryFutureExt,
 };
 use std::{
-    borrow::BorrowMut,
+    borrow::{Borrow, BorrowMut},
     cell::RefCell,
+    fmt::{Display, Formatter},
     pin::Pin,
     rc::Rc,
     task::{Context, Poll, RawWaker, Waker},
     thread::Thread,
 };
-use std::borrow::Borrow;
-use std::fmt::{Display, Formatter};
 
 use crate::{
+    game_events::EventComposer,
     game_logic::{board::*, game::*, piece::*},
     matchbox::{MatchboxClient, MatchboxEventConsumer},
+    rendering::render_events::RenderEventConsumer,
     states::core_game_state::CoreGameSubstate,
 };
 use instant::Instant;
-use macroquad::{prelude::*, rand::srand};
-use macroquad::ui::Drag::No;
+use macroquad::{prelude::*, rand::srand, ui::Drag::No};
 use macroquad_canvas::Canvas2D;
 use matchbox_socket::WebRtcSocket;
 use uuid::Uuid;
-use crate::game_events::EventComposer;
-use crate::rendering::render_events::RenderEventConsumer;
 
 pub struct LoadingState {
     core_game_state: Option<CoreGameState>,
@@ -52,7 +50,7 @@ impl Display for LoadingSubState {
             LoadingSubState::Register => "Register",
             LoadingSubState::Matchmaking => "Matchmaking",
             LoadingSubState::JoinMatch => "Joining Match",
-            LoadingSubState::WaitForOpponent => "Wait for Opponent"
+            LoadingSubState::WaitForOpponent => "Wait for Opponent",
         };
 
         write!(f, "{}", display_name)
@@ -75,7 +73,9 @@ impl LoadingState {
         let mut board_render = Rc::new(RefCell::new(Box::new(BoardRender::new(
             (*game).borrow().as_ref(),
         ))));
-        event_broker.subscribe_committed(Box::new(RenderEventConsumer { board_render: board_render.clone() }));
+        event_broker.subscribe_committed(Box::new(RenderEventConsumer {
+            board_render: board_render.clone(),
+        }));
 
         info!(
             "{}ns to set up pieces. {}",
@@ -136,35 +136,44 @@ impl GameState for LoadingState {
 
                 let matchbox_events =
                     Option::Some(Rc::new(RefCell::new(Box::new(matchbox_client))));
-                core_game_state.event_broker.subscribe_committed(Box::new(
-                    MatchboxEventConsumer {
+                core_game_state
+                    .event_broker
+                    .subscribe_committed(Box::new(MatchboxEventConsumer {
                         client: Rc::clone(matchbox_events.as_ref().unwrap()),
-                    },
-                ));
+                    }));
 
                 core_game_state.matchbox_events = matchbox_events;
 
                 self.sub_state = LoadingSubState::WaitForOpponent;
-
             }
             LoadingSubState::WaitForOpponent => {
-
                 if ONLINE {
                     let mut core_game_state = self.core_game_state.as_mut().unwrap();
                     let wait_for_opponent = {
-                        let client = core_game_state.matchbox_events.as_ref().unwrap().as_ref().borrow();
-                        client.get_own_player_index().unwrap() != 0 && client.recieved_events.is_empty()
+                        let client = core_game_state
+                            .matchbox_events
+                            .as_ref()
+                            .unwrap()
+                            .as_ref()
+                            .borrow();
+                        client.get_own_player_index().unwrap() != 0
+                            && client.recieved_events.is_empty()
                     };
                     if wait_for_opponent {
                         let events = {
-                            let mut client = core_game_state.matchbox_events.as_ref().unwrap().as_ref().borrow_mut();
+                            let mut client = core_game_state
+                                .matchbox_events
+                                .as_ref()
+                                .unwrap()
+                                .as_ref()
+                                .borrow_mut();
                             client.try_recieve()
                         };
-                        events.iter()
+                        events
+                            .iter()
                             .for_each(|e| core_game_state.event_broker.handle_remote_event(e));
                         return None;
                     }
-
                 } else {
                     let mut core_game_state = self.core_game_state.as_mut().unwrap();
                     let num_teams = 2;
