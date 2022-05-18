@@ -9,6 +9,7 @@ use instant::{Duration, Instant};
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
 use std::{cell::Cell, collections::HashMap, rc::Rc};
+use std::collections::VecDeque;
 use futures::sink::drain;
 use crate::rendering::ui::Button;
 
@@ -54,7 +55,8 @@ pub struct BoardRender {
     pub(crate) unused_pieces: Vec<Vec<SpriteRender>>,
     pub(crate) placed_pieces: HashMap<Point2, SpriteRender>,
     pub(crate) team_colors: Vec<Color>,
-    animations: Vec<Animation>
+    next_animations: VecDeque<Vec<Animation>>,
+    current_animations: Vec<Animation>
 }
 
 impl BoardRender {
@@ -71,14 +73,13 @@ impl BoardRender {
             );
         });
 
-        info!("!! New board with {}&{} unused and {} placed pieces", unused_pieces[0].len(), unused_pieces[1].len(), placed_pieces.len());
-
         BoardRender {
             unused_pieces,
             placed_pieces,
             team_colors: game.teams.iter().map(|t| t.color).collect(),
             special_sprites: HashMap::new(),
-            animations: vec![]
+            next_animations: VecDeque::new(),
+            current_animations: vec![]
         }
     }
 
@@ -108,9 +109,8 @@ impl BoardRender {
         ));
     }
 
-    pub fn add_animation(&mut self, mut animation: Animation) {
-        animation.start(self);
-        self.animations.push(animation);
+    pub fn add_animation_sequence(&mut self, mut animations: Vec<Animation>) {
+        self.next_animations.push_back(animations);
     }
 
     pub fn add_placed_piece(&mut self, point: &Point2, piece_kind: PieceKind, team_id: usize){
@@ -119,16 +119,16 @@ impl BoardRender {
 
     pub fn update(&mut self) {
         let mut new_animations = vec![];
-        self.animations.iter_mut()
+        self.current_animations.iter_mut()
             .filter(|a|a.finished_at <= Instant::now())
             .for_each(|a| {
                 new_animations.append(&mut a.next_animations);
             });
 
-        let anim_count = self.animations.len();
-        self.animations.retain(|a|a.finished_at > Instant::now());
+        let anim_count = self.current_animations.len();
+        self.current_animations.retain(|a|a.finished_at > Instant::now());
 
-        if anim_count != self.animations.len() || !new_animations.is_empty() {
+        if anim_count != self.current_animations.len() || !new_animations.is_empty() {
        //     info!("animation count {} -> {}; {} new", anim_count, self.animations.len(), new_animations.len());
         }
 
@@ -136,7 +136,17 @@ impl BoardRender {
             animation.start(self);
         }
 
-        self.animations.append(&mut new_animations);
+        self.current_animations.append(&mut new_animations);
+
+        if self.current_animations.is_empty() {
+            if let Some(mut animations) = self.next_animations.pop_front() {
+                for animation in animations.iter_mut() {
+                    animation.start(self);
+                }
+
+                self.current_animations = animations;
+            }
+        }
     }
 
     pub fn render(&self, board: &Board, render_context: &CustomRenderContext, canvas: &Canvas2D) {

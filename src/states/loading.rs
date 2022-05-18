@@ -16,6 +16,7 @@ use std::{
     thread::Thread,
 };
 use std::borrow::Borrow;
+use std::fmt::{Display, Formatter};
 
 use crate::{
     game_logic::{board::*, game::*, piece::*},
@@ -42,7 +43,20 @@ pub enum LoadingSubState {
     Register,
     Matchmaking,
     JoinMatch,
-    Finished,
+    WaitForOpponent,
+}
+
+impl Display for LoadingSubState {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let display_name = match self {
+            LoadingSubState::Register => "Register",
+            LoadingSubState::Matchmaking => "Matchmaking",
+            LoadingSubState::JoinMatch => "Joining Match",
+            LoadingSubState::WaitForOpponent => "Wait for Opponent"
+        };
+
+        write!(f, "{}", display_name)
+    }
 }
 
 impl LoadingState {
@@ -85,7 +99,7 @@ impl LoadingState {
             sub_state: if ONLINE {
                 LoadingSubState::Register
             } else {
-                LoadingSubState::Finished
+                LoadingSubState::WaitForOpponent
             },
             client: Option::None,
         }
@@ -130,10 +144,10 @@ impl GameState for LoadingState {
 
                 core_game_state.matchbox_events = matchbox_events;
 
-                self.sub_state = LoadingSubState::Finished;
+                self.sub_state = LoadingSubState::WaitForOpponent;
 
             }
-            LoadingSubState::Finished => {
+            LoadingSubState::WaitForOpponent => {
 
                 if ONLINE {
                     let mut core_game_state = self.core_game_state.as_mut().unwrap();
@@ -165,7 +179,7 @@ impl GameState for LoadingState {
 
     fn render(&self, _canvas: &Canvas2D) {
         draw_text(
-            &*format!("Loading: {:?}... ", self.sub_state),
+            &*format!("Loading: {}... ", self.sub_state),
             10.,
             400.,
             60.,
@@ -175,7 +189,7 @@ impl GameState for LoadingState {
 }
 
 fn set_up_pieces(team_count: usize, event_composer: &mut EventComposer) {
-    let start_pieces = 14;
+    let start_pieces = 8;
 
     event_composer.start_transaction(CompoundEventType::FinishTurn);
 

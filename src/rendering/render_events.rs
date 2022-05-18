@@ -34,8 +34,6 @@ impl RenderEventConsumer {
 
                     bullet_animation.next_animations.push(Animation::new_remove(*to));
 
-                    info!("Attack Anim: {:?}", bullet_animation);
-
                     animations.push(bullet_animation);
 
                     i = i+1;
@@ -50,7 +48,7 @@ impl RenderEventConsumer {
                     break;
                 }
 
-                animations.into_iter().for_each(|a| board_render.add_animation(a));
+                board_render.add_animation_sequence(animations);
 
             }
             CompoundEventType::Place => {
@@ -72,7 +70,7 @@ impl RenderEventConsumer {
 
                 animation.next_animations.append(&mut merge_animations);
 
-                board_render.add_animation(animation);
+                board_render.add_animation_sequence(vec![animation]);
             }
             CompoundEventType::Move => {
                 let (piece, from) = if let Some(Remove(point, piece)) = events.get(0) {
@@ -99,38 +97,45 @@ impl RenderEventConsumer {
 
                 let mut move_animation = Animation::new_move(from, to);
                 move_animation.next_animations.append(&mut merge_animations);
-                board_render.add_animation(move_animation);
+                board_render.add_animation_sequence(vec![move_animation]);
             }
             CompoundEventType::Undo(t) => {
+                let mut animations = vec![];
                 for event in events {
                     match event {
                         GameEvent::AddUnusedPiece (team_id) => {
                             board_render.add_unused_piece(*team_id);
                         }
                         GameEvent::Place(point,piece) => {
-                            board_render.add_animation(Animation::new_piece(piece.team_id, *point, piece.piece_kind ));
+                            animations.push(Animation::new_piece(piece.team_id, *point, piece.piece_kind ));
                         }
                         GameEvent::Remove(point,piece) => {
-                            board_render.add_animation(Animation::new_remove(*point ));
+                            animations.push(Animation::new_remove(*point ));
                         }
                         GameEvent::UndoExhaustion(p, point) => {}
                         e => panic!("Unexpected subevent of CompoundEventType::Undo: {:?}", e)
                     };
                 }
+
+                board_render.add_animation_sequence(animations);
             }
             CompoundEventType::FinishTurn => {
+                let mut animations = vec![];
+
                 for event in events {
                     match event {
                         GameEvent::AddUnusedPiece (team_id) => {
                             board_render.add_unused_piece(*team_id);
                         }
                         GameEvent::Place(point,piece) => {
-                            board_render.add_animation(Animation::new_piece(piece.team_id, *point, piece.piece_kind ));
+                            animations.push(Animation::new_piece(piece.team_id, *point, piece.piece_kind ));
                         }
                         GameEvent::NextTurn => {}
                         e => panic!("Unexpected subevent of CompoundEventType::Merge: {:?}", e)
                     };
                 }
+
+                board_render.add_animation_sequence(animations);
             }
         }
     }

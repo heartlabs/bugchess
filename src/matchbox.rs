@@ -103,11 +103,8 @@ impl MatchboxClient {
         for (_peer, packet) in self.client.receive() {
             let event_object: GameEventObject = DeBin::deserialize_bin(&packet).unwrap();
             if self.register_event(&event_object) {
-                info!("MATCHBOX Recieved Event {:?}", event_object);
                 self.recieved_events.insert(event_object.id.clone());
                 events.push(event_object);
-            } else {
-                info!("MATCHBOX Ignored Event {:?}", event_object);
             }
         }
 
@@ -128,12 +125,9 @@ impl EventConsumer for MatchboxEventConsumer {
         let mut client = (*self.client).borrow_mut();
         let opponent_id = client.opponent_id.as_ref().unwrap().clone();
         if client.register_event(event) {
-            info!("MATCHBOX Sending {:?}", event);
             client
                 .client
                 .send(event.serialize_bin().into_boxed_slice(), opponent_id);
-        } else {
-            info!("MATCHBOX Won't send {:?}", event);
         }
     }
 }

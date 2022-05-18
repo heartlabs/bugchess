@@ -133,7 +133,6 @@ impl EventComposer {
         }
 
         for event in self.unflushed.drain(..) {
-            info!("Flushing event: {:?}", event);
             BoardEventConsumer::handle_event_internal((*self.game).borrow_mut().as_mut(), &event);
         }
 
@@ -161,8 +160,6 @@ impl EventComposer {
         }
 
         let events: Vec<GameEvent> = self.current_transaction.drain(..).collect();
-
-        info!("Committing...");
 
         let event_type = self.current_transaction_type.take().expect("Can't commit because there was no transaction started");
         let compound_event = CompoundEvent {
