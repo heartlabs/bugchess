@@ -1,8 +1,4 @@
-use crate::{
-    constants::*,
-    rendering::{SpriteKind, SpriteRender},
-    BoardRender, PieceKind, Point2,
-};
+use crate::{constants::*, rendering::{SpriteKind, SpriteRender}, BoardRender, PieceKind, Point2, Exhaustion};
 use instant::{Duration, Instant};
 use macroquad::{
     color::{Color, WHITE},
@@ -11,6 +7,7 @@ use macroquad::{
     rand::rand,
 };
 use std::fmt::{Debug, Formatter};
+use macroquad::prelude::GRAY;
 
 #[derive(Clone, Copy, Debug)]
 pub struct AnimationPoint {
@@ -84,6 +81,24 @@ impl Animation {
         }
     }
 
+    pub fn new_exhaustion(to: Exhaustion, at: Point2) -> Self {
+        Animation {
+            duration: Duration::from_millis(0),
+            finished_at: Instant::now(),
+            next_animations: vec![],
+            expert: Box::new(ExhaustAnimation { to, at }),
+        }
+    }
+
+    pub fn new_add_unused(team_id: usize) -> Self {
+        Animation {
+            duration: Duration::from_millis(ADD_UNUSED_SPEED),
+            finished_at: Instant::now(),
+            next_animations: vec![],
+            expert: Box::new(AddUnusedAnimation { team_id }),
+        }
+    }
+
     pub fn new_remove(at: Point2) -> Self {
         Animation {
             duration: Duration::from_millis(0),
@@ -111,6 +126,15 @@ impl Animation {
             finished_at: Instant::now(),
             next_animations: vec![],
             expert: Box::new(MovePieceAnimation { from, to }),
+        }
+    }
+
+    pub fn new_move_towards(from: Point2, to: Point2) -> Self {
+        Animation {
+            duration: Duration::from_millis(MOVE_PIECE_SPEED),
+            finished_at: Instant::now(),
+            next_animations: vec![],
+            expert: Box::new(SwooshPieceAnimation { from, to }),
         }
     }
 
@@ -164,6 +188,12 @@ pub trait AnimationExpert: Debug {
 }
 
 #[derive(Debug, Clone)]
+pub struct ExhaustAnimation {
+    pub(crate) to: Exhaustion,
+    pub at: Point2,
+}
+
+#[derive(Debug, Clone)]
 pub struct BulletAnimation {
     pub(crate) from: Point2,
     pub(crate) to: Point2,
@@ -179,6 +209,12 @@ pub struct BlastAnimation {
 
 #[derive(Debug, Clone)]
 pub struct MovePieceAnimation {
+    pub(crate) from: Point2,
+    pub(crate) to: Point2,
+}
+
+#[derive(Debug, Clone)]
+pub struct SwooshPieceAnimation {
     pub(crate) from: Point2,
     pub(crate) to: Point2,
 }
@@ -204,6 +240,31 @@ pub struct RemovePieceAnimation {
 #[derive(Debug, Clone)]
 pub struct RemoveSpriteAnimation {
     pub id: u32,
+}
+
+#[derive(Debug, Clone)]
+pub struct AddUnusedAnimation {
+    pub team_id: usize,
+}
+
+#[derive(Debug, Clone)]
+pub struct RemoveUnusedAnimation {
+    pub team_id: usize,
+}
+
+impl AnimationExpert for AddUnusedAnimation {
+    fn start(&self, board_render: &mut BoardRender) {
+        board_render.add_unused_piece(self.team_id);
+        let sprite_render = board_render.unused_pieces.get_mut(self.team_id).unwrap().last_mut().unwrap();
+        sprite_render.from = SpriteRender::scale_animation_point(&sprite_render.from, 100.);
+        sprite_render.from.instant = Instant::now();
+        sprite_render.to.instant = Instant::now() + Duration::from_millis(ADD_UNUSED_SPEED);
+    }
+}
+impl AnimationExpert for RemoveUnusedAnimation {
+    fn start(&self, board_render: &mut BoardRender) {
+        board_render.unused_pieces.pop();
+    }
 }
 
 impl AnimationExpert for NewPieceAnimation {
@@ -246,6 +307,37 @@ impl AnimationExpert for MovePieceAnimation {
         piece_render.move_towards(&self.to, MOVE_PIECE_SPEED);
 
         board_render.placed_pieces.insert(self.to, piece_render);
+    }
+}
+impl AnimationExpert for SwooshPieceAnimation {
+    fn start(&self, board_render: &mut BoardRender) {
+        let mut piece_render = board_render
+            .placed_pieces
+            .get_mut(&self.from)
+            .expect(&*format!("No piece found at {:?}", self.from));
+
+        piece_render.move_towards(&self.to, MOVE_PIECE_SPEED);
+
+    }
+}
+
+impl AnimationExpert for ExhaustAnimation {
+    fn start(&self, board_render: &mut BoardRender) {
+        let mut sprite_render = board_render
+            .placed_pieces
+            .get_mut(&self.at)
+            .expect(&*format!("No piece found at {:?}", self.at));
+
+        if self.to.is_done() {
+            sprite_render.override_color = Some(Color::new(
+                (sprite_render.color.r + WHITE.r*2.) / 3.,
+                (sprite_render.color.g + WHITE.g*2.) / 3.,
+                (sprite_render.color.b + WHITE.b*2.) / 3.,
+                255.
+            ));
+        } else {
+            sprite_render.override_color = None;
+        }
     }
 }
 

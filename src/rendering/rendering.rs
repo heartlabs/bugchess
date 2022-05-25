@@ -323,9 +323,10 @@ impl BoardRender {
 
 #[derive(Clone, Copy, Debug)]
 pub struct SpriteRender {
-    from: AnimationPoint,
-    to: AnimationPoint,
-    color: Color,
+    pub from: AnimationPoint,
+    pub to: AnimationPoint,
+    pub override_color: Option<Color>,
+    pub color: Color,
     sprite_kind: SpriteKind,
     rect_in_sprite: Rect,
 }
@@ -400,6 +401,7 @@ impl SpriteRender {
         SpriteRender {
             from,
             to,
+            override_color: None,
             color,
             sprite_kind,
             rect_in_sprite,
@@ -442,15 +444,23 @@ impl SpriteRender {
     pub fn scale(&mut self, sprite_width: f32, speed_ms: u64) {
         self.from.instant = Instant::now();
 
+        self.to = SpriteRender::scale_animation_point(&self.from, sprite_width);
+
+        self.to.instant = Instant::now() + Duration::from_millis(speed_ms);
+    }
+
+    pub fn scale_animation_point(animation_point: &AnimationPoint, sprite_width: f32) -> AnimationPoint {
         let shift = (CELL_ABSOLUTE_WIDTH - sprite_width) / 2.;
 
-        self.to = AnimationPoint {
-            x_pos: self.from.x_pos + self.from.sprite_width / 2. - CELL_ABSOLUTE_WIDTH / 2. + shift,
-            y_pos: self.from.y_pos + self.from.sprite_width / 2. - CELL_ABSOLUTE_WIDTH / 2. + shift,
+        AnimationPoint {
+            x_pos: animation_point.x_pos + animation_point.sprite_width / 2. - CELL_ABSOLUTE_WIDTH / 2. + shift,
+            y_pos: animation_point.y_pos + animation_point.sprite_width / 2. - CELL_ABSOLUTE_WIDTH / 2. + shift,
             sprite_width,
-            instant: Instant::now() + Duration::from_millis(speed_ms),
-        };
+            instant: Instant::now(),
+        }
     }
+
+
 
     fn render(&self, render_context: &CustomRenderContext) {
         let animation = self.from.interpolate(self.to, Instant::now());
@@ -464,7 +474,7 @@ impl SpriteRender {
             texture,
             animation.x_pos,
             animation.y_pos,
-            self.color,
+            self.override_color.unwrap_or(self.color),
             DrawTextureParams {
                 dest_size: Some(Vec2::new(animation.sprite_width, animation.sprite_width)),
                 source: Some(self.rect_in_sprite),

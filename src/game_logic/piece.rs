@@ -157,7 +157,7 @@ pub struct Piece {
     pub exists: bool, // To mark pieces that don't exist in the game but are still stored in the history
 }
 
-#[derive(Debug, Copy, Clone, SerBin, DeBin)]
+#[derive(Debug, Copy, Clone, PartialEq, SerBin, DeBin)]
 pub enum ExhaustionStrategy {
     Either,
     Both,
@@ -165,7 +165,7 @@ pub enum ExhaustionStrategy {
     Special,
 }
 
-#[derive(Debug, Copy, Clone, SerBin, DeBin)]
+#[derive(Debug, Copy, Clone, PartialEq, SerBin, DeBin)]
 pub struct Exhaustion {
     moved: bool,
     used_special: bool,

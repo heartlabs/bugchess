@@ -5,7 +5,7 @@ use crate::{
         RemovePieceAnimation,
     },
     BoardRender, CompoundEventType, GameEvent,
-    GameEvent::{Exhaust, Place, Remove},
+    GameEvent::{ChangeExhaustion, Place, Remove},
     PieceKind, Power,
 };
 use macroquad::miniquad::info;
@@ -24,38 +24,45 @@ impl RenderEventConsumer {
         info!("Handling {} Render Events: {:?}", events.len(), t);
         match t {
             CompoundEventType::Attack(piece_kind) => {
-                let from = if let Some(Exhaust(_, from)) = events.get(0) {
-                    from
-                } else {
-                    panic!("CompoundEventType::Attack must start with an an Exhaust");
-                };
-
-                let mut i = 1;
                 let mut animations: Vec<Animation> = vec![];
+                let mut i = 0;
+                let mut target_points = vec![];
 
                 while let Some(GameEvent::Remove(to, _)) = events.get(i) {
-                    let mut bullet_animation = match piece_kind {
-                        PieceKind::Queen => Animation::new_blast(*from),
-                        PieceKind::HorizontalBar | PieceKind::VerticalBar | PieceKind::Sniper => {
-                            Animation::new_bullet(*from, *to)
-                        }
-                        _ => panic!("Unknown piece_kind - can't generate bullet animation"),
-                    };
-
-                    bullet_animation
-                        .next_animations
-                        .push(Animation::new_remove(*to));
-
-                    animations.push(bullet_animation);
+                    target_points.push(*to);
 
                     i = i + 1;
                 }
+
+                let exhaustion_animation = if let Some(ChangeExhaustion(from, to, at)) = events.get(i) {
+                    i += 1;
+                    for target in &target_points {
+                        let mut bullet_animation = match piece_kind {
+                            PieceKind::Queen => Animation::new_blast(*at),
+                            PieceKind::HorizontalBar | PieceKind::VerticalBar | PieceKind::Sniper => {
+                                Animation::new_bullet(*at, *target)
+                            }
+                            _ => panic!("Unknown piece_kind - can't generate bullet animation"),
+                        };
+
+                        bullet_animation
+                            .next_animations
+                            .push(Animation::new_remove(*target));
+
+                        animations.push(bullet_animation);
+                    }
+
+                    Animation::new_exhaustion(*to, *at)
+                } else {
+                    panic!("CompoundEventType::Attack must start with an an Exhaust");
+                };
 
                 let merge_events = &events[i..];
                 let mut merge_animations = Self::handle_merge_events(merge_events);
 
                 for mut a in &mut animations {
                     // No idea how else to access a single elem of a vec mutably
+                    a.next_animations.push(exhaustion_animation);
                     a.next_animations.append(&mut merge_animations);
                     break;
                 }
@@ -123,8 +130,10 @@ impl RenderEventConsumer {
                     )
                 };
 
-                if let Some(GameEvent::Exhaust(_, _)) = events.get(i+2) {
-                    //
+                let mut move_animation = Animation::new_move(from, to);
+
+                if let Some(GameEvent::ChangeExhaustion(_, to, point)) = events.get(i+2) {
+                    move_animation.next_animations.push(Animation::new_exhaustion(*to,*point));
                 } else {
                     panic!("CompoundEventType::Move expected an Exhaust event");
                 }
@@ -132,7 +141,6 @@ impl RenderEventConsumer {
                 let merge_events = &events[i+3..];
                 let mut merge_animations = Self::handle_merge_events(merge_events);
 
-                let mut move_animation = Animation::new_move(from, to);
                 move_animation.next_animations.append(&mut merge_animations);
                 animations.push(move_animation);
                 board_render.add_animation_sequence(animations);
@@ -142,7 +150,7 @@ impl RenderEventConsumer {
                 for event in events {
                     match event {
                         GameEvent::AddUnusedPiece(team_id) => {
-                            board_render.add_unused_piece(*team_id);
+                            animations.push(Animation::new_add_unused(*team_id));
                         }
                         GameEvent::Place(point, piece) => {
                             animations.push(Animation::new_piece(
@@ -154,7 +162,9 @@ impl RenderEventConsumer {
                         GameEvent::Remove(point, piece) => {
                             animations.push(Animation::new_remove(*point));
                         }
-                        GameEvent::UndoExhaustion(p, point) => {}
+                        GameEvent::ChangeExhaustion(_, to, point) => {
+                            animations.push(Animation::new_exhaustion(*to,*point));
+                        }
                         e => panic!("Unexpected subevent of CompoundEventType::Undo: {:?}", e),
                     };
                 }
@@ -162,12 +172,18 @@ impl RenderEventConsumer {
                 board_render.add_animation_sequence(animations);
             }
             CompoundEventType::FinishTurn => {
-                let mut animations = vec![];
+                let mut animations: Vec<Animation> = vec![];
 
                 for event in events {
                     match event {
                         GameEvent::AddUnusedPiece(team_id) => {
-                            board_render.add_unused_piece(*team_id);
+                            let add_unused = Animation::new_add_unused(*team_id);
+
+                            if let Some(c) = animations.first_mut() {
+                                c.next_animations.push(add_unused);
+                            } else {
+                                animations.push(add_unused);
+                            }
                         }
                         GameEvent::Place(point, piece) => {
                             animations.push(Animation::new_piece(
@@ -177,7 +193,10 @@ impl RenderEventConsumer {
                             ));
                         }
                         GameEvent::NextTurn => {}
-                        e => panic!("Unexpected subevent of CompoundEventType::Merge: {:?}", e),
+                        GameEvent::ChangeExhaustion(_,to,at) => {
+                            animations.push(Animation::new_exhaustion(*to, *at));
+                        }
+                        e => panic!("Unexpected subevent of CompoundEventType::FinishTurn: {:?}", e),
                     };
                 }
 
@@ -189,21 +208,35 @@ impl RenderEventConsumer {
     #[must_use]
     fn handle_merge_events(merge_events: &[GameEvent]) -> Vec<Animation> {
         let mut animations = vec![];
+        let mut merged_points = vec![];
         for event in merge_events {
             match event {
-                Remove(point, piece) => {
-                    animations.push(Animation::new_remove(*point));
+                Remove(point, _piece) => {
+                    merged_points.push(*point);
                 }
                 Place(point, piece) => {
-                    animations.push(Animation::new_piece(
-                        piece.team_id,
-                        *point,
-                        piece.piece_kind,
-                    ));
+                    for p in merged_points.iter() {
+                        let mut a = Animation::new_move_towards(*p, *point);
+                        a.next_animations.push(Animation::new_remove(*p));
+
+                        animations.push(a);
+                    }
+
+                    let last_remove = animations.last_mut().unwrap().next_animations.last_mut().unwrap();
+                    last_remove.next_animations
+                        .push(
+                        Animation::new_piece(
+                            piece.team_id,
+                            *point,
+                            piece.piece_kind,
+                        )
+                    );
                 }
                 e => panic!("Unexpected subevent during merge phase: {:?}", e),
             };
         }
+
+        info!("MERGE ANIMATIONS\n{:?}", animations);
 
         animations
     }

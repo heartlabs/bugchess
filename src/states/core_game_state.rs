@@ -1,6 +1,6 @@
 use crate::{
     game_events::{CompoundEventType, EventBroker},
-    GameEvent::{Exhaust, Remove},
+    GameEvent::{ChangeExhaustion, Remove},
     *,
 };
 
@@ -174,7 +174,9 @@ impl CoreGameSubstate {
                         if let Some(activatable) = target_piece.activatable {
                             return match activatable.kind {
                                 Power::Blast => {
-                                    let mut game_events = vec![Exhaust(true, *target_point)];
+                                    let mut exhaustion_clone = target_piece.exhaustion.clone();
+                                    exhaustion_clone.on_attack();
+                                    let mut game_events = vec![];
                                     for point in activatable.range.reachable_points(
                                         target_point,
                                         board,
@@ -184,6 +186,8 @@ impl CoreGameSubstate {
                                             game_events.push(Remove(point, *piece));
                                         }
                                     }
+
+                                    game_events.push(ChangeExhaustion(target_piece.exhaustion, exhaustion_clone, *target_point));
 
                                     event_composer.init_new_transaction(
                                         game_events,
@@ -214,7 +218,11 @@ impl CoreGameSubstate {
 
                         event_composer.push_event(Remove(*itself, *selected_piece));
                         event_composer.push_event(Place(*target_point, *selected_piece));
-                        event_composer.push_event(Exhaust(false, *target_point));
+
+                        let mut exhaustion_clone = selected_piece.exhaustion.clone();
+                        exhaustion_clone.on_attack();
+
+                        event_composer.push_event(ChangeExhaustion(selected_piece.exhaustion, exhaustion_clone, *target_point));
                     }
                 }
             }
@@ -224,10 +232,13 @@ impl CoreGameSubstate {
                     if target_piece.team_id != game.current_team_index
                         && active_piece.can_use_special()
                     {
+                        let mut exhaustion_clone = target_piece.exhaustion.clone();
+                        exhaustion_clone.on_attack();
+
                         event_composer.init_new_transaction(
                             vec![
-                                Exhaust(true, *active_piece_pos),
                                 Remove(*target_point, *target_piece),
+                                ChangeExhaustion(target_piece.exhaustion, exhaustion_clone, *active_piece_pos),
                             ],
                             CompoundEventType::Attack(active_piece.piece_kind),
                         );
@@ -415,7 +426,14 @@ fn next_turn(game: &mut Rc<RefCell<Box<Game>>>, event_composer: &mut EventCompos
         event_composer.push_event(GameEvent::AddUnusedPiece(current_team_index));
 
         g.board
-            .for_each_placed_piece_mut(|_point, piece| piece.exhaustion.reset());
+            .for_each_placed_piece(|point, piece| {
+                let mut exhaustion_clone = piece.exhaustion.clone();
+                exhaustion_clone.reset();
+
+                if exhaustion_clone != piece.exhaustion {
+                    event_composer.push_event(GameEvent::ChangeExhaustion(piece.exhaustion, exhaustion_clone, point));
+                }
+            });
     }
     event_composer.commit();
 }

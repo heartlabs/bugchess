@@ -28,8 +28,7 @@ pub enum GameEvent {
     Remove(Point2, Piece),
     AddUnusedPiece(usize),
     RemoveUnusedPiece(usize),
-    Exhaust(bool, Point2),
-    UndoExhaustion(bool, Point2),
+    ChangeExhaustion(Exhaustion, Exhaustion, Point2), // From, To, At
     NextTurn,
 }
 
@@ -78,8 +77,7 @@ impl GameEvent {
             Remove(at, piece) => Place(*at, *piece),
             AddUnusedPiece(team_id) => RemoveUnusedPiece(*team_id),
             RemoveUnusedPiece(team_id) => AddUnusedPiece(*team_id),
-            Exhaust(special, point) => UndoExhaustion(*special, *point),
-            UndoExhaustion(special, point) => Exhaust(*special, *point),
+            ChangeExhaustion(from, to, point) => ChangeExhaustion(*to, *from, *point),
             NextTurn => {
                 panic!("Cannot undo next turn");
             }
@@ -274,37 +272,17 @@ impl BoardEventConsumer {
             RemoveUnusedPiece(team_id) => {
                 game.remove_unused_piece(*team_id);
             }
-            Exhaust(special, point) => {
-                let exhaustion = &mut board
+            ChangeExhaustion(from, to, point) => {
+                let piece = &mut board
                     .get_piece_mut_at(point)
                     .expect(&*format!(
                         "Can't execute {:?} for non-existing piece at {:?}",
                         event, point
-                    ))
-                    .exhaustion;
+                    ));
 
-                if *special {
-                    exhaustion.on_attack();
-                } else {
-                    println!("Before exhaustion {}", exhaustion.can_move());
-                    exhaustion.on_move();
-                    println!("After exhaustion {}", exhaustion.can_move());
-                }
-            }
-            UndoExhaustion(special, point) => {
-                let exhaustion = &mut board
-                    .get_piece_mut_at(point)
-                    .expect(&*format!(
-                        "Can't execute {:?} for non-existing piece at {:?}",
-                        event, point
-                    ))
-                    .exhaustion;
+                assert_eq!(from, &piece.exhaustion, "Expected piece at {:?} to have exhaustion state {:?} but it had {:?}", point, from, piece.exhaustion);
 
-                if *special {
-                    exhaustion.undo_attack();
-                } else {
-                    exhaustion.undo_move();
-                }
+                piece.exhaustion = *to;
             }
             NextTurn => {
                 warn!("NEXT TURN");

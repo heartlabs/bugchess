@@ -1,70 +1,64 @@
 
-Bis Mi
-  - Deploy
-     * Matchbox deployen
-     * CI anpassen
-     * Doku und Screencasts
-  - Spiel
-     * Für handy spielbar machen - ausprobieren
-     * Meldungen polieren
+Next Steps:
+    * Willkommensseite
+    * Doku und Screencasts
+    * UI for player/game creation?
+        * Open vs Closed mit ID
+    * Tests
+    * Refactoring
+        * einige files zu groß
+        * render_events zu viel boilerplate & konfiguration
+    * Bugfix: Neuverbindung zum Selben Spiel verhindern bzw Spielstand zu neuem client syncen
+    * "Exhaustion" anzeigen (zB ausgrauen)
+    * Fehlende Animationen
+        * Merge
+        * "Sterben"
+        * Add/RemoveUnused
+        * Effect
+        * Undo?
 
 ========
-Spielbar machen
-    * Mobile
+Future TODOs
+
     * Error Handling
-    * Wie verstecke ich den API Key?
-    * Buttons für
-        + next round
-        + undo
-
-Refactor
-    * BoardRender -> Event handler
-    * States
-        * Core game states
-            + place / move from
-            + move to / special
-            + special target
-            + won
-            - wait for opponent
-        * Connect
-        * UI for player creation/login?
-        * Create / Choose game?
-    * wasm_bindgen / wasm-pack
-
-
-
+        * Meldung "Schön" auf canvas rendern?
+        * Recovery; z.B:
+            + BoardRender von board neu aufbauen lassen
+            + Board von anderem Spieler holen bzw vergleichen und sich "einigen"
+        * Restart button wenn recovery nicht möglich
+    * Peer2Peer security
+        * API key / public/private key effektiv verstecken nicht möglich
+        * Obfuscation?
+        * Mögliche "Attacken"
+            * Cheating
+                => Empfänger überprüft ob ein Zug legal ist
+            * Hacking
+                => Irgendetwas außer Cheating Möglich?
+            * DDOS
+                + Gegen Matchbox oder zugrundeliegenden Server
+                + Gegen P2P Verbindung?
+    * login, ELO & matchmaking
+        => Extra server
+            + speichert Spielerdaten
+              ~ login/password
+              ~ ELO
+              ~ email etc?
+              ~ klimbim?
+            + matched Spieler nach ELO
+        => ELO berechnung
+    * Parallelisieren von Animationen
+        * Welche Animationen lassen sich nicht parallelisieren
+            * Weil Animationen aufgrund unterschiedlicher Geschwindigkeit/Verzögerung effektiv in verkehrter Reihenfolge ausgeführt werden können
+                => Integritätsfehler
+            * zB Undo
+        * Welche lassen sich parallelisieren
+            * zB Direkt aufeinanderfolgende "Place" ohne merge
+            * Wenn keine Zielfelder geteilt werden (zB Places & Removes)
+========
 Commands
     * cargo +nightly fmt
     * cargo fix
 
-
-Animation:
-
-    Place + merge:
-      1. unused -> point
-      2. merge
-
-    shoot + merge:
-      a.
-          1. shoot left
-          2. die
-          3. merge
-      b.
-          1. shoot right
-
-
-Animation
-   - from/to x/y & duration
-   - Can find and mutably access or create XAnimation
-   - Next Animations
-
-
-PieceAnimation
-   - piece (point or unused), to
-
-BulletAnimation
-   - from, to
-   - fancy pre-/after animations?
 
 =======
 
@@ -85,8 +79,6 @@ Event Producers
 
 EventBroker: Recieves and Broadcasts Moves
 EventComposer: Recieves Atoms, passes them over to the board and commits them to a Move in the end
-
-TODO: Board now recieves flushed AND compound events
 
 ==
 
