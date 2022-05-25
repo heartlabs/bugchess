@@ -140,7 +140,7 @@ impl CoreGameSubstate {
         game: &mut Game,
         event_composer: &mut EventComposer,
     ) -> CoreGameSubstate {
-        let board = &mut game.board;
+        let board = &game.board;
         if !board.has_cell(target_point) {
             return CoreGameSubstate::Place;
         }
@@ -156,16 +156,19 @@ impl CoreGameSubstate {
                         }
                     }
                 } else if game.unused_piece_available() {
+                    let new_piece = Piece::new(game.current_team_index, PieceKind::Simple);
                     event_composer.init_new_transaction(
                         vec![
                             GameEvent::Place(
                                 *target_point,
-                                Piece::new(game.current_team_index, PieceKind::Simple),
+                                new_piece,
                             ),
                             GameEvent::RemoveUnusedPiece(game.current_team_index),
                         ],
                         CompoundEventType::Place,
                     );
+
+                    Self::push_effects_if_present(event_composer, &board, &new_piece, target_point);
                 }
             }
             CoreGameSubstate::Move(itself) => {
@@ -176,23 +179,20 @@ impl CoreGameSubstate {
                                 Power::Blast => {
                                     let mut exhaustion_clone = target_piece.exhaustion.clone();
                                     exhaustion_clone.on_attack();
-                                    let mut game_events = vec![];
+                                    event_composer.start_transaction(CompoundEventType::Attack(target_piece.piece_kind));
                                     for point in activatable.range.reachable_points(
                                         target_point,
                                         board,
                                         &RangeContext::Special(*target_piece),
                                     ) {
                                         if let Some(piece) = board.get_piece_at(&point) {
-                                            game_events.push(Remove(point, *piece));
+                                            event_composer.push_event(Remove(point, *piece));
+                                            Self::remove_effects_if_present(event_composer, board, piece,&point);
                                         }
                                     }
 
-                                    game_events.push(ChangeExhaustion(target_piece.exhaustion, exhaustion_clone, *target_point));
+                                    event_composer.push_event(ChangeExhaustion(target_piece.exhaustion, exhaustion_clone, *target_point));
 
-                                    event_composer.init_new_transaction(
-                                        game_events,
-                                        CompoundEventType::Attack(target_piece.piece_kind),
-                                    );
                                     CoreGameSubstate::Place
                                 }
                                 Power::TargetedShoot => CoreGameSubstate::Activate(*target_point),
@@ -219,6 +219,10 @@ impl CoreGameSubstate {
                         event_composer.push_event(Remove(*itself, *selected_piece));
                         event_composer.push_event(Place(*target_point, *selected_piece));
 
+                        if let Some(target_piece) = board.get_piece_at(target_point) {
+                            Self::remove_effects_if_present(event_composer, board, target_piece, target_point);
+                        }
+
                         let mut exhaustion_clone = selected_piece.exhaustion.clone();
                         exhaustion_clone.on_attack();
 
@@ -242,6 +246,8 @@ impl CoreGameSubstate {
                             ],
                             CompoundEventType::Attack(active_piece.piece_kind),
                         );
+
+                        Self::remove_effects_if_present(event_composer, board, target_piece, target_point);
                     }
                 }
             }
@@ -252,6 +258,26 @@ impl CoreGameSubstate {
         }
 
         CoreGameSubstate::Place
+    }
+
+    fn push_effects_if_present(event_composer: &mut EventComposer, board: &Board, new_piece: &Piece, pos: &Point2) {
+        if let Some(effect) = new_piece.effect {
+            effect
+                .range
+                .reachable_points(pos, &board, &RangeContext::Area)
+                .iter()
+                .for_each(|&point| event_composer.push_event(GameEvent::AddEffect(EffectKind::Protection, point)));
+        }
+    }
+
+    fn remove_effects_if_present(event_composer: &mut EventComposer, board: &Board, piece: &Piece, pos: &Point2) {
+        if let Some(effect) = piece.effect {
+            effect
+                .range
+                .reachable_points(pos, &board, &RangeContext::Area)
+                .iter()
+                .for_each(|&point| event_composer.push_event(GameEvent::RemoveEffect(EffectKind::Protection, point)));
+        }
     }
 
     pub(crate) fn merge_patterns(board: &mut Board, event_composer: &mut EventComposer) {
@@ -273,10 +299,16 @@ impl CoreGameSubstate {
                         {
                             matched_entities.iter_mut().for_each(|point| {
                                 // println!("Going to remove matched piece {:?}", matched_piece);
-                                let matched_piece = board.get_piece_mut_at(point).unwrap();
-                                event_composer
-                                    .push_event(GameEvent::Remove(*point, *matched_piece));
-                                matched_piece.dying = true;
+                                {
+                                    let matched_piece = board.get_piece_mut_at(point).unwrap();
+                                    event_composer
+                                        .push_event(GameEvent::Remove(*point, *matched_piece));
+                                    matched_piece.dying = true;
+                                }
+                                let matched_piece = board.get_piece_at(point).unwrap();
+
+                                Self::remove_effects_if_present(event_composer, board, matched_piece, point);
+
                             });
 
                             let new_piece = Piece::new(any_team_id, pattern.turn_into);
@@ -284,10 +316,13 @@ impl CoreGameSubstate {
                             let new_piece_x = x as u8 + pattern.new_piece_relative_position.x;
                             let new_piece_y = y as u8 + pattern.new_piece_relative_position.y;
 
+                            let new_piece_pos = Point2::new(new_piece_x, new_piece_y);
                             event_composer.push_event(GameEvent::Place(
-                                Point2::new(new_piece_x, new_piece_y),
+                                new_piece_pos,
                                 new_piece,
                             ));
+
+                            Self::push_effects_if_present(event_composer, &board, &new_piece, &new_piece_pos);
 
                             /* println!(
                                 "Matched pattern at {}:{}; new piece at {}:{}",
@@ -427,6 +462,10 @@ fn next_turn(game: &mut Rc<RefCell<Box<Game>>>, event_composer: &mut EventCompos
 
         g.board
             .for_each_placed_piece(|point, piece| {
+                if piece.movement.is_none() && piece.activatable.is_none() {
+                    return;
+                }
+
                 let mut exhaustion_clone = piece.exhaustion.clone();
                 exhaustion_clone.reset();
 

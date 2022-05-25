@@ -157,17 +157,20 @@ impl Board {
 
         target_cell.piece = Some(piece);
 
-        if let Some(effect) = piece.effect {
-            for point in effect
-                .range
-                .reachable_points(pos, &self, &RangeContext::Area)
-                .iter()
-            {
-                self.get_cell_mut(point)
-                    .effects
-                    .push(EffectKind::Protection);
-            }
-        }
+    }
+
+    pub fn add_effect(&mut self, kind: EffectKind, pos: &Point2) {
+        self.get_cell_mut(pos)
+            .effects
+            .push(kind);
+    }
+
+    pub fn remove_effect(&mut self, kind: &EffectKind, pos: &Point2) {
+        let mut effects = &mut self.get_cell_mut(pos)
+            .effects;
+        let index = effects.iter().position(|e| e == kind)
+            .expect(format!("Can't remove effect {:?} at {:?} because it doesn't exist", kind, pos).as_str());
+        effects.swap_remove(index);
     }
 
     fn get_cell_mut(&mut self, pos: &Point2) -> &mut Cell {
@@ -178,37 +181,12 @@ impl Board {
     }
 
     pub fn remove_piece_at(&mut self, pos: &Point2) {
-        let piece = self
+        self
             .get_cell_mut(pos)
             .piece
             .take()
             .expect(format!("Cannot remove: There is no piece on {:?}", pos).as_str());
-
-        if let Some(effect) = piece.effect {
-            for point in effect
-                .range
-                .reachable_points(pos, &self, &RangeContext::Area)
-                .iter()
-            {
-                let effects = &mut self.get_cell_mut(point).effects;
-                if let Some(pos) = effects
-                    .iter_mut()
-                    .position(|e| *e == EffectKind::Protection)
-                {
-                    effects.swap_remove(pos);
-                }
-            }
-        }
     }
-
-    /*pub(crate) fn move_piece(&mut self, from_x: u8, from_y: u8, to_x: u8, to_y: u8) {
-        let piece = self.remove_piece(from_x, from_y);
-        self.place_piece(piece, to_x, to_y);
-    }
-    fn move_piece_at(&mut self, piece: Piece, from_pos: &Point2, to_pos: &Point2) {
-        self.remove_piece_at(from_pos);
-        self.place_piece_at(piece, to_pos);
-    }*/
 }
 
 #[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, SerBin, DeBin)]

@@ -29,6 +29,8 @@ pub enum GameEvent {
     AddUnusedPiece(usize),
     RemoveUnusedPiece(usize),
     ChangeExhaustion(Exhaustion, Exhaustion, Point2), // From, To, At
+    AddEffect(EffectKind, Point2),
+    RemoveEffect(EffectKind, Point2),
     NextTurn,
 }
 
@@ -78,6 +80,8 @@ impl GameEvent {
             AddUnusedPiece(team_id) => RemoveUnusedPiece(*team_id),
             RemoveUnusedPiece(team_id) => AddUnusedPiece(*team_id),
             ChangeExhaustion(from, to, point) => ChangeExhaustion(*to, *from, *point),
+            AddEffect(kind, at) => RemoveEffect(*kind, *at),
+            RemoveEffect(kind, at) => AddEffect(*kind, *at),
             NextTurn => {
                 panic!("Cannot undo next turn");
             }
@@ -284,6 +288,8 @@ impl BoardEventConsumer {
 
                 piece.exhaustion = *to;
             }
+            AddEffect(kind, at) => {board.add_effect(*kind, at);}
+            RemoveEffect(kind, at) => {board.remove_effect(kind, at)}
             NextTurn => {
                 warn!("NEXT TURN");
                 game.next_team();

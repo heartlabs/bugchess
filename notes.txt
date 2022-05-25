@@ -9,12 +9,8 @@ Next Steps:
         * einige files zu groß
         * render_events zu viel boilerplate & konfiguration
     * Bugfix: Neuverbindung zum Selben Spiel verhindern bzw Spielstand zu neuem client syncen
-    * "Exhaustion" anzeigen (zB ausgrauen)
     * Fehlende Animationen
-        * Merge
         * "Sterben"
-        * Add/RemoveUnused
-        * Effect
         * Undo?
 
 ========

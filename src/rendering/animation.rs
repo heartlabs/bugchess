@@ -1,4 +1,4 @@
-use crate::{constants::*, rendering::{SpriteKind, SpriteRender}, BoardRender, PieceKind, Point2, Exhaustion};
+use crate::{constants::*, rendering::{SpriteKind, SpriteRender}, BoardRender, PieceKind, Point2, Exhaustion, EffectKind};
 use instant::{Duration, Instant};
 use macroquad::{
     color::{Color, WHITE},
@@ -7,7 +7,9 @@ use macroquad::{
     rand::rand,
 };
 use std::fmt::{Debug, Formatter};
+use std::ops::{Add, Mul, Sub};
 use macroquad::prelude::GRAY;
+use crate::rendering::EffectRender;
 
 #[derive(Clone, Copy, Debug)]
 pub struct AnimationPoint {
@@ -18,20 +20,8 @@ pub struct AnimationPoint {
 }
 
 impl AnimationPoint {
-    pub fn interpolate(&self, towards: AnimationPoint, at_instant: Instant) -> AnimationPoint {
-        //let elapsed_time_ms = elapsed_time.as_millis() as u32;
-        let progress = if at_instant < self.instant {
-            0.
-        } else if at_instant > towards.instant {
-            1.
-        } else {
-            let diff = towards.instant.duration_since(self.instant);
-            let local_elapsed = at_instant.duration_since(self.instant);
-
-            //println!("interpolating after {}ms diff is {} and local_elapsed {} leading to {}", elapsed_time_ms, diff, local_elapsed, local_elapsed as f32 / diff as f32);
-
-            local_elapsed.as_millis() as f32 / diff.as_millis() as f32
-        };
+    pub fn interpolate(&self, towards: &AnimationPoint, at_instant: Instant) -> AnimationPoint {
+        let progress = Self::calculate_progress(&self.instant, &towards.instant, &at_instant);
 
         let animation_point = AnimationPoint {
             x_pos: Self::interpolate_value(self.x_pos, towards.x_pos, progress),
@@ -47,7 +37,24 @@ impl AnimationPoint {
         animation_point
     }
 
-    fn interpolate_value(from: f32, to: f32, progress: f32) -> f32 {
+    pub fn calculate_progress(from_instant: &Instant, towards_instant: &Instant, at_instant: &Instant) -> f32 {
+        if at_instant < from_instant {
+            0.
+        } else if at_instant > towards_instant {
+            1.
+        } else {
+            let diff = towards_instant.duration_since(*from_instant);
+            let local_elapsed = at_instant.duration_since(*from_instant);
+
+            //println!("interpolating after {}ms diff is {} and local_elapsed {} leading to {}", elapsed_time_ms, diff, local_elapsed, local_elapsed as f32 / diff as f32);
+
+            local_elapsed.as_millis() as f32 / diff.as_millis() as f32
+        }
+    }
+
+    pub fn interpolate_value<T>(from: T, to: T, progress: f32) -> T
+        where T: Mul<f32, Output=T> + Add<Output=T> + Sub<Output=T> + Copy
+    {
         let diff = to - from;
         let p = diff * progress;
         from + p
@@ -81,6 +88,24 @@ impl Animation {
         }
     }
 
+    pub fn new_add_effect(effect: EffectKind, at: Point2) -> Self {
+        Animation {
+            duration: Duration::from_millis(0),
+            finished_at: Instant::now(),
+            next_animations: vec![],
+            expert: Box::new(AddEffectAnimation { effect, at }),
+        }
+    }
+
+    pub fn new_remove_effect(effect: EffectKind, at: Point2) -> Self {
+        Animation {
+            duration: Duration::from_millis(0),
+            finished_at: Instant::now(),
+            next_animations: vec![],
+            expert: Box::new(RemoveEffectAnimation { effect, at }),
+        }
+    }
+
     pub fn new_exhaustion(to: Exhaustion, at: Point2) -> Self {
         Animation {
             duration: Duration::from_millis(0),
@@ -108,7 +133,7 @@ impl Animation {
         }
     }
 
-    pub fn new_piece(team: usize, to: Point2, piece_kind: PieceKind) -> Self {
+    pub fn new_piece(team: usize, to: Point2, piece_kind: PieceKind, exhausted: bool) -> Self {
         Animation {
             duration: Duration::from_millis(0),
             finished_at: Instant::now(),
@@ -117,6 +142,7 @@ impl Animation {
                 team,
                 to,
                 piece_kind,
+                exhausted
             }),
         }
     }
@@ -188,6 +214,18 @@ pub trait AnimationExpert: Debug {
 }
 
 #[derive(Debug, Clone)]
+pub struct AddEffectAnimation {
+    pub(crate) effect: EffectKind,
+    pub at: Point2,
+}
+
+#[derive(Debug, Clone)]
+pub struct RemoveEffectAnimation {
+    pub(crate) effect: EffectKind,
+    pub at: Point2,
+}
+
+#[derive(Debug, Clone)]
 pub struct ExhaustAnimation {
     pub(crate) to: Exhaustion,
     pub at: Point2,
@@ -230,6 +268,7 @@ pub struct NewPieceAnimation {
     pub(crate) team: usize,
     pub(crate) to: Point2,
     pub(crate) piece_kind: PieceKind,
+    pub exhausted: bool
 }
 
 #[derive(Debug, Clone)]
@@ -269,7 +308,7 @@ impl AnimationExpert for RemoveUnusedAnimation {
 
 impl AnimationExpert for NewPieceAnimation {
     fn start(&self, board_render: &mut BoardRender) {
-        board_render.add_placed_piece(&self.to, self.piece_kind, self.team)
+        board_render.add_placed_piece(&self.to, self.piece_kind, self.team, self.exhausted)
     }
 }
 
@@ -291,6 +330,8 @@ impl AnimationExpert for PlacePieceAnimation {
             .pop()
             .expect("No unused piece left in BoardRender");
         unused.move_towards(&self.to, PLACE_PIECE_SPEED);
+        unused.override_color = Some(SpriteRender::greyed_out(&unused.color));
+
         //let color = board_render.team_colors[piece.team_id];
         //board_render.placed_pieces.push(PieceRender::from_piece(point, piece, color))
         board_render.placed_pieces.insert(self.to, unused);
@@ -321,6 +362,28 @@ impl AnimationExpert for SwooshPieceAnimation {
     }
 }
 
+impl AnimationExpert for AddEffectAnimation {
+    fn start(&self, board_render: &mut BoardRender) {
+        info!("Starting addeffectanim");
+
+        if !board_render.effects.contains_key(&self.at) {
+            board_render.effects.insert(self.at, vec![]);
+        }
+
+        board_render.effects.get_mut(&self.at)
+            .unwrap()
+            .push(EffectRender::new());
+    }
+}
+
+impl AnimationExpert for RemoveEffectAnimation {
+    fn start(&self, board_render: &mut BoardRender) {
+        board_render.effects.get_mut(&self.at).
+            expect(format!("Can't remove effect at {:?} because that position doesn't exist", self.at).as_str())
+            .remove(0);
+    }
+}
+
 impl AnimationExpert for ExhaustAnimation {
     fn start(&self, board_render: &mut BoardRender) {
         let mut sprite_render = board_render
@@ -329,12 +392,7 @@ impl AnimationExpert for ExhaustAnimation {
             .expect(&*format!("No piece found at {:?}", self.at));
 
         if self.to.is_done() {
-            sprite_render.override_color = Some(Color::new(
-                (sprite_render.color.r + WHITE.r*2.) / 3.,
-                (sprite_render.color.g + WHITE.g*2.) / 3.,
-                (sprite_render.color.b + WHITE.b*2.) / 3.,
-                255.
-            ));
+            sprite_render.override_color = Some(SpriteRender::greyed_out(&sprite_render.color));
         } else {
             sprite_render.override_color = None;
         }

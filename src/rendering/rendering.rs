@@ -14,6 +14,7 @@ use std::{
     collections::{HashMap, VecDeque},
     rc::Rc,
 };
+use macroquad::ui::Drag::No;
 
 #[derive(Debug, Clone)]
 pub struct CustomRenderContext {
@@ -56,6 +57,7 @@ pub struct BoardRender {
     pub(crate) special_sprites: HashMap<u32, SpriteRender>,
     pub(crate) unused_pieces: Vec<Vec<SpriteRender>>,
     pub(crate) placed_pieces: HashMap<Point2, SpriteRender>,
+    pub(crate) effects: HashMap<Point2, Vec<EffectRender>>,
     pub(crate) team_colors: Vec<Color>,
     next_animations: VecDeque<Vec<Animation>>,
     current_animations: Vec<Animation>,
@@ -85,6 +87,7 @@ impl BoardRender {
             team_colors: game.teams.iter().map(|t| t.color).collect(),
             special_sprites: HashMap::new(),
             next_animations: VecDeque::new(),
+            effects: HashMap::new(),
             current_animations: vec![],
         }
     }
@@ -118,10 +121,14 @@ impl BoardRender {
         self.next_animations.push_back(animations);
     }
 
-    pub fn add_placed_piece(&mut self, point: &Point2, piece_kind: PieceKind, team_id: usize) {
+    pub fn add_placed_piece(&mut self, point: &Point2, piece_kind: PieceKind, team_id: usize, exhausted: bool) {
+        let mut piece_render = SpriteRender::for_piece(point, piece_kind, self.team_colors[team_id]);
+        if exhausted {
+            piece_render.override_color = Some(SpriteRender::greyed_out(&piece_render.color));
+        }
         self.placed_pieces.insert(
             *point,
-            SpriteRender::for_piece(point, piece_kind, self.team_colors[team_id]),
+            piece_render,
         );
     }
 
@@ -161,6 +168,10 @@ impl BoardRender {
 
     pub fn render(&self, board: &Board, render_context: &CustomRenderContext, canvas: &Canvas2D) {
         Self::render_cells(board, canvas);
+
+        for (point,effects) in &self.effects {
+            effects.iter().for_each(|e| e.render(point));
+        }
 
         Self::render_highlights(board, render_context, canvas);
 
@@ -272,20 +283,6 @@ impl BoardRender {
                 BLACK,
             );
         });
-
-        board.for_each_cell(|cell| {
-            let (x_pos, y_pos) = cell_coords(&cell.point);
-
-            if !cell.effects.is_empty() {
-                draw_rectangle(
-                    x_pos,
-                    y_pos,
-                    CELL_ABSOLUTE_WIDTH,
-                    CELL_ABSOLUTE_WIDTH,
-                    Color::new(80., 0., 100., 0.6),
-                );
-            }
-        });
     }
 
     fn highlight_range(
@@ -322,6 +319,14 @@ impl BoardRender {
 }
 
 #[derive(Clone, Copy, Debug)]
+pub struct EffectRender {
+    pub from_color: Color,
+    pub towards_color: Color,
+    pub from_instant: Instant,
+    pub towards_instant: Instant,
+}
+
+#[derive(Clone, Copy, Debug)]
 pub struct SpriteRender {
     pub from: AnimationPoint,
     pub to: AnimationPoint,
@@ -335,6 +340,34 @@ pub struct SpriteRender {
 pub enum SpriteKind {
     Piece,
     Special,
+}
+
+impl EffectRender {
+    pub fn new() -> Self {
+        EffectRender {
+            from_color: Color::new(80., 0., 100., 0.0),
+            towards_color: Color::new(80., 0., 100., 0.6),
+            from_instant: Instant::now(),
+            towards_instant: Instant::now() + Duration::from_millis(ANIMATION_SPEED*3)
+        }
+    }
+
+    pub fn render(&self, at: &Point2) {
+        let (x_pos, y_pos) = cell_coords(at);
+        let progress = AnimationPoint::calculate_progress(&self.from_instant, &self.towards_instant, &Instant::now());
+        draw_rectangle(
+            x_pos,
+            y_pos,
+            CELL_ABSOLUTE_WIDTH,
+            CELL_ABSOLUTE_WIDTH,
+            Color {
+                r: AnimationPoint::interpolate_value(self.from_color.r, self.towards_color.r, progress),
+                g: AnimationPoint::interpolate_value(self.from_color.g, self.towards_color.g, progress),
+                b: AnimationPoint::interpolate_value(self.from_color.b, self.towards_color.b, progress),
+                a: AnimationPoint::interpolate_value(self.from_color.a, self.towards_color.a, progress)
+            }
+        );
+    }
 }
 
 impl SpriteRender {
@@ -427,6 +460,15 @@ impl SpriteRender {
         }
     }
 
+    pub fn greyed_out(color: &Color) -> Color {
+        Color::new(
+            (color.r + WHITE.r * 2.) / 3.,
+            (color.g + WHITE.g * 2.) / 3.,
+            (color.b + WHITE.b * 2.) / 3.,
+            255.
+        )
+    }
+
     pub fn move_towards(&mut self, point: &Point2, speed_ms: u64) {
         self.from = self.to;
         self.from.instant = Instant::now();
@@ -463,7 +505,7 @@ impl SpriteRender {
 
 
     fn render(&self, render_context: &CustomRenderContext) {
-        let animation = self.from.interpolate(self.to, Instant::now());
+        let animation = self.from.interpolate(&self.to, Instant::now());
 
         let texture = match self.sprite_kind {
             SpriteKind::Piece => render_context.pieces_texture,

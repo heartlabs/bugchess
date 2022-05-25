@@ -71,7 +71,6 @@ impl Piece {
             dying: false,
             exhaustion: Exhaustion::new_exhausted(ExhaustionStrategy::Either),
             team_id,
-            exists: true,
         };
 
         Piece::init_piece(&mut piece, turn_into);
@@ -154,7 +153,6 @@ pub struct Piece {
     pub dying: bool,
     pub exhaustion: Exhaustion,
     pub team_id: usize,
-    pub exists: bool, // To mark pieces that don't exist in the game but are still stored in the history
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, SerBin, DeBin)]
@@ -213,16 +211,8 @@ impl Exhaustion {
         self.moved = true;
     }
 
-    pub fn undo_move(&mut self) {
-        self.moved = false;
-    }
-
     pub fn on_attack(&mut self) {
         self.used_special = true;
-    }
-
-    pub fn undo_attack(&mut self) {
-        self.used_special = false;
     }
 
     pub fn reset(&mut self) {

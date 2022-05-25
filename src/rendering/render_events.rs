@@ -157,6 +157,7 @@ impl RenderEventConsumer {
                                 piece.team_id,
                                 *point,
                                 piece.piece_kind,
+                                piece.exhaustion.is_done()
                             ));
                         }
                         GameEvent::Remove(point, piece) => {
@@ -164,6 +165,12 @@ impl RenderEventConsumer {
                         }
                         GameEvent::ChangeExhaustion(_, to, point) => {
                             animations.push(Animation::new_exhaustion(*to,*point));
+                        }
+                        GameEvent::AddEffect(kind, pos) => {
+                            animations.push(Animation::new_add_effect(*kind, *pos))
+                        }
+                        GameEvent::RemoveEffect(kind, pos) => {
+                            animations.push(Animation::new_remove_effect(*kind, *pos))
                         }
                         e => panic!("Unexpected subevent of CompoundEventType::Undo: {:?}", e),
                     };
@@ -190,6 +197,7 @@ impl RenderEventConsumer {
                                 piece.team_id,
                                 *point,
                                 piece.piece_kind,
+                                piece.exhaustion.is_done()
                             ));
                         }
                         GameEvent::NextTurn => {}
@@ -229,8 +237,22 @@ impl RenderEventConsumer {
                             piece.team_id,
                             *point,
                             piece.piece_kind,
+                            piece.exhaustion.is_done()
                         )
                     );
+                }
+                GameEvent::AddEffect(kind, pos) => {
+                    let last_remove = animations.last_mut().unwrap().next_animations.last_mut().unwrap();
+
+                    last_remove.next_animations
+                        .push(
+                            Animation::new_add_effect(*kind, *pos)
+                        );
+                }
+                GameEvent::RemoveEffect(kind, pos) => {
+                    animations.push(
+                            Animation::new_remove_effect(*kind, *pos)
+                        );
                 }
                 e => panic!("Unexpected subevent during merge phase: {:?}", e),
             };
