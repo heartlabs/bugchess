@@ -16,6 +16,8 @@ use std::{
     task::{Context, Poll, RawWaker, Waker},
     thread::Thread,
 };
+use egui_macroquad::egui;
+use egui_macroquad::egui::{emath, FontDefinitions, FontFamily, FontTweak, Layout, Visuals};
 
 use crate::{
     game_events::EventComposer,
@@ -29,11 +31,13 @@ use macroquad::{prelude::*, rand::srand, ui::Drag::No};
 use macroquad_canvas::Canvas2D;
 use matchbox_socket::WebRtcSocket;
 use uuid::Uuid;
+use crate::egui::{Align, Color32, Direction, FontData, TextEdit};
 
 pub struct LoadingState {
     core_game_state: Option<CoreGameState>,
     sub_state: LoadingSubState,
     client: Option<MatchboxClient>,
+    room_id: String
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -102,6 +106,7 @@ impl LoadingState {
                 LoadingSubState::WaitForOpponent
             },
             client: Option::None,
+            room_id: "standard_room".to_string()
         }
     }
 }
@@ -110,9 +115,48 @@ impl GameState for LoadingState {
     fn update(&mut self, _canvas: &Canvas2D) -> Option<Box<dyn GameState>> {
         match &self.sub_state {
             LoadingSubState::Register => {
-                let client = matchbox::connect();
-                self.client = Some(client);
-                self.sub_state = LoadingSubState::Matchmaking;
+                egui_macroquad::ui(|egui_ctx| {
+                    let mut font_definitions = FontDefinitions::default();
+                    let mut font_data = FontData::from_static(include_bytes!("../../resources/fonts/Koulen-Regular.ttf"));
+                    font_data.tweak = FontTweak::default();
+                    font_data.tweak.scale = 10.;
+                    font_definitions.font_data.insert("megachess".to_owned(), font_data);
+
+                    // Put my font first (highest priority):
+                    font_definitions.families.get_mut(&FontFamily::Proportional).unwrap()
+                        .insert(0, "megachess".to_owned());
+
+                    egui_ctx.set_fonts(font_definitions);
+                    let mut visuals = Visuals::default();
+                    //visuals.override_text_color = Some(Color32::from_rgb(0,255,0));
+                    visuals.collapsing_header_frame = true;
+                    egui_ctx.set_visuals(visuals);
+
+                    egui::CentralPanel::default()
+                        //.fixed_size(egui::Vec2::new(800., 600.))
+                        //.fixed_rect(emath::Rect::from_two_pos(emath::pos2(0., 0.), emath::pos2(1200., 1000.)))
+                        //.resizable(false)
+                        //.collapsible(false)
+                        .show(egui_ctx, |ui| {
+                            //ui.set_width(ui.max_rect().width());
+                            let mut child_ui = ui.child_ui(ui.min_rect(),
+                               Layout::top_down_justified(Align::Center)
+                                    //.with_cross_justify(true)
+                                    //.with_main_justify(true)
+                                    //.with_cross_align()
+                            );
+                            child_ui.label("Enter Room ID");
+                            child_ui.add(TextEdit::singleline(&mut self.room_id)
+                                .desired_width(f32::INFINITY)
+                                .text_color(Color32::from_rgb(0,200,0)));
+                            if child_ui.button("OK").clicked() {
+                                let client = matchbox::connect(self.room_id.as_str());
+                                self.client = Some(client);
+                                self.sub_state = LoadingSubState::Matchmaking;
+                            }
+                        });
+                });
+
             }
             LoadingSubState::Matchmaking => {
                 let client = self.client.as_mut().unwrap();
@@ -194,6 +238,10 @@ impl GameState for LoadingState {
             60.,
             GREEN,
         );
+    }
+
+    fn uses_egui(&self) -> bool {
+        matches!(self.sub_state, LoadingSubState::Register)
     }
 }
 

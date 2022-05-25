@@ -465,6 +465,20 @@ name = "bytemuck"
 version = "1.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "439989e6b8c38d1b6570a384ef1e49c8848128f5a97f3914baef02920842712f"
+dependencies = [
+ "bytemuck_derive",
+]
+
+[[package]]
+name = "bytemuck_derive"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "562e382481975bc61d11275ac5e62a19abd00b0547d99516a415336f183dcd0e"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
 
 [[package]]
 name = "byteorder"
@@ -913,9 +927,9 @@ dependencies = [
 
 [[package]]
 name = "egui"
-version = "0.16.1"
+version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7c733356eb5f1139fdeedc370c00e9ea689c5d9120502c43925285bc7249a333"
+checksum = "0a3cd1d47e12f7a17912595241622e373aa652a4e0fa90b3f9278f90a64aedf7"
 dependencies = [
  "ahash 0.7.6",
  "epaint",
@@ -924,9 +938,9 @@ dependencies = [
 
 [[package]]
 name = "egui-macroquad"
-version = "0.8.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ae19d8910390d854a0d617dbef45a593f5aae3217b5e35bf7410dc53d407e736"
+checksum = "bc5ef30e77bcdb4a8648b8ad43da5ccbcd52d7b52da52874b347831b56e43023"
 dependencies = [
  "egui",
  "egui-miniquad",
@@ -935,10 +949,11 @@ dependencies = [
 
 [[package]]
 name = "egui-miniquad"
-version = "0.8.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4e41e404654ad55a2aa790ae01ca855452c5c734b0ccefd133fdccdfb7d1860c"
+checksum = "16ecff1a7d8cdf2d99b26b72f44aec8c99b818e92be198787b4b74491b357f4c"
 dependencies = [
+ "bytemuck",
  "copypasta",
  "egui",
  "miniquad",
@@ -965,19 +980,23 @@ dependencies = [
 
 [[package]]
 name = "emath"
-version = "0.16.0"
+version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "55673de2eb96660dde25ba7b2d36a7054beead1a2bec74dcfd5eb05a1e1ba76d"
+checksum = "a977a80456be58a2c2d48e69c1d0baadef46cecef5a0c98df141c468da006f12"
+dependencies = [
+ "bytemuck",
+]
 
 [[package]]
 name = "epaint"
-version = "0.16.0"
+version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "adfd9296f7f92902e41c0e8e5deca6d2fb29f289c86d03a01ea01bd7498316c2"
+checksum = "033292846059f08e03a71e1b5db2ee6ab7c9622c3b48da21f4bd13258ebee2db"
 dependencies = [
  "ab_glyph",
  "ahash 0.7.6",
  "atomic_refcell",
+ "bytemuck",
  "emath",
  "nohash-hasher",
 ]
@@ -1485,9 +1504,9 @@ dependencies = [
 
 [[package]]
 name = "macroquad"
-version = "0.3.10"
+version = "0.3.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d54a31d3996831b27b429f8e9d7b948aa589d3571305eba39f57b4600bd2cd01"
+checksum = "6b723ade71357d07177c769af9ae42beff73c854e827ee5a4ec765dd2beb95e1"
 dependencies = [
  "bumpalo",
  "fontdue",
@@ -1582,6 +1601,7 @@ dependencies = [
  "nanoserde",
  "openssl",
  "sapp-jsutils",
+ "urlencoding",
  "uuid 1.0.0",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -1619,9 +1639,9 @@ checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
 
 [[package]]
 name = "miniquad"
-version = "0.3.0-alpha.43"
+version = "0.3.0-alpha.46"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4b1edf0ba64f267a4cc0ba453d95da072bfa078d755917e1411e4dc20b729da8"
+checksum = "c1462459fb1813decc7115ab4aed8f41183612557b08bf604bfb46b05286d703"
 dependencies = [
  "sapp-android",
  "sapp-darwin",
@@ -2355,9 +2375,9 @@ dependencies = [
 
 [[package]]
 name = "sapp-darwin"
-version = "0.1.7"
+version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fd874867dc35d9a42bba830cee0210702438082c7d6a39132ab420e6c20a5809"
+checksum = "f1282369f486bc334efa2d76fa4d54c20b37664d83da14fc60afbe941814e374"
 dependencies = [
  "cc",
 ]
@@ -2388,9 +2408,9 @@ checksum = "bb8ababa867431fa6c0a178248bfe7e77b5d1de357c9848883ba8e3946bb21d4"
 
 [[package]]
 name = "sapp-linux"
-version = "0.1.13"
+version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bbdb2f8011955c62544d9e626a58333e788810d00bd7411d52b81611b92af142"
+checksum = "dc71510a7781d8f31d58046a9117682c8e8546ad43f52c0e31275db214495c3d"
 dependencies = [
  "libc",
 ]
@@ -2403,9 +2423,9 @@ checksum = "00e859e8645a3bcb85aecd40bab883438e4105f21b21bccbeac2348760f508bb"
 
 [[package]]
 name = "sapp-windows"
-version = "0.2.19"
+version = "0.2.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f3e9a4ab4682752ffcbbacf87b44c75373479331dfe408432280d305e0563c9c"
+checksum = "088f921b591fdcabf5f2dc17237be5203b6a1a6988f252d36e153f1442a8138e"
 dependencies = [
  "winapi",
 ]
@@ -2858,6 +2878,12 @@ dependencies = [
  "matches",
  "percent-encoding",
 ]
+
+[[package]]
+name = "urlencoding"
+version = "2.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "68b90931029ab9b034b300b797048cf23723400aa757e8a2bfb9d748102f9821"
 
 [[package]]
 name = "utf-8"

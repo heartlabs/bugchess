@@ -17,6 +17,8 @@ use macroquad_canvas::Canvas2D;
 
 use crate::states::{core_game_state::CoreGameState, loading::LoadingState, GameState};
 use std::{borrow::BorrowMut, cell::RefCell, rc::Rc};
+use egui_macroquad::egui;
+use egui_macroquad::egui::emath;
 
 //use wasm_bindgen::prelude::*;
 
@@ -43,10 +45,15 @@ async fn main() {
         }
         state.render(&canvas);
 
+
         set_default_camera();
 
         clear_background(BLACK);
         canvas.draw();
+
+        if state.uses_egui() {
+            egui_macroquad::draw();
+        }
 
         next_frame().await;
     }

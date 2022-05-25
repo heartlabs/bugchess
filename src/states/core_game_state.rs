@@ -122,6 +122,10 @@ impl GameState for CoreGameState {
             canvas,
         );
     }
+
+    fn uses_egui(&self) -> bool {
+        false
+    }
 }
 
 #[derive(Debug, Copy, Clone)]

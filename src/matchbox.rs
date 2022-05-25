@@ -11,6 +11,8 @@ use std::{cell::RefCell, collections::HashSet, future::Future, pin::Pin, rc::Rc}
 use async_executor::LocalExecutor;
 use futures::FutureExt;
 
+use urlencoding::encode;
+
 #[cfg(target_family = "wasm")]
 use wasm_bindgen::prelude::*;
 
@@ -25,12 +27,10 @@ fn getStunUrl() -> String {
     "".to_string()
 }
 
-pub fn connect() -> MatchboxClient {
+pub fn connect(room_id: &str) -> MatchboxClient {
     info!("Stun URL: {}", getStunUrl());
     let (mut socket, loop_fut) = WebRtcSocket::new_with_config(WebRtcSocketConfig {
-        room_url: "wss://heartlabs.tech:3537/example_room?next=2"
-            .parse()
-            .unwrap(),
+        room_url: format!("wss://heartlabs.tech:3537/{}?next=2", encode(room_id)),
         ice_server: RtcIceServerConfig {
             urls: vec![getStunUrl()],
         },
