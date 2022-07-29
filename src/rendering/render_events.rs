@@ -1,16 +1,15 @@
 use crate::{
     game_events::{CompoundEvent, EventConsumer, GameEventObject},
     rendering::animation::{
-        Animation, AnimationExpert, MovePieceAnimation, NewPieceAnimation, PlacePieceAnimation,
-        RemovePieceAnimation,
+        Animation, PlacePieceAnimation,
     },
     BoardRender, CompoundEventType, GameEvent,
     GameEvent::{ChangeExhaustion, Place, Remove},
-    PieceKind, Power,
+    PieceKind,
 };
 use macroquad::miniquad::info;
 use std::{
-    cell::{RefCell, RefMut},
+    cell::{RefCell},
     rc::Rc,
 };
 
@@ -19,7 +18,7 @@ pub struct RenderEventConsumer {
 }
 
 impl RenderEventConsumer {
-    pub(crate) fn handle_event_internal(&self, events: &Vec<GameEvent>, t: &CompoundEventType) {
+    pub(crate) fn handle_event_internal(&self, events: &[GameEvent], t: &CompoundEventType) {
         let mut board_render = (*self.board_render).borrow_mut();
         info!("Handling {} Render Events: {:?}", events.len(), t);
         match t {
@@ -34,7 +33,7 @@ impl RenderEventConsumer {
                     i = i + 1;
                 }
 
-                let exhaustion_animation = if let Some(ChangeExhaustion(from, to, at)) = events.get(i) {
+                let exhaustion_animation = if let Some(ChangeExhaustion(_from, to, at)) = events.get(i) {
                     i += 1;
                     for target in &target_points {
                         let mut bullet_animation = match piece_kind {
@@ -60,7 +59,7 @@ impl RenderEventConsumer {
                 let merge_events = &events[i..];
                 let mut merge_animations = Self::handle_merge_events(merge_events);
 
-                for mut a in &mut animations {
+                for a in &mut animations {
                     // No idea how else to access a single elem of a vec mutably
                     a.next_animations.push(exhaustion_animation);
                     a.next_animations.append(&mut merge_animations);
@@ -101,7 +100,7 @@ impl RenderEventConsumer {
 
                 if matches!(events.get(1), Some(Remove(_,_))) {
                     // Another piece was attacked during the move
-                    if let Some(Remove(point, piece)) = events.get(0) {
+                    if let Some(Remove(point, _piece)) = events.get(0) {
                         animations.push(Animation::new_remove(*point));
                         i += 1;
                     } else {
@@ -112,7 +111,7 @@ impl RenderEventConsumer {
                     };
                 }
 
-                let (piece, from) = if let Some(Remove(point, piece)) = events.get(i) {
+                let (_piece, from) = if let Some(Remove(point, piece)) = events.get(i) {
                     (*piece, *point)
                 } else {
                     panic!(
@@ -121,7 +120,7 @@ impl RenderEventConsumer {
                     )
                 };
 
-                let to = if let Some(Place(point, piece)) = events.get(i+1) {
+                let to = if let Some(Place(point, _piece)) = events.get(i+1) {
                     *point
                 } else {
                     panic!(
@@ -145,7 +144,7 @@ impl RenderEventConsumer {
                 animations.push(move_animation);
                 board_render.add_animation_sequence(animations);
             }
-            CompoundEventType::Undo(t) => {
+            CompoundEventType::Undo(_) => {
                 let mut animations = vec![];
                 for event in events {
                     match event {
@@ -160,7 +159,7 @@ impl RenderEventConsumer {
                                 piece.exhaustion.is_done()
                             ));
                         }
-                        GameEvent::Remove(point, piece) => {
+                        GameEvent::Remove(point, _piece) => {
                             animations.push(Animation::new_remove(*point));
                         }
                         GameEvent::ChangeExhaustion(_, to, point) => {
@@ -266,7 +265,6 @@ impl RenderEventConsumer {
 
 impl EventConsumer for RenderEventConsumer {
     fn handle_event(&mut self, event: &GameEventObject) {
-        let CompoundEvent { events, kind: t } = &event.event;
-        self.handle_event_internal(events, t);
+        self.handle_event_internal(&event.event.get_events(), event.event.get_event_type());
     }
 }

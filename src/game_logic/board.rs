@@ -1,8 +1,7 @@
 use crate::{
     constants::*,
-    game_logic::{piece::*, ranges::*},
+    game_logic::{piece::*},
 };
-use macroquad::prelude::*;
 use nanoserde::{DeBin, SerBin};
 
 #[derive(Clone)]

@@ -1,5 +1,4 @@
 use crate::constants::*;
-use egui_macroquad::egui::TextBuffer;
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
 

@@ -12,13 +12,12 @@ use crate::{
     rendering::{BoardRender, CustomRenderContext},
 };
 
-use macroquad::{prelude::*, rand::srand};
+use macroquad::{prelude::*};
 use macroquad_canvas::Canvas2D;
 
 use crate::states::{core_game_state::CoreGameState, loading::LoadingState, GameState};
 use std::{borrow::BorrowMut, cell::RefCell, rc::Rc};
 use egui_macroquad::egui;
-use egui_macroquad::egui::emath;
 
 //use wasm_bindgen::prelude::*;
 

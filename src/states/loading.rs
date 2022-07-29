@@ -1,23 +1,14 @@
 use crate::{
-    matchbox, Board, BoardEventConsumer, BoardRender, CompoundEventType, CoreGameState,
+    matchbox, BoardEventConsumer, BoardRender, CompoundEventType, CoreGameState,
     EventBroker, GameEvent, GameState, ONLINE,
 };
-use futures::{
-    future::{BoxFuture, LocalBoxFuture, OptionFuture},
-    task::LocalSpawnExt,
-    Future, FutureExt, TryFutureExt,
-};
 use std::{
-    borrow::{Borrow, BorrowMut},
     cell::RefCell,
     fmt::{Display, Formatter},
-    pin::Pin,
     rc::Rc,
-    task::{Context, Poll, RawWaker, Waker},
-    thread::Thread,
 };
 use egui_macroquad::egui;
-use egui_macroquad::egui::{emath, FontDefinitions, FontFamily, FontTweak, Layout, Visuals};
+use egui_macroquad::egui::{FontDefinitions, FontFamily, FontTweak, Layout, Visuals};
 
 use crate::{
     game_events::EventComposer,
@@ -27,11 +18,10 @@ use crate::{
     states::core_game_state::CoreGameSubstate,
 };
 use instant::Instant;
-use macroquad::{prelude::*, rand::srand, ui::Drag::No};
+use macroquad::{prelude::*, rand::srand};
 use macroquad_canvas::Canvas2D;
-use matchbox_socket::WebRtcSocket;
 use uuid::Uuid;
-use crate::egui::{Align, Color32, Direction, FontData, TextEdit};
+use crate::egui::{Align, Color32, FontData, TextEdit};
 
 pub struct LoadingState {
     core_game_state: Option<CoreGameState>,

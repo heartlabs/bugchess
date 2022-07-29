@@ -1,5 +1,4 @@
 use crate::*;
-use macroquad::prelude::mouse_position;
 
 #[cfg(target_family = "wasm")]
 pub const ONLINE: bool = true;

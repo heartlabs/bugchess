@@ -2,8 +2,9 @@
 Next Steps:
     * Willkommensseite
     * Doku und Screencasts
-    * UI for player/game creation?
+    * UI for player/game creation
         * Open vs Closed mit ID
+        * HTML/CSS statt egui
     * Tests
     * Refactoring
         * einige files zu groß
@@ -12,6 +13,7 @@ Next Steps:
     * Fehlende Animationen
         * "Sterben"
         * Undo?
+
 
 ========
 Future TODOs

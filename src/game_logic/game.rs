@@ -25,9 +25,6 @@ impl Game {
         }
     }
 
-    pub fn num_unused_pieces(&self) -> u8 {
-        self.current_team().unused_pieces
-    }
     pub fn num_unused_pieces_of(&self, team_id: usize) -> u8 {
         self.get_team(team_id).unused_pieces
     }

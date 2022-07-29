@@ -296,9 +296,9 @@ dependencies = [
 
 [[package]]
 name = "async-tungstenite"
-version = "0.15.0"
+version = "0.17.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "742cc7dcb20b2f84a42f4691aa999070ec7e78f8e7e7438bf14be7017b44907e"
+checksum = "a1b71b31561643aa8e7df3effe284fa83ab1a840e52294c5f4bd7bfd8b2becbb"
 dependencies = [
  "async-std",
  "async-tls",
@@ -1545,7 +1545,7 @@ dependencies = [
 [[package]]
 name = "matchbox_socket"
 version = "0.3.0"
-source = "git+https://github.com/heartlabs/matchbox?branch=feature/ice-server-config#f623ce7bb4c85261f3c5203572f2b5fc534de8be"
+source = "git+https://github.com/johanhelsing/matchbox#50c1e69e9f1c0f1e07e0ffd5161db0ce3f9267b5"
 dependencies = [
  "async-compat",
  "async-tungstenite",
@@ -1558,7 +1558,7 @@ dependencies = [
  "log",
  "serde",
  "serde_json",
- "uuid 0.8.2",
+ "uuid 1.0.0",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -2527,6 +2527,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "sha-1"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "028f48d513f9678cda28f6e4064755b3fbb2af6acd672f2c209b62323f7aea0f"
+dependencies = [
+ "cfg-if",
+ "cpufeatures",
+ "digest 0.10.3",
+]
+
+[[package]]
 name = "sha2"
 version = "0.9.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2789,9 +2800,9 @@ checksum = "4ccbe8381883510b6a2d8f1e32905bddd178c11caef8083086d0c0c9ab0ac281"
 
 [[package]]
 name = "tungstenite"
-version = "0.15.0"
+version = "0.17.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "983d40747bce878d2fb67d910dcb8bd3eca2b2358540c3cc1b98c027407a3ae3"
+checksum = "d96a2dea40e7570482f28eb57afbe42d97551905da6a9400acc5c328d24004f5"
 dependencies = [
  "base64",
  "byteorder",
@@ -2800,7 +2811,7 @@ dependencies = [
  "httparse",
  "log",
  "rand",
- "sha-1",
+ "sha-1 0.10.0",
  "thiserror",
  "url",
  "utf-8",
@@ -3226,7 +3237,7 @@ dependencies = [
  "rustls",
  "serde",
  "serde_derive",
- "sha-1",
+ "sha-1 0.9.8",
  "sha2 0.9.9",
  "signature",
  "subtle",
@@ -3321,7 +3332,7 @@ dependencies = [
  "log",
  "rtcp",
  "rtp",
- "sha-1",
+ "sha-1 0.9.8",
  "subtle",
  "thiserror",
  "tokio",

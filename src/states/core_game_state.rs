@@ -5,11 +5,10 @@ use crate::{
 };
 
 use crate::{
-    game_events::{EventComposer, EventConsumer},
+    game_events::{EventComposer},
     game_logic::game::Game,
     matchbox::MatchboxClient,
     GameEvent::Place,
-    Power::{Blast, TargetedShoot},
 };
 use macroquad::prelude::*;
 
@@ -414,7 +413,7 @@ fn can_control_player(game: &Game, own_player_id: &mut Option<usize>, is_online:
 
 fn handle_player_input(
     mut game: &mut Rc<RefCell<Box<Game>>>,
-    mut event_broker: &mut EventBroker,
+    event_broker: &mut EventBroker,
     mut event_composer: &mut EventComposer,
     render_context: &mut CustomRenderContext,
     canvas: &Canvas2D,
@@ -457,7 +456,7 @@ fn handle_player_input(
 
 fn next_turn(game: &mut Rc<RefCell<Box<Game>>>, event_composer: &mut EventComposer) {
     {
-        let mut g = (**game).borrow_mut();
+        let g = (**game).borrow_mut();
         let current_team_index = g.current_team_index;
         event_composer.start_transaction(CompoundEventType::FinishTurn);
         event_composer.push_event(GameEvent::NextTurn);

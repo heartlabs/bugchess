@@ -4,18 +4,12 @@ use crate::{
     rendering::{animation::*, ui::Button},
     states::core_game_state::CoreGameSubstate,
 };
-use egui_macroquad::egui::TextBuffer;
-use futures::sink::drain;
 use instant::{Duration, Instant};
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
 use std::{
-    cell::Cell,
     collections::{HashMap, VecDeque},
-    rc::Rc,
 };
-use macroquad::ui::Drag::No;
-
 #[derive(Debug, Clone)]
 pub struct CustomRenderContext {
     pieces_texture: Texture2D,
@@ -23,7 +17,6 @@ pub struct CustomRenderContext {
     pub game_state: CoreGameSubstate,
     pub button_next: Button,
     pub button_undo: Button,
-    start_time: Instant,
 }
 
 impl CustomRenderContext {
@@ -40,17 +33,9 @@ impl CustomRenderContext {
             game_state: CoreGameSubstate::Place,
             button_next: Button::new(10., "End Turn".to_string()),
             button_undo: Button::new(120., "Undo".to_string()),
-            start_time: Instant::now(),
         }
     }
 
-    pub fn elapsed_time(&self) -> Duration {
-        self.start_time.elapsed()
-    }
-
-    /*    pub fn reset_elapsed_time(&mut self) {
-        self.start_time = Instant::now();
-    }*/
 }
 
 pub struct BoardRender {
@@ -65,7 +50,7 @@ pub struct BoardRender {
 
 impl BoardRender {
     pub fn new(game: &Game) -> Self {
-        let mut unused_pieces = vec![vec![], vec![]];
+        let unused_pieces = vec![vec![], vec![]];
         let mut placed_pieces = HashMap::new();
 
         let board = &game.board;

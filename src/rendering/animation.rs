@@ -1,14 +1,13 @@
 use crate::{constants::*, rendering::{SpriteKind, SpriteRender}, BoardRender, PieceKind, Point2, Exhaustion, EffectKind};
 use instant::{Duration, Instant};
 use macroquad::{
-    color::{Color, WHITE},
+    color::{WHITE},
     logging::info,
     math::Rect,
     rand::rand,
 };
-use std::fmt::{Debug, Formatter};
+use std::fmt::{Debug};
 use std::ops::{Add, Mul, Sub};
-use macroquad::prelude::GRAY;
 use crate::rendering::EffectRender;
 
 #[derive(Clone, Copy, Debug)]
@@ -352,7 +351,7 @@ impl AnimationExpert for MovePieceAnimation {
 }
 impl AnimationExpert for SwooshPieceAnimation {
     fn start(&self, board_render: &mut BoardRender) {
-        let mut piece_render = board_render
+        let piece_render = board_render
             .placed_pieces
             .get_mut(&self.from)
             .expect(&*format!("No piece found at {:?}", self.from));
@@ -422,8 +421,6 @@ impl AnimationExpert for BlastAnimation {
             SpriteKind::Special,
             Rect::new(SPRITE_WIDTH, 0., SPRITE_WIDTH, SPRITE_WIDTH),
         );
-
-        let (x, y) = cell_coords(&self.from);
 
         sprite_render.scale(self.span_cells * CELL_ABSOLUTE_WIDTH, BULLET_SPEED);
 

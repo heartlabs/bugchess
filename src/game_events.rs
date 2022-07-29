@@ -5,15 +5,12 @@ use crate::{
     rand::rand,
 };
 
-use crate::{rendering::BoardRender, CompoundEventType::Undo};
-use macroquad::{logging::warn, ui::Drag::No};
+use crate::{CompoundEventType::Undo};
+use macroquad::{logging::warn};
 use nanoserde::{DeBin, SerBin};
 use std::{
-    borrow::{Borrow, BorrowMut},
     cell::RefCell,
-    mem,
     rc::Rc,
-    vec::Drain,
 };
 
 #[derive(Debug, Clone, SerBin, DeBin)]
@@ -68,6 +65,15 @@ impl CompoundEvent {
             events: self.events.iter().map(|e| e.anti_event()).rev().collect(),
             kind: CompoundEventType::Undo(Box::new(self.kind.clone())),
         }
+    }
+
+    pub fn get_events(&self) -> &[GameEvent] {
+        self.events.as_slice()
+    }
+
+
+    pub fn get_event_type(&self) -> &CompoundEventType {
+        &self.kind
     }
 }
 
@@ -180,10 +186,6 @@ impl EventComposer {
 
         self.committed.push(compound_event);
     }
-
-    fn commit_without_history(&mut self) {
-        self.current_transaction.clear();
-    }
 }
 
 pub struct EventBroker {
@@ -254,7 +256,7 @@ impl EventConsumer for BoardEventConsumer {
         let event = &event_object.event;
         println!("Handling event {:?}", event);
 
-        event.events.iter().for_each(|e| {
+        event.get_events().iter().for_each(|e| {
             BoardEventConsumer::handle_event_internal((*self.game).borrow_mut().as_mut(), e)
         });
     }
