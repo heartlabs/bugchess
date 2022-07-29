@@ -1,20 +1,13 @@
 use nanoserde::{DeBin, SerBin};
 
-use crate::{
-    info,
-    rand::rand,
-};
+use crate::{info, rand::rand};
 
-use macroquad::logging::warn;
-use std::{
-    cell::RefCell,
-    rc::Rc,
+use crate::events::{
+    atomic_events::{AtomicEvent, AtomicEvent::*},
+    compound_events::{CompoundEvent, GameAction},
 };
-use std::fmt::Debug;
-use std::slice::Iter;
-use crate::events::atomic_events::AtomicEvent;
-use crate::events::atomic_events::AtomicEvent::*;
-use crate::events::compound_events::{CompoundEvent, GameAction};
+use macroquad::logging::warn;
+use std::{cell::RefCell, fmt::Debug, rc::Rc, slice::Iter};
 
 #[derive(Debug, Clone, SerBin, DeBin)]
 pub struct GameEventObject {

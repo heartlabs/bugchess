@@ -1,16 +1,15 @@
-use crate::{
-    *,
-};
+use crate::*;
 
 use crate::{
+    events::{
+        atomic_events::{AtomicEvent, AtomicEvent::Place},
+        compound_events::GameAction,
+        event_broker::EventBroker,
+    },
     game_logic::game::Game,
     matchbox::MatchboxClient,
 };
 use macroquad::prelude::*;
-use crate::events::atomic_events::AtomicEvent;
-use crate::events::atomic_events::AtomicEvent::Place;
-use crate::events::compound_events::GameAction;
-use crate::events::event_broker::EventBroker;
 
 pub struct CoreGameState {
     pub game: Rc<RefCell<Box<Game>>>,
@@ -157,16 +156,20 @@ impl CoreGameSubstate {
                 } else if game.unused_piece_available() {
                     let new_piece = Piece::new(game.current_team_index, PieceKind::Simple);
                     let mut place_event = GameAction::place();
-                    place_event.get_compound_event_mut().push_event(AtomicEvent::Place(
-                        *target_point,
-                        new_piece,
-                    ));
+                    place_event
+                        .get_compound_event_mut()
+                        .push_event(AtomicEvent::Place(*target_point, new_piece));
 
-                    place_event.get_compound_event_mut().push_event(
-                            AtomicEvent::RemoveUnusedPiece(game.current_team_index)
+                    place_event
+                        .get_compound_event_mut()
+                        .push_event(AtomicEvent::RemoveUnusedPiece(game.current_team_index));
+
+                    Self::push_effects_if_present(
+                        &mut place_event,
+                        &board,
+                        &new_piece,
+                        target_point,
                     );
-
-                    Self::push_effects_if_present(&mut place_event, &board, &new_piece, target_point);
 
                     let _ = event_option.insert(place_event);
                 }
@@ -179,19 +182,33 @@ impl CoreGameSubstate {
                                 Power::Blast => {
                                     let mut exhaustion_clone = target_piece.exhaustion.clone();
                                     exhaustion_clone.on_attack();
-                                    let mut attack_event = GameAction::attack(target_piece.piece_kind);
+                                    let mut attack_event =
+                                        GameAction::attack(target_piece.piece_kind);
                                     for point in activatable.range.reachable_points(
                                         target_point,
                                         board,
                                         &RangeContext::Special(*target_piece),
                                     ) {
                                         if let Some(piece) = board.get_piece_at(&point) {
-                                            attack_event.get_compound_event_mut().push_event(AtomicEvent::Remove(point, *piece));
-                                            Self::remove_effects_if_present(&mut attack_event, board, piece,&point);
+                                            attack_event
+                                                .get_compound_event_mut()
+                                                .push_event(AtomicEvent::Remove(point, *piece));
+                                            Self::remove_effects_if_present(
+                                                &mut attack_event,
+                                                board,
+                                                piece,
+                                                &point,
+                                            );
                                         }
                                     }
 
-                                    attack_event.get_compound_event_mut().push_event(AtomicEvent::ChangeExhaustion(target_piece.exhaustion, exhaustion_clone, *target_point));
+                                    attack_event.get_compound_event_mut().push_event(
+                                        AtomicEvent::ChangeExhaustion(
+                                            target_piece.exhaustion,
+                                            exhaustion_clone,
+                                            *target_point,
+                                        ),
+                                    );
 
                                     let _ = event_option.insert(attack_event);
 
@@ -215,20 +232,37 @@ impl CoreGameSubstate {
                         let mut move_event = GameAction::moving();
 
                         if let Some(target_piece) = board.get_piece_at(target_point) {
-                            move_event.get_compound_event_mut().push_event(AtomicEvent::Remove(*target_point, *target_piece));
+                            move_event
+                                .get_compound_event_mut()
+                                .push_event(AtomicEvent::Remove(*target_point, *target_piece));
                         }
 
-                        move_event.get_compound_event_mut().push_event(AtomicEvent::Remove(*itself, *selected_piece));
-                        move_event.get_compound_event_mut().push_event(AtomicEvent::Place(*target_point, *selected_piece));
+                        move_event
+                            .get_compound_event_mut()
+                            .push_event(AtomicEvent::Remove(*itself, *selected_piece));
+                        move_event
+                            .get_compound_event_mut()
+                            .push_event(AtomicEvent::Place(*target_point, *selected_piece));
 
                         if let Some(target_piece) = board.get_piece_at(target_point) {
-                            Self::remove_effects_if_present(&mut move_event, board, target_piece, target_point);
+                            Self::remove_effects_if_present(
+                                &mut move_event,
+                                board,
+                                target_piece,
+                                target_point,
+                            );
                         }
 
                         let mut exhaustion_clone = selected_piece.exhaustion.clone();
                         exhaustion_clone.on_attack();
 
-                        move_event.get_compound_event_mut().push_event(AtomicEvent::ChangeExhaustion(selected_piece.exhaustion, exhaustion_clone, *target_point));
+                        move_event.get_compound_event_mut().push_event(
+                            AtomicEvent::ChangeExhaustion(
+                                selected_piece.exhaustion,
+                                exhaustion_clone,
+                                *target_point,
+                            ),
+                        );
 
                         let _ = event_option.insert(move_event);
                     }
@@ -244,10 +278,23 @@ impl CoreGameSubstate {
                         exhaustion_clone.on_attack();
 
                         let mut attack_event = GameAction::attack(active_piece.piece_kind);
-                        attack_event.get_compound_event_mut().push_event(AtomicEvent::Remove(*target_point, *target_piece));
-                        attack_event.get_compound_event_mut().push_event(AtomicEvent::ChangeExhaustion(target_piece.exhaustion, exhaustion_clone, *active_piece_pos));
+                        attack_event
+                            .get_compound_event_mut()
+                            .push_event(AtomicEvent::Remove(*target_point, *target_piece));
+                        attack_event.get_compound_event_mut().push_event(
+                            AtomicEvent::ChangeExhaustion(
+                                target_piece.exhaustion,
+                                exhaustion_clone,
+                                *active_piece_pos,
+                            ),
+                        );
 
-                        Self::remove_effects_if_present(&mut attack_event, board, target_piece, target_point);
+                        Self::remove_effects_if_present(
+                            &mut attack_event,
+                            board,
+                            target_piece,
+                            target_point,
+                        );
 
                         let _ = event_option.insert(attack_event);
                     }
@@ -262,24 +309,41 @@ impl CoreGameSubstate {
         CoreGameSubstate::Place
     }
 
-    fn push_effects_if_present(event_composer: &mut GameAction, board: &Board, new_piece: &Piece, pos: &Point2) {
-
+    fn push_effects_if_present(
+        event_composer: &mut GameAction,
+        board: &Board,
+        new_piece: &Piece,
+        pos: &Point2,
+    ) {
         if let Some(effect) = new_piece.effect {
             effect
                 .range
                 .reachable_points(pos, &board, &RangeContext::Area)
                 .iter()
-                .for_each(|&point| event_composer.get_compound_event_mut().push_event(AtomicEvent::AddEffect(EffectKind::Protection, point)));
+                .for_each(|&point| {
+                    event_composer
+                        .get_compound_event_mut()
+                        .push_event(AtomicEvent::AddEffect(EffectKind::Protection, point))
+                });
         }
     }
 
-    fn remove_effects_if_present(event_composer: &mut GameAction, board: &Board, piece: &Piece, pos: &Point2) {
+    fn remove_effects_if_present(
+        event_composer: &mut GameAction,
+        board: &Board,
+        piece: &Piece,
+        pos: &Point2,
+    ) {
         if let Some(effect) = piece.effect {
             effect
                 .range
                 .reachable_points(pos, &board, &RangeContext::Area)
                 .iter()
-                .for_each(|&point| event_composer.get_compound_event_mut().push_event(AtomicEvent::RemoveEffect(EffectKind::Protection, point)));
+                .for_each(|&point| {
+                    event_composer
+                        .get_compound_event_mut()
+                        .push_event(AtomicEvent::RemoveEffect(EffectKind::Protection, point))
+                });
         }
     }
 
@@ -305,13 +369,18 @@ impl CoreGameSubstate {
                                 {
                                     let matched_piece = board.get_piece_mut_at(point).unwrap();
                                     event_composer
-                                        .get_compound_event_mut().push_event(AtomicEvent::Remove(*point, *matched_piece));
+                                        .get_compound_event_mut()
+                                        .push_event(AtomicEvent::Remove(*point, *matched_piece));
                                     matched_piece.dying = true;
                                 }
                                 let matched_piece = board.get_piece_at(point).unwrap();
 
-                                Self::remove_effects_if_present(event_composer, board, matched_piece, point);
-
+                                Self::remove_effects_if_present(
+                                    event_composer,
+                                    board,
+                                    matched_piece,
+                                    point,
+                                );
                             });
 
                             let new_piece = Piece::new(any_team_id, pattern.turn_into);
@@ -320,12 +389,16 @@ impl CoreGameSubstate {
                             let new_piece_y = y as u8 + pattern.new_piece_relative_position.y;
 
                             let new_piece_pos = Point2::new(new_piece_x, new_piece_y);
-                            event_composer.get_compound_event_mut().push_event(AtomicEvent::Place(
-                                new_piece_pos,
-                                new_piece,
-                            ));
+                            event_composer
+                                .get_compound_event_mut()
+                                .push_event(AtomicEvent::Place(new_piece_pos, new_piece));
 
-                            Self::push_effects_if_present(event_composer, &board, &new_piece, &new_piece_pos);
+                            Self::push_effects_if_present(
+                                event_composer,
+                                &board,
+                                &new_piece,
+                                &new_piece_pos,
+                            );
 
                             /* println!(
                                 "Matched pattern at {}:{}; new piece at {}:{}",
@@ -421,20 +494,17 @@ fn handle_player_input(
 
     if is_key_pressed(KeyCode::U) || render_context.button_undo.clicked(canvas) {
         event_broker.undo();
-    }
-    else if is_key_pressed(KeyCode::Enter)
+    } else if is_key_pressed(KeyCode::Enter)
         || is_key_pressed(KeyCode::KpEnter)
         || render_context.button_next.clicked(canvas)
     {
         event_option = Some(next_turn(&mut game));
         render_context.game_state = CoreGameSubstate::Wait;
-    }
-    else if is_mouse_button_pressed(MouseButton::Left) {
-
+    } else if is_mouse_button_pressed(MouseButton::Left) {
         let next_game_state = render_context.game_state.on_click(
             &cell_hovered(canvas),
             game.as_ref().borrow_mut().borrow_mut(),
-            &mut event_option
+            &mut event_option,
         );
         info!("{:?} -> {:?}", render_context.game_state, next_game_state);
         render_context.game_state = next_game_state;
@@ -449,7 +519,6 @@ fn handle_player_input(
         }
     }
 
-
     if let Some(compound_event) = event_option.as_mut() {
         BoardEventConsumer::flush(game.as_ref().borrow_mut().borrow_mut(), compound_event);
         event_broker.handle_new_event(compound_event)
@@ -461,24 +530,34 @@ fn next_turn(game: &mut Rc<RefCell<Box<Game>>>) -> GameAction {
     {
         let g = (**game).borrow_mut();
         let current_team_index = g.current_team_index;
-        finish_turn_event.get_compound_event_mut().push_event(AtomicEvent::NextTurn);
-        finish_turn_event.get_compound_event_mut().push_event(AtomicEvent::AddUnusedPiece(current_team_index));
-        finish_turn_event.get_compound_event_mut().push_event(AtomicEvent::AddUnusedPiece(current_team_index));
+        finish_turn_event
+            .get_compound_event_mut()
+            .push_event(AtomicEvent::NextTurn);
+        finish_turn_event
+            .get_compound_event_mut()
+            .push_event(AtomicEvent::AddUnusedPiece(current_team_index));
+        finish_turn_event
+            .get_compound_event_mut()
+            .push_event(AtomicEvent::AddUnusedPiece(current_team_index));
 
-        g.board
-            .for_each_placed_piece(|point, piece| {
-                if piece.movement.is_none() && piece.activatable.is_none() {
-                    return;
-                }
+        g.board.for_each_placed_piece(|point, piece| {
+            if piece.movement.is_none() && piece.activatable.is_none() {
+                return;
+            }
 
-                let mut exhaustion_clone = piece.exhaustion.clone();
-                exhaustion_clone.reset();
+            let mut exhaustion_clone = piece.exhaustion.clone();
+            exhaustion_clone.reset();
 
-                if exhaustion_clone != piece.exhaustion {
-                    finish_turn_event.get_compound_event_mut().push_event(AtomicEvent::ChangeExhaustion(piece.exhaustion, exhaustion_clone, point));
-                }
-            });
+            if exhaustion_clone != piece.exhaustion {
+                finish_turn_event.get_compound_event_mut().push_event(
+                    AtomicEvent::ChangeExhaustion(piece.exhaustion, exhaustion_clone, point),
+                );
+            }
+        });
     }
-    BoardEventConsumer::flush(game.as_ref().borrow_mut().borrow_mut(), &mut finish_turn_event);
+    BoardEventConsumer::flush(
+        game.as_ref().borrow_mut().borrow_mut(),
+        &mut finish_turn_event,
+    );
     finish_turn_event
 }

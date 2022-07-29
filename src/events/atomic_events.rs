@@ -1,6 +1,5 @@
+use crate::{AtomicEvent::*, EffectKind, Exhaustion, Piece, Point2};
 use nanoserde::{DeBin, SerBin};
-use crate::{EffectKind, Exhaustion, Piece, Point2};
-use crate::AtomicEvent::*;
 
 #[derive(Debug, Copy, Clone, SerBin, DeBin)]
 pub enum AtomicEvent {

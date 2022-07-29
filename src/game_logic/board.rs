@@ -1,7 +1,4 @@
-use crate::{
-    constants::*,
-    game_logic::{piece::*},
-};
+use crate::{constants::*, game_logic::piece::*};
 use nanoserde::{DeBin, SerBin};
 
 #[derive(Clone)]
@@ -152,23 +149,28 @@ impl Board {
     pub(crate) fn place_piece_at(&mut self, piece: Piece, pos: &Point2) {
         let target_cell = self.get_cell_mut(pos);
 
-        assert!(target_cell.piece.is_none(), "Can't place on top of another piece at {:?}", pos);
+        assert!(
+            target_cell.piece.is_none(),
+            "Can't place on top of another piece at {:?}",
+            pos
+        );
 
         target_cell.piece = Some(piece);
-
     }
 
     pub fn add_effect(&mut self, kind: EffectKind, pos: &Point2) {
-        self.get_cell_mut(pos)
-            .effects
-            .push(kind);
+        self.get_cell_mut(pos).effects.push(kind);
     }
 
     pub fn remove_effect(&mut self, kind: &EffectKind, pos: &Point2) {
-        let mut effects = &mut self.get_cell_mut(pos)
-            .effects;
-        let index = effects.iter().position(|e| e == kind)
-            .expect(format!("Can't remove effect {:?} at {:?} because it doesn't exist", kind, pos).as_str());
+        let mut effects = &mut self.get_cell_mut(pos).effects;
+        let index = effects.iter().position(|e| e == kind).expect(
+            format!(
+                "Can't remove effect {:?} at {:?} because it doesn't exist",
+                kind, pos
+            )
+            .as_str(),
+        );
         effects.swap_remove(index);
     }
 
@@ -180,8 +182,7 @@ impl Board {
     }
 
     pub fn remove_piece_at(&mut self, pos: &Point2) {
-        self
-            .get_cell_mut(pos)
+        self.get_cell_mut(pos)
             .piece
             .take()
             .expect(format!("Cannot remove: There is no piece on {:?}", pos).as_str());

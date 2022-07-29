@@ -1,18 +1,14 @@
 use crate::{
-    BoardRender,
-    events::game_events::*,
-    PieceKind,
-    rendering::animation::{
-        Animation, PlacePieceAnimation,
+    events::{
+        atomic_events::AtomicEvent,
+        compound_events::{AttackCompoundEvent, GameAction},
+        game_events::*,
     },
+    rendering::animation::{Animation, PlacePieceAnimation},
+    BoardRender, PieceKind,
 };
 use macroquad::miniquad::info;
-use std::{
-    cell::RefCell,
-    rc::Rc,
-};
-use crate::events::atomic_events::AtomicEvent;
-use crate::events::compound_events::{AttackCompoundEvent, GameAction};
+use std::{cell::RefCell, rc::Rc};
 
 pub struct RenderEventConsumer {
     pub(crate) board_render: Rc<RefCell<Box<BoardRender>>>,
@@ -23,7 +19,7 @@ impl RenderEventConsumer {
         let mut board_render = (*self.board_render).borrow_mut();
         info!("Handling {} Render Events: {:?}", events.len(), t);
         match t {
-            GameAction::Attack(AttackCompoundEvent{ piece_kind, ..}) => {
+            GameAction::Attack(AttackCompoundEvent { piece_kind, .. }) => {
                 let mut animations: Vec<Animation> = vec![];
                 let mut i = 0;
                 let mut target_points = vec![];
@@ -34,28 +30,29 @@ impl RenderEventConsumer {
                     i = i + 1;
                 }
 
-                let exhaustion_animation = if let Some(AtomicEvent::ChangeExhaustion(_from, to, at)) = events.get(i) {
-                    i += 1;
-                    for target in &target_points {
-                        let mut bullet_animation = match piece_kind {
-                            PieceKind::Queen => Animation::new_blast(*at),
-                            PieceKind::HorizontalBar | PieceKind::VerticalBar | PieceKind::Sniper => {
-                                Animation::new_bullet(*at, *target)
-                            }
-                            _ => panic!("Unknown piece_kind - can't generate bullet animation"),
-                        };
+                let exhaustion_animation =
+                    if let Some(AtomicEvent::ChangeExhaustion(_from, to, at)) = events.get(i) {
+                        i += 1;
+                        for target in &target_points {
+                            let mut bullet_animation = match piece_kind {
+                                PieceKind::Queen => Animation::new_blast(*at),
+                                PieceKind::HorizontalBar
+                                | PieceKind::VerticalBar
+                                | PieceKind::Sniper => Animation::new_bullet(*at, *target),
+                                _ => panic!("Unknown piece_kind - can't generate bullet animation"),
+                            };
 
-                        bullet_animation
-                            .next_animations
-                            .push(Animation::new_remove(*target));
+                            bullet_animation
+                                .next_animations
+                                .push(Animation::new_remove(*target));
 
-                        animations.push(bullet_animation);
-                    }
+                            animations.push(bullet_animation);
+                        }
 
-                    Animation::new_exhaustion(*to, *at)
-                } else {
-                    panic!("CompoundEventType::Attack must start with an an Exhaust");
-                };
+                        Animation::new_exhaustion(*to, *at)
+                    } else {
+                        panic!("CompoundEventType::Attack must start with an an Exhaust");
+                    };
 
                 let merge_events = &events[i..];
                 let mut merge_animations = Self::handle_merge_events(merge_events);
@@ -99,7 +96,7 @@ impl RenderEventConsumer {
                 let mut animations = vec![];
                 let mut i = 0;
 
-                if matches!(events.get(1), Some(AtomicEvent::Remove(_,_))) {
+                if matches!(events.get(1), Some(AtomicEvent::Remove(_, _))) {
                     // Another piece was attacked during the move
                     if let Some(AtomicEvent::Remove(point, _piece)) = events.get(0) {
                         animations.push(Animation::new_remove(*point));
@@ -112,7 +109,8 @@ impl RenderEventConsumer {
                     };
                 }
 
-                let (_piece, from) = if let Some(AtomicEvent::Remove(point, piece)) = events.get(i) {
+                let (_piece, from) = if let Some(AtomicEvent::Remove(point, piece)) = events.get(i)
+                {
                     (*piece, *point)
                 } else {
                     panic!(
@@ -121,24 +119,26 @@ impl RenderEventConsumer {
                     )
                 };
 
-                let to = if let Some(AtomicEvent::Place(point, _piece)) = events.get(i+1) {
+                let to = if let Some(AtomicEvent::Place(point, _piece)) = events.get(i + 1) {
                     *point
                 } else {
                     panic!(
                         "CompoundEventType::Move expected a Place event but got: {:?}",
-                        events.get(i+1)
+                        events.get(i + 1)
                     )
                 };
 
                 let mut move_animation = Animation::new_move(from, to);
 
-                if let Some(AtomicEvent::ChangeExhaustion(_, to, point)) = events.get(i+2) {
-                    move_animation.next_animations.push(Animation::new_exhaustion(*to,*point));
+                if let Some(AtomicEvent::ChangeExhaustion(_, to, point)) = events.get(i + 2) {
+                    move_animation
+                        .next_animations
+                        .push(Animation::new_exhaustion(*to, *point));
                 } else {
                     panic!("CompoundEventType::Move expected an Exhaust event");
                 }
 
-                let merge_events = &events[i+3..];
+                let merge_events = &events[i + 3..];
                 let mut merge_animations = Self::handle_merge_events(merge_events);
 
                 move_animation.next_animations.append(&mut merge_animations);
@@ -157,14 +157,14 @@ impl RenderEventConsumer {
                                 piece.team_id,
                                 *point,
                                 piece.piece_kind,
-                                piece.exhaustion.is_done()
+                                piece.exhaustion.is_done(),
                             ));
                         }
                         AtomicEvent::Remove(point, _piece) => {
                             animations.push(Animation::new_remove(*point));
                         }
                         AtomicEvent::ChangeExhaustion(_, to, point) => {
-                            animations.push(Animation::new_exhaustion(*to,*point));
+                            animations.push(Animation::new_exhaustion(*to, *point));
                         }
                         AtomicEvent::AddEffect(kind, pos) => {
                             animations.push(Animation::new_add_effect(*kind, *pos))
@@ -197,14 +197,17 @@ impl RenderEventConsumer {
                                 piece.team_id,
                                 *point,
                                 piece.piece_kind,
-                                piece.exhaustion.is_done()
+                                piece.exhaustion.is_done(),
                             ));
                         }
                         AtomicEvent::NextTurn => {}
                         AtomicEvent::ChangeExhaustion(_, to, at) => {
                             animations.push(Animation::new_exhaustion(*to, *at));
                         }
-                        e => panic!("Unexpected subevent of CompoundEventType::FinishTurn: {:?}", e),
+                        e => panic!(
+                            "Unexpected subevent of CompoundEventType::FinishTurn: {:?}",
+                            e
+                        ),
                     };
                 }
 
@@ -230,29 +233,33 @@ impl RenderEventConsumer {
                         animations.push(a);
                     }
 
-                    let last_remove = animations.last_mut().unwrap().next_animations.last_mut().unwrap();
-                    last_remove.next_animations
-                        .push(
-                        Animation::new_piece(
-                            piece.team_id,
-                            *point,
-                            piece.piece_kind,
-                            piece.exhaustion.is_done()
-                        )
-                    );
+                    let last_remove = animations
+                        .last_mut()
+                        .unwrap()
+                        .next_animations
+                        .last_mut()
+                        .unwrap();
+                    last_remove.next_animations.push(Animation::new_piece(
+                        piece.team_id,
+                        *point,
+                        piece.piece_kind,
+                        piece.exhaustion.is_done(),
+                    ));
                 }
                 AtomicEvent::AddEffect(kind, pos) => {
-                    let last_remove = animations.last_mut().unwrap().next_animations.last_mut().unwrap();
+                    let last_remove = animations
+                        .last_mut()
+                        .unwrap()
+                        .next_animations
+                        .last_mut()
+                        .unwrap();
 
-                    last_remove.next_animations
-                        .push(
-                            Animation::new_add_effect(*kind, *pos)
-                        );
+                    last_remove
+                        .next_animations
+                        .push(Animation::new_add_effect(*kind, *pos));
                 }
                 AtomicEvent::RemoveEffect(kind, pos) => {
-                    animations.push(
-                            Animation::new_remove_effect(*kind, *pos)
-                        );
+                    animations.push(Animation::new_remove_effect(*kind, *pos));
                 }
                 e => panic!("Unexpected subevent during merge phase: {:?}", e),
             };
@@ -266,6 +273,9 @@ impl RenderEventConsumer {
 
 impl EventConsumer for RenderEventConsumer {
     fn handle_event(&mut self, event: &GameEventObject) {
-        self.handle_event_internal(&event.event.get_compound_event().get_events().as_slice(), &event.event);
+        self.handle_event_internal(
+            &event.event.get_compound_event().get_events().as_slice(),
+            &event.event,
+        );
     }
 }

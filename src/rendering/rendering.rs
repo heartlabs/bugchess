@@ -7,9 +7,7 @@ use crate::{
 use instant::{Duration, Instant};
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
-use std::{
-    collections::{HashMap, VecDeque},
-};
+use std::collections::{HashMap, VecDeque};
 #[derive(Debug, Clone)]
 pub struct CustomRenderContext {
     pieces_texture: Texture2D,
@@ -35,7 +33,6 @@ impl CustomRenderContext {
             button_undo: Button::new(120., "Undo".to_string()),
         }
     }
-
 }
 
 pub struct BoardRender {
@@ -106,15 +103,19 @@ impl BoardRender {
         self.next_animations.push_back(animations);
     }
 
-    pub fn add_placed_piece(&mut self, point: &Point2, piece_kind: PieceKind, team_id: usize, exhausted: bool) {
-        let mut piece_render = SpriteRender::for_piece(point, piece_kind, self.team_colors[team_id]);
+    pub fn add_placed_piece(
+        &mut self,
+        point: &Point2,
+        piece_kind: PieceKind,
+        team_id: usize,
+        exhausted: bool,
+    ) {
+        let mut piece_render =
+            SpriteRender::for_piece(point, piece_kind, self.team_colors[team_id]);
         if exhausted {
             piece_render.override_color = Some(SpriteRender::greyed_out(&piece_render.color));
         }
-        self.placed_pieces.insert(
-            *point,
-            piece_render,
-        );
+        self.placed_pieces.insert(*point, piece_render);
     }
 
     pub fn update(&mut self) {
@@ -154,7 +155,7 @@ impl BoardRender {
     pub fn render(&self, board: &Board, render_context: &CustomRenderContext, canvas: &Canvas2D) {
         Self::render_cells(board, canvas);
 
-        for (point,effects) in &self.effects {
+        for (point, effects) in &self.effects {
             effects.iter().for_each(|e| e.render(point));
         }
 
@@ -333,24 +334,44 @@ impl EffectRender {
             from_color: Color::new(80., 0., 100., 0.0),
             towards_color: Color::new(80., 0., 100., 0.6),
             from_instant: Instant::now(),
-            towards_instant: Instant::now() + Duration::from_millis(ANIMATION_SPEED*3)
+            towards_instant: Instant::now() + Duration::from_millis(ANIMATION_SPEED * 3),
         }
     }
 
     pub fn render(&self, at: &Point2) {
         let (x_pos, y_pos) = cell_coords(at);
-        let progress = AnimationPoint::calculate_progress(&self.from_instant, &self.towards_instant, &Instant::now());
+        let progress = AnimationPoint::calculate_progress(
+            &self.from_instant,
+            &self.towards_instant,
+            &Instant::now(),
+        );
         draw_rectangle(
             x_pos,
             y_pos,
             CELL_ABSOLUTE_WIDTH,
             CELL_ABSOLUTE_WIDTH,
             Color {
-                r: AnimationPoint::interpolate_value(self.from_color.r, self.towards_color.r, progress),
-                g: AnimationPoint::interpolate_value(self.from_color.g, self.towards_color.g, progress),
-                b: AnimationPoint::interpolate_value(self.from_color.b, self.towards_color.b, progress),
-                a: AnimationPoint::interpolate_value(self.from_color.a, self.towards_color.a, progress)
-            }
+                r: AnimationPoint::interpolate_value(
+                    self.from_color.r,
+                    self.towards_color.r,
+                    progress,
+                ),
+                g: AnimationPoint::interpolate_value(
+                    self.from_color.g,
+                    self.towards_color.g,
+                    progress,
+                ),
+                b: AnimationPoint::interpolate_value(
+                    self.from_color.b,
+                    self.towards_color.b,
+                    progress,
+                ),
+                a: AnimationPoint::interpolate_value(
+                    self.from_color.a,
+                    self.towards_color.a,
+                    progress,
+                ),
+            },
         );
     }
 }
@@ -450,7 +471,7 @@ impl SpriteRender {
             (color.r + WHITE.r * 2.) / 3.,
             (color.g + WHITE.g * 2.) / 3.,
             (color.b + WHITE.b * 2.) / 3.,
-            255.
+            255.,
         )
     }
 
@@ -476,18 +497,23 @@ impl SpriteRender {
         self.to.instant = Instant::now() + Duration::from_millis(speed_ms);
     }
 
-    pub fn scale_animation_point(animation_point: &AnimationPoint, sprite_width: f32) -> AnimationPoint {
+    pub fn scale_animation_point(
+        animation_point: &AnimationPoint,
+        sprite_width: f32,
+    ) -> AnimationPoint {
         let shift = (CELL_ABSOLUTE_WIDTH - sprite_width) / 2.;
 
         AnimationPoint {
-            x_pos: animation_point.x_pos + animation_point.sprite_width / 2. - CELL_ABSOLUTE_WIDTH / 2. + shift,
-            y_pos: animation_point.y_pos + animation_point.sprite_width / 2. - CELL_ABSOLUTE_WIDTH / 2. + shift,
+            x_pos: animation_point.x_pos + animation_point.sprite_width / 2.
+                - CELL_ABSOLUTE_WIDTH / 2.
+                + shift,
+            y_pos: animation_point.y_pos + animation_point.sprite_width / 2.
+                - CELL_ABSOLUTE_WIDTH / 2.
+                + shift,
             sprite_width,
             instant: Instant::now(),
         }
     }
-
-
 
     fn render(&self, render_context: &CustomRenderContext) {
         let animation = self.from.interpolate(&self.to, Instant::now());

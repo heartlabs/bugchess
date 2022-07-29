@@ -1,6 +1,6 @@
+use crate::{AtomicEvent, PieceKind};
 use nanoserde::{DeBin, SerBin};
 use std::fmt::Debug;
-use crate::{AtomicEvent, PieceKind};
 
 #[derive(Debug, Clone, SerBin, DeBin)]
 pub struct MergeCompoundEvent {
@@ -45,7 +45,10 @@ pub struct FinishTurnCompoundEvent {
 
 impl MergeCompoundEvent {
     fn new() -> Self {
-        MergeCompoundEvent { events: vec![], was_flushed: false }
+        MergeCompoundEvent {
+            events: vec![],
+            was_flushed: false,
+        }
     }
 }
 
@@ -55,7 +58,10 @@ impl CompoundEvent for MergeCompoundEvent {
     }
 
     fn push_event(&mut self, event: AtomicEvent) {
-        assert!(!self.was_flushed, "Cannot push event after already being flushed");
+        assert!(
+            !self.was_flushed,
+            "Cannot push event after already being flushed"
+        );
         self.events.push(event);
     }
 
@@ -113,7 +119,7 @@ impl CompoundEvent for PlaceCompoundEvent {
 
     fn flush(&mut self) -> Vec<AtomicEvent> {
         if self.was_flushed {
-            return self.merge_events.flush()
+            return self.merge_events.flush();
         }
 
         self.was_flushed = true;
@@ -155,7 +161,10 @@ impl CompoundEvent for UndoCompoundEvent {
     }
 
     fn push_event(&mut self, event: AtomicEvent) {
-        assert!(!self.was_flushed, "Cannot push event after already being flushed");
+        assert!(
+            !self.was_flushed,
+            "Cannot push event after already being flushed"
+        );
         self.events.push(event);
     }
 
@@ -176,7 +185,10 @@ impl CompoundEvent for FinishTurnCompoundEvent {
     }
 
     fn push_event(&mut self, event: AtomicEvent) {
-        assert!(!self.was_flushed, "Cannot push event after already being flushed");
+        assert!(
+            !self.was_flushed,
+            "Cannot push event after already being flushed"
+        );
         self.events.push(event);
     }
 
@@ -191,11 +203,11 @@ impl CompoundEvent for FinishTurnCompoundEvent {
     }
 }
 
-pub trait CompoundEvent : Debug {
+pub trait CompoundEvent: Debug {
     fn get_events(&self) -> Vec<AtomicEvent>;
 
     fn push_event(&mut self, event: AtomicEvent); // TODO remove
-//    fn get_event_type(&self) -> &CompoundEventType;
+                                                  //    fn get_event_type(&self) -> &CompoundEventType;
 
     fn flush(&mut self) -> Vec<AtomicEvent>;
 }
@@ -211,23 +223,43 @@ pub enum GameAction {
 
 impl GameAction {
     pub fn attack(piece_kind: PieceKind) -> GameAction {
-        GameAction::Attack(AttackCompoundEvent {events: vec![], piece_kind, merge_events: MergeCompoundEvent::new(), was_flushed: false })
+        GameAction::Attack(AttackCompoundEvent {
+            events: vec![],
+            piece_kind,
+            merge_events: MergeCompoundEvent::new(),
+            was_flushed: false,
+        })
     }
 
     pub fn place() -> GameAction {
-        GameAction::Place(PlaceCompoundEvent {events: vec![], merge_events: MergeCompoundEvent::new(), was_flushed: false})
+        GameAction::Place(PlaceCompoundEvent {
+            events: vec![],
+            merge_events: MergeCompoundEvent::new(),
+            was_flushed: false,
+        })
     }
 
     pub fn moving() -> GameAction {
-        GameAction::Move(MoveCompoundEvent {events: vec![], merge_events: MergeCompoundEvent::new(), was_flushed: false})
+        GameAction::Move(MoveCompoundEvent {
+            events: vec![],
+            merge_events: MergeCompoundEvent::new(),
+            was_flushed: false,
+        })
     }
 
     pub fn undo(undone: Box<GameAction>) -> GameAction {
-        GameAction::Undo(UndoCompoundEvent {events: vec![], undone, was_flushed: false })
+        GameAction::Undo(UndoCompoundEvent {
+            events: vec![],
+            undone,
+            was_flushed: false,
+        })
     }
 
     pub fn finish_turn() -> GameAction {
-        GameAction::FinishTurn(FinishTurnCompoundEvent {events: vec![], was_flushed: false })
+        GameAction::FinishTurn(FinishTurnCompoundEvent {
+            events: vec![],
+            was_flushed: false,
+        })
     }
 
     pub fn get_compound_event(&self) -> Box<&dyn CompoundEvent> {
@@ -252,9 +284,15 @@ impl GameAction {
 
     pub fn anti_event(&self) -> GameAction {
         GameAction::Undo(UndoCompoundEvent {
-            events: self.get_compound_event().get_events().iter().map(|e| e.anti_event()).rev().collect(),
+            events: self
+                .get_compound_event()
+                .get_events()
+                .iter()
+                .map(|e| e.anti_event())
+                .rev()
+                .collect(),
             undone: Box::new(self.clone()),
-            was_flushed: false
+            was_flushed: false,
         })
     }
 }

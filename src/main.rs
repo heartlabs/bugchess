@@ -11,16 +11,16 @@ use crate::{
     rendering::{BoardRender, CustomRenderContext},
 };
 
-use macroquad::{prelude::*};
+use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
 
-use crate::states::{core_game_state::CoreGameState, GameState, loading::LoadingState};
-use std::{borrow::BorrowMut, cell::RefCell, rc::Rc};
+use crate::states::{core_game_state::CoreGameState, loading::LoadingState, GameState};
 use egui_macroquad::egui;
-use events::atomic_events::AtomicEvent;
-use events::board_event_consumer::BoardEventConsumer;
-use events::compound_events::GameAction;
-use events::event_broker::EventBroker;
+use events::{
+    atomic_events::AtomicEvent, board_event_consumer::BoardEventConsumer,
+    compound_events::GameAction, event_broker::EventBroker,
+};
+use std::{borrow::BorrowMut, cell::RefCell, rc::Rc};
 
 //use wasm_bindgen::prelude::*;
 
@@ -46,7 +46,6 @@ async fn main() {
             state = new_state;
         }
         state.render(&canvas);
-
 
         set_default_camera();
 

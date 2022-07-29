@@ -1,17 +1,21 @@
-use crate::{
-    BoardRender, CoreGameState,
-    GameState, matchbox, ONLINE,
+use crate::{matchbox, BoardRender, CoreGameState, GameState, ONLINE};
+use egui_macroquad::{
+    egui,
+    egui::{FontDefinitions, FontFamily, FontTweak, Layout, Visuals},
 };
 use std::{
+    borrow::BorrowMut,
     cell::RefCell,
     fmt::{Display, Formatter},
     rc::Rc,
 };
-use std::borrow::BorrowMut;
-use egui_macroquad::egui;
-use egui_macroquad::egui::{FontDefinitions, FontFamily, FontTweak, Layout, Visuals};
 
 use crate::{
+    egui::{Align, Color32, FontData, TextEdit},
+    events::{
+        atomic_events::AtomicEvent, board_event_consumer::BoardEventConsumer,
+        compound_events::GameAction, event_broker::EventBroker,
+    },
     game_logic::{board::*, game::*, piece::*},
     matchbox::{MatchboxClient, MatchboxEventConsumer},
     rendering::render_events::RenderEventConsumer,
@@ -21,17 +25,12 @@ use instant::Instant;
 use macroquad::{prelude::*, rand::srand};
 use macroquad_canvas::Canvas2D;
 use uuid::Uuid;
-use crate::egui::{Align, Color32, FontData, TextEdit};
-use crate::events::atomic_events::AtomicEvent;
-use crate::events::board_event_consumer::BoardEventConsumer;
-use crate::events::compound_events::GameAction;
-use crate::events::event_broker::EventBroker;
 
 pub struct LoadingState {
     core_game_state: Option<CoreGameState>,
     sub_state: LoadingSubState,
     client: Option<MatchboxClient>,
-    room_id: String
+    room_id: String,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -98,7 +97,7 @@ impl LoadingState {
                 LoadingSubState::WaitForOpponent
             },
             client: Option::None,
-            room_id: "standard_room".to_string()
+            room_id: "standard_room".to_string(),
         }
     }
 }
@@ -109,13 +108,20 @@ impl GameState for LoadingState {
             LoadingSubState::Register => {
                 egui_macroquad::ui(|egui_ctx| {
                     let mut font_definitions = FontDefinitions::default();
-                    let mut font_data = FontData::from_static(include_bytes!("../../resources/fonts/Koulen-Regular.ttf"));
+                    let mut font_data = FontData::from_static(include_bytes!(
+                        "../../resources/fonts/Koulen-Regular.ttf"
+                    ));
                     font_data.tweak = FontTweak::default();
                     font_data.tweak.scale = 10.;
-                    font_definitions.font_data.insert("megachess".to_owned(), font_data);
+                    font_definitions
+                        .font_data
+                        .insert("megachess".to_owned(), font_data);
 
                     // Put my font first (highest priority):
-                    font_definitions.families.get_mut(&FontFamily::Proportional).unwrap()
+                    font_definitions
+                        .families
+                        .get_mut(&FontFamily::Proportional)
+                        .unwrap()
                         .insert(0, "megachess".to_owned());
 
                     egui_ctx.set_fonts(font_definitions);
@@ -131,16 +137,18 @@ impl GameState for LoadingState {
                         //.collapsible(false)
                         .show(egui_ctx, |ui| {
                             //ui.set_width(ui.max_rect().width());
-                            let mut child_ui = ui.child_ui(ui.min_rect(),
-                               Layout::top_down_justified(Align::Center)
-                                    //.with_cross_justify(true)
-                                    //.with_main_justify(true)
-                                    //.with_cross_align()
+                            let mut child_ui = ui.child_ui(
+                                ui.min_rect(),
+                                Layout::top_down_justified(Align::Center), //.with_cross_justify(true)
+                                                                           //.with_main_justify(true)
+                                                                           //.with_cross_align()
                             );
                             child_ui.label("Enter Room ID");
-                            child_ui.add(TextEdit::singleline(&mut self.room_id)
-                                .desired_width(f32::INFINITY)
-                                .text_color(Color32::from_rgb(0,200,0)));
+                            child_ui.add(
+                                TextEdit::singleline(&mut self.room_id)
+                                    .desired_width(f32::INFINITY)
+                                    .text_color(Color32::from_rgb(0, 200, 0)),
+                            );
                             if child_ui.button("OK").clicked() {
                                 let client = matchbox::connect(self.room_id.as_str());
                                 self.client = Some(client);
@@ -148,7 +156,6 @@ impl GameState for LoadingState {
                             }
                         });
                 });
-
             }
             LoadingSubState::Matchmaking => {
                 let client = self.client.as_mut().unwrap();
@@ -168,7 +175,8 @@ impl GameState for LoadingState {
                     core_game_state.set_sub_state(CoreGameSubstate::Wait);
                 } else {
                     let num_teams = 2;
-                    let start_events = set_up_pieces(num_teams, (*core_game_state.game).borrow_mut().as_mut());
+                    let start_events =
+                        set_up_pieces(num_teams, (*core_game_state.game).borrow_mut().as_mut());
                     start_event_option = Some(start_events);
                 }
 
@@ -219,7 +227,8 @@ impl GameState for LoadingState {
                 } else {
                     let mut core_game_state = self.core_game_state.as_mut().unwrap();
                     let num_teams = 2;
-                    let start_events = set_up_pieces(num_teams, (*core_game_state.game).borrow_mut().as_mut());
+                    let start_events =
+                        set_up_pieces(num_teams, (*core_game_state.game).borrow_mut().as_mut());
                     core_game_state.event_broker.handle_new_event(&start_events);
                 }
                 return Option::Some(Box::new(self.core_game_state.take().unwrap()));
@@ -253,10 +262,14 @@ fn set_up_pieces(team_count: usize, game: &mut Game) -> GameAction {
         let target_point = Point2::new((2 + team_id * 3) as u8, (2 + team_id * 3) as u8);
         let mut piece = Piece::new(team_id, PieceKind::Simple);
         piece.exhaustion.reset();
-        compound_event.get_compound_event_mut().push_event(AtomicEvent::Place(target_point, piece));
+        compound_event
+            .get_compound_event_mut()
+            .push_event(AtomicEvent::Place(target_point, piece));
 
         for _ in 0..start_pieces {
-            compound_event.get_compound_event_mut().push_event(AtomicEvent::AddUnusedPiece(team_id));
+            compound_event
+                .get_compound_event_mut()
+                .push_event(AtomicEvent::AddUnusedPiece(team_id));
         }
     }
 

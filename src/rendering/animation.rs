@@ -1,14 +1,14 @@
-use crate::{constants::*, rendering::{SpriteKind, SpriteRender}, BoardRender, PieceKind, Point2, Exhaustion, EffectKind};
-use instant::{Duration, Instant};
-use macroquad::{
-    color::{WHITE},
-    logging::info,
-    math::Rect,
-    rand::rand,
+use crate::{
+    constants::*,
+    rendering::{EffectRender, SpriteKind, SpriteRender},
+    BoardRender, EffectKind, Exhaustion, PieceKind, Point2,
 };
-use std::fmt::{Debug};
-use std::ops::{Add, Mul, Sub};
-use crate::rendering::EffectRender;
+use instant::{Duration, Instant};
+use macroquad::{color::WHITE, logging::info, math::Rect, rand::rand};
+use std::{
+    fmt::Debug,
+    ops::{Add, Mul, Sub},
+};
 
 #[derive(Clone, Copy, Debug)]
 pub struct AnimationPoint {
@@ -36,7 +36,11 @@ impl AnimationPoint {
         animation_point
     }
 
-    pub fn calculate_progress(from_instant: &Instant, towards_instant: &Instant, at_instant: &Instant) -> f32 {
+    pub fn calculate_progress(
+        from_instant: &Instant,
+        towards_instant: &Instant,
+        at_instant: &Instant,
+    ) -> f32 {
         if at_instant < from_instant {
             0.
         } else if at_instant > towards_instant {
@@ -52,7 +56,8 @@ impl AnimationPoint {
     }
 
     pub fn interpolate_value<T>(from: T, to: T, progress: f32) -> T
-        where T: Mul<f32, Output=T> + Add<Output=T> + Sub<Output=T> + Copy
+    where
+        T: Mul<f32, Output = T> + Add<Output = T> + Sub<Output = T> + Copy,
     {
         let diff = to - from;
         let p = diff * progress;
@@ -141,7 +146,7 @@ impl Animation {
                 team,
                 to,
                 piece_kind,
-                exhausted
+                exhausted,
             }),
         }
     }
@@ -267,7 +272,7 @@ pub struct NewPieceAnimation {
     pub(crate) team: usize,
     pub(crate) to: Point2,
     pub(crate) piece_kind: PieceKind,
-    pub exhausted: bool
+    pub exhausted: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -293,7 +298,12 @@ pub struct RemoveUnusedAnimation {
 impl AnimationExpert for AddUnusedAnimation {
     fn start(&self, board_render: &mut BoardRender) {
         board_render.add_unused_piece(self.team_id);
-        let sprite_render = board_render.unused_pieces.get_mut(self.team_id).unwrap().last_mut().unwrap();
+        let sprite_render = board_render
+            .unused_pieces
+            .get_mut(self.team_id)
+            .unwrap()
+            .last_mut()
+            .unwrap();
         sprite_render.from = SpriteRender::scale_animation_point(&sprite_render.from, 100.);
         sprite_render.from.instant = Instant::now();
         sprite_render.to.instant = Instant::now() + Duration::from_millis(ADD_UNUSED_SPEED);
@@ -357,7 +367,6 @@ impl AnimationExpert for SwooshPieceAnimation {
             .expect(&*format!("No piece found at {:?}", self.from));
 
         piece_render.move_towards(&self.to, MOVE_PIECE_SPEED);
-
     }
 }
 
@@ -369,7 +378,9 @@ impl AnimationExpert for AddEffectAnimation {
             board_render.effects.insert(self.at, vec![]);
         }
 
-        board_render.effects.get_mut(&self.at)
+        board_render
+            .effects
+            .get_mut(&self.at)
             .unwrap()
             .push(EffectRender::new());
     }
@@ -377,8 +388,16 @@ impl AnimationExpert for AddEffectAnimation {
 
 impl AnimationExpert for RemoveEffectAnimation {
     fn start(&self, board_render: &mut BoardRender) {
-        board_render.effects.get_mut(&self.at).
-            expect(format!("Can't remove effect at {:?} because that position doesn't exist", self.at).as_str())
+        board_render
+            .effects
+            .get_mut(&self.at)
+            .expect(
+                format!(
+                    "Can't remove effect at {:?} because that position doesn't exist",
+                    self.at
+                )
+                .as_str(),
+            )
             .remove(0);
     }
 }

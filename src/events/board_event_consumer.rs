@@ -1,11 +1,18 @@
-use std::rc::Rc;
-use std::cell::RefCell;
-use crate::game_logic::game::Game;
-use crate::{AtomicEvent, GameAction};
-use crate::AtomicEvent::{AddEffect, AddUnusedPiece, ChangeExhaustion, NextTurn, Place, Remove, RemoveEffect, RemoveUnusedPiece};
-use crate::events::compound_events::CompoundEvent;
-use crate::events::game_events::{EventConsumer, GameEventObject};
+use crate::{
+    events::{
+        compound_events::CompoundEvent,
+        game_events::{EventConsumer, GameEventObject},
+    },
+    game_logic::game::Game,
+    AtomicEvent,
+    AtomicEvent::{
+        AddEffect, AddUnusedPiece, ChangeExhaustion, NextTurn, Place, Remove, RemoveEffect,
+        RemoveUnusedPiece,
+    },
+    GameAction,
+};
 use macroquad::logging::warn;
+use std::{cell::RefCell, rc::Rc};
 
 pub struct BoardEventConsumer {
     pub own_sender_id: String,
@@ -14,16 +21,22 @@ pub struct BoardEventConsumer {
 
 impl EventConsumer for BoardEventConsumer {
     fn handle_event(&mut self, event_object: &GameEventObject) {
-        if !matches!(event_object.event, GameAction::Undo(_)) && event_object.sender == self.own_sender_id {
+        if !matches!(event_object.event, GameAction::Undo(_))
+            && event_object.sender == self.own_sender_id
+        {
             return;
         }
 
         let event = &event_object.event;
         println!("Handling event {:?}", event);
 
-        event.get_compound_event().get_events().iter().for_each(|e| {
-            BoardEventConsumer::handle_event_internal((*self.game).borrow_mut().as_mut(), e)
-        });
+        event
+            .get_compound_event()
+            .get_events()
+            .iter()
+            .for_each(|e| {
+                BoardEventConsumer::handle_event_internal((*self.game).borrow_mut().as_mut(), e)
+            });
     }
 }
 
@@ -52,19 +65,23 @@ impl BoardEventConsumer {
                 game.remove_unused_piece(*team_id);
             }
             ChangeExhaustion(from, to, point) => {
-                let piece = &mut board
-                    .get_piece_mut_at(point)
-                    .expect(&*format!(
-                        "Can't execute {:?} for non-existing piece at {:?}",
-                        event, point
-                    ));
+                let piece = &mut board.get_piece_mut_at(point).expect(&*format!(
+                    "Can't execute {:?} for non-existing piece at {:?}",
+                    event, point
+                ));
 
-                assert_eq!(from, &piece.exhaustion, "Expected piece at {:?} to have exhaustion state {:?} but it had {:?}", point, from, piece.exhaustion);
+                assert_eq!(
+                    from, &piece.exhaustion,
+                    "Expected piece at {:?} to have exhaustion state {:?} but it had {:?}",
+                    point, from, piece.exhaustion
+                );
 
                 piece.exhaustion = *to;
             }
-            AddEffect(kind, at) => {board.add_effect(*kind, at);}
-            RemoveEffect(kind, at) => {board.remove_effect(kind, at)}
+            AddEffect(kind, at) => {
+                board.add_effect(*kind, at);
+            }
+            RemoveEffect(kind, at) => board.remove_effect(kind, at),
             NextTurn => {
                 warn!("NEXT TURN");
                 game.next_team();

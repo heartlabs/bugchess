@@ -1,6 +1,4 @@
-use crate::{
-    events::game_events::{EventConsumer, GameEventObject},
-};
+use crate::events::game_events::{EventConsumer, GameEventObject};
 use macroquad::prelude::*;
 use matchbox_socket::{RtcIceServerConfig, WebRtcSocket, WebRtcSocketConfig};
 use nanoserde::{DeBin, SerBin};
