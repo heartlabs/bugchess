@@ -7,11 +7,11 @@ use std::{
     fmt::{Display, Formatter},
     rc::Rc,
 };
+use std::borrow::BorrowMut;
 use egui_macroquad::egui;
 use egui_macroquad::egui::{FontDefinitions, FontFamily, FontTweak, Layout, Visuals};
 
 use crate::{
-    game_events::EventComposer,
     game_logic::{board::*, game::*, piece::*},
     matchbox::{MatchboxClient, MatchboxEventConsumer},
     rendering::render_events::RenderEventConsumer,
@@ -58,7 +58,6 @@ impl LoadingState {
         let mut game = Rc::new(RefCell::new(Box::new(init_game())));
         let own_sender_id = Uuid::new_v4().to_string();
         let mut event_broker = EventBroker::new(own_sender_id.clone());
-        let mut event_composer = EventComposer::new(Rc::clone(&game));
         event_broker.subscribe_committed(Box::new(BoardEventConsumer {
             own_sender_id,
             game: Rc::clone(&game),
@@ -86,7 +85,6 @@ impl LoadingState {
             core_game_state: Option::Some(CoreGameState::new(
                 game,
                 event_broker,
-                event_composer,
                 board_render,
                 Option::None,
             )),
@@ -165,7 +163,8 @@ impl GameState for LoadingState {
                     core_game_state.set_sub_state(CoreGameSubstate::Wait);
                 } else {
                     let num_teams = 2;
-                    set_up_pieces(num_teams, &mut core_game_state.event_composer);
+                    let start_events = set_up_pieces(num_teams, (*core_game_state.game).borrow_mut().as_mut());
+                    core_game_state.event_broker.handle_new_event(&start_events);
                 }
 
                 let matchbox_events =
@@ -211,7 +210,8 @@ impl GameState for LoadingState {
                 } else {
                     let mut core_game_state = self.core_game_state.as_mut().unwrap();
                     let num_teams = 2;
-                    set_up_pieces(num_teams, &mut core_game_state.event_composer);
+                    let start_events = set_up_pieces(num_teams, (*core_game_state.game).borrow_mut().as_mut());
+                    core_game_state.event_broker.handle_new_event(&start_events);
                 }
                 return Option::Some(Box::new(self.core_game_state.take().unwrap()));
             }
@@ -235,23 +235,24 @@ impl GameState for LoadingState {
     }
 }
 
-fn set_up_pieces(team_count: usize, event_composer: &mut EventComposer) {
+fn set_up_pieces(team_count: usize, game: &mut Game) -> CompoundEventType{
     let start_pieces = 6;
 
-    event_composer.start_transaction(CompoundEventType::finish_turn());
+    let mut compound_event = CompoundEventType::finish_turn();
 
     for team_id in 0..team_count {
         let target_point = Point2::new((2 + team_id * 3) as u8, (2 + team_id * 3) as u8);
         let mut piece = Piece::new(team_id, PieceKind::Simple);
         piece.exhaustion.reset();
-        event_composer.push_event(GameEvent::Place(target_point, piece));
+        compound_event.get_compound_event_mut().push_event(GameEvent::Place(target_point, piece));
 
         for _ in 0..start_pieces {
-            event_composer.push_event(GameEvent::AddUnusedPiece(team_id));
+            compound_event.get_compound_event_mut().push_event(GameEvent::AddUnusedPiece(team_id));
         }
     }
 
-    event_composer.commit();
+    compound_event.get_compound_event_mut().flush(game);
+    compound_event
 }
 
 fn init_game() -> Game {

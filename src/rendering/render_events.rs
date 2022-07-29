@@ -266,6 +266,6 @@ impl RenderEventConsumer {
 
 impl EventConsumer for RenderEventConsumer {
     fn handle_event(&mut self, event: &GameEventObject) {
-        self.handle_event_internal(&event.event.get_compound_event().get_events(), &event.event);
+        self.handle_event_internal(&event.event.get_compound_event().get_events().as_slice(), &event.event);
     }
 }
