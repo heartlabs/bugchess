@@ -12,11 +12,93 @@ use std::{
     cell::RefCell,
     rc::Rc,
 };
+use std::fmt::Debug;
+use std::slice::Iter;
 
 #[derive(Debug, Clone, SerBin, DeBin)]
-pub struct CompoundEvent {
-    pub events: Vec<GameEvent>,
-    pub kind: CompoundEventType,
+pub struct BasicCompoundEvent {
+    events: Vec<GameEvent>,
+ //   kind: CompoundEventType,
+}
+#[derive(Debug, Clone, SerBin, DeBin)]
+pub struct AttackCompoundEvent {
+    events: Vec<GameEvent>,
+    pub piece_kind: PieceKind
+ //   kind: CompoundEventType,
+}
+#[derive(Debug, Clone, SerBin, DeBin)]
+pub struct PlaceCompoundEvent {
+    events: Vec<GameEvent>,
+ //   kind: CompoundEventType,
+}
+#[derive(Debug, Clone, SerBin, DeBin)]
+pub struct MoveCompoundEvent {
+    events: Vec<GameEvent>,
+ //   kind: CompoundEventType,
+}
+#[derive(Debug, Clone, SerBin, DeBin)]
+pub struct UndoCompoundEvent {
+    events: Vec<GameEvent>,
+    undone: Box<CompoundEventType>
+ //   kind: CompoundEventType,
+}
+#[derive(Debug, Clone, SerBin, DeBin)]
+pub struct FinishTurnCompoundEvent {
+    events: Vec<GameEvent>,
+ //   kind: CompoundEventType,
+}
+
+impl CompoundEvent for AttackCompoundEvent {
+    fn get_events(&self) -> &[GameEvent] {
+        self.events.as_slice()
+    }
+
+    fn push_event(&mut self, event: GameEvent) {
+        self.events.push(event);
+    }
+}
+impl CompoundEvent for PlaceCompoundEvent {
+    fn get_events(&self) -> &[GameEvent] {
+        self.events.as_slice()
+    }
+
+    fn push_event(&mut self, event: GameEvent) {
+        self.events.push(event);
+    }
+}
+impl CompoundEvent for MoveCompoundEvent {
+    fn get_events(&self) -> &[GameEvent] {
+        self.events.as_slice()
+    }
+
+    fn push_event(&mut self, event: GameEvent) {
+        self.events.push(event);
+    }
+}
+impl CompoundEvent for UndoCompoundEvent {
+    fn get_events(&self) -> &[GameEvent] {
+        self.events.as_slice()
+    }
+
+    fn push_event(&mut self, event: GameEvent) {
+        self.events.push(event);
+    }
+}
+impl CompoundEvent for FinishTurnCompoundEvent {
+    fn get_events(&self) -> &[GameEvent] {
+        self.events.as_slice()
+    }
+
+    fn push_event(&mut self, event: GameEvent) {
+        self.events.push(event);
+    }
+}
+
+pub trait CompoundEvent : Debug {
+    fn get_events(&self) -> &[GameEvent];
+
+    fn push_event(&mut self, event: GameEvent); // TODO remove
+//    fn get_event_type(&self) -> &CompoundEventType;
 }
 
 #[derive(Debug, Copy, Clone, SerBin, DeBin)]
@@ -35,13 +117,13 @@ pub enum GameEvent {
 pub struct GameEventObject {
     pub id: String,
     pub sender: String,
-    pub event: CompoundEvent,
+    pub event: CompoundEventType,
 }
 
 impl GameEventObject {
     pub const OPCODE: i32 = 1;
 
-    pub fn new(event: CompoundEvent, sender: &String) -> Self {
+    pub fn new(event: CompoundEventType, sender: &String) -> Self {
         GameEventObject {
             id: rand().to_string(),
             sender: sender.clone(),
@@ -51,30 +133,71 @@ impl GameEventObject {
 }
 
 #[derive(Debug, Clone, SerBin, DeBin)]
-pub enum CompoundEventType {
-    Attack(PieceKind),
-    Place,
-    Move,
-    Undo(Box<CompoundEventType>),
-    FinishTurn,
+pub enum CompoundEventType { // TODO Rename to GameAction
+    Attack(AttackCompoundEvent),
+    Place(PlaceCompoundEvent),
+    Move(MoveCompoundEvent),
+    Undo(UndoCompoundEvent),
+    FinishTurn(FinishTurnCompoundEvent),
 }
 
-impl CompoundEvent {
-    pub fn anti_event(&self) -> CompoundEvent {
-        CompoundEvent {
-            events: self.events.iter().map(|e| e.anti_event()).rev().collect(),
-            kind: CompoundEventType::Undo(Box::new(self.kind.clone())),
+impl CompoundEventType {
+    pub fn attack(piece_kind: PieceKind) -> CompoundEventType {
+        CompoundEventType::Attack(AttackCompoundEvent {events: vec![], piece_kind })
+    }
+
+    pub fn place() -> CompoundEventType {
+        CompoundEventType::Place(PlaceCompoundEvent {events: vec![]})
+    }
+
+    pub fn moving() -> CompoundEventType {
+        CompoundEventType::Move(MoveCompoundEvent {events: vec![]})
+    }
+
+    pub fn undo(undone: Box<CompoundEventType>) -> CompoundEventType {
+        CompoundEventType::Undo(UndoCompoundEvent {events: vec![], undone })
+    }
+
+    pub fn finish_turn() -> CompoundEventType {
+        CompoundEventType::FinishTurn(FinishTurnCompoundEvent {events: vec![] })
+    }
+
+    pub fn get_compound_event(&self) -> Box<&dyn CompoundEvent> {
+        match self {
+            CompoundEventType::Attack(e) => Box::new(e),
+            CompoundEventType::Place(e) => Box::new(e),
+            CompoundEventType::Move(e) => Box::new(e),
+            CompoundEventType::Undo(e) => Box::new(e),
+            CompoundEventType::FinishTurn(e) => Box::new(e),
         }
     }
 
-    pub fn get_events(&self) -> &[GameEvent] {
-        self.events.as_slice()
+    pub fn get_compound_event_mut(&mut self) -> Box<&mut dyn CompoundEvent> {
+        match self {
+            CompoundEventType::Attack(e) => Box::new(e),
+            CompoundEventType::Place(e) => Box::new(e),
+            CompoundEventType::Move(e) => Box::new(e),
+            CompoundEventType::Undo(e) => Box::new(e),
+            CompoundEventType::FinishTurn(e) => Box::new(e),
+        }
     }
 
-
-    pub fn get_event_type(&self) -> &CompoundEventType {
-        &self.kind
+    pub fn anti_event(&self) -> CompoundEventType {
+        CompoundEventType::Undo(UndoCompoundEvent {
+            events: self.get_compound_event().get_events().iter().map(|e| e.anti_event()).rev().collect(),
+            undone: Box::new(self.clone())
+        })
     }
+}
+
+impl BasicCompoundEvent {
+
+    pub fn anti_event(&self) -> BasicCompoundEvent {
+        BasicCompoundEvent {
+            events: self.events.iter().map(|e| e.anti_event()).rev().collect(),
+        }
+    }
+
 }
 
 impl GameEvent {
@@ -101,9 +224,8 @@ pub trait EventConsumer {
 
 pub struct EventComposer {
     unflushed: Vec<GameEvent>,
-    current_transaction: Vec<GameEvent>,
-    current_transaction_type: Option<CompoundEventType>,
-    committed: Vec<CompoundEvent>,
+    current_transaction: Option<CompoundEventType>,
+    committed: Vec<CompoundEventType>,
     pub(crate) game: Rc<RefCell<Box<Game>>>,
 }
 
@@ -111,14 +233,13 @@ impl EventComposer {
     pub fn new(game: Rc<RefCell<Box<Game>>>) -> Self {
         Self {
             unflushed: vec![],
-            current_transaction: vec![],
-            current_transaction_type: None,
+            current_transaction: None,
             committed: vec![],
             game,
         }
     }
 
-    pub fn drain_commits(&mut self) -> Vec<CompoundEvent> {
+    pub fn drain_commits(&mut self) -> Vec<CompoundEventType> {
         assert!(
             self.unflushed.is_empty(),
             "There are still unflushed events"
@@ -127,7 +248,7 @@ impl EventComposer {
         self.committed.drain(..).collect()
     }
 
-    pub fn init_new_transaction(&mut self, mut events: Vec<GameEvent>, c: CompoundEventType) {
+    pub fn init_new_transaction(&mut self, events: Vec<GameEvent>, c: CompoundEventType) {
         self.start_transaction(c);
         for event in events {
             self.push_event(event);
@@ -136,7 +257,8 @@ impl EventComposer {
 
     pub(crate) fn push_event(&mut self, event: GameEvent) {
         self.unflushed.push(event);
-        self.current_transaction.push(event);
+        let mut transaction = self.current_transaction.as_mut().unwrap().get_compound_event_mut();
+        transaction.push_event(event);
     }
 
     pub(crate) fn flush(&mut self) -> bool {
@@ -152,7 +274,7 @@ impl EventComposer {
     }
 
     fn assert_no_uncommitted_events(&self) {
-        if !self.current_transaction.is_empty() {
+        if self.current_transaction.is_some() {
             panic!(
                 "Unexpected uncommitted events: {:?}",
                 self.current_transaction
@@ -163,34 +285,19 @@ impl EventComposer {
     pub fn start_transaction(&mut self, c: CompoundEventType) {
         self.assert_no_uncommitted_events();
 
-        self.current_transaction_type = Some(c);
+        self.current_transaction = Some(c);
     }
 
     pub fn commit(&mut self) {
-        if self.current_transaction.is_empty() {
-            return;
+        if self.current_transaction.is_some() {
+            self.committed.push(self.current_transaction.take().unwrap());
         }
-
-        let events: Vec<GameEvent> = self.current_transaction.drain(..).collect();
-
-        let event_type = self
-            .current_transaction_type
-            .take()
-            .expect("Can't commit because there was no transaction started");
-        let compound_event = CompoundEvent {
-            events,
-            kind: event_type,
-        };
-
-        info!("Compound event: {:?}", compound_event);
-
-        self.committed.push(compound_event);
     }
 }
 
 pub struct EventBroker {
     sender_id: String,
-    past_events: Vec<CompoundEvent>,
+    past_events: Vec<CompoundEventType>,
     pub(crate) subscribers: Vec<Box<dyn EventConsumer>>,
 }
 
@@ -218,7 +325,7 @@ impl EventBroker {
         self.past_events.clear();
     }
 
-    pub fn handle_new_event(&mut self, event: &CompoundEvent) {
+    pub fn handle_new_event(&mut self, event: &CompoundEventType) {
         self.past_events.push(event.clone());
 
         let event_object = GameEventObject::new(event.clone(), &self.sender_id);
@@ -236,7 +343,7 @@ impl EventConsumer for EventBroker {
             .iter_mut()
             .for_each(|s| (*s).handle_event(event));
 
-        if let CompoundEventType::FinishTurn = event.event.kind {
+        if let CompoundEventType::FinishTurn(_) = event.event {
             self.delete_history();
         }
     }
@@ -249,14 +356,14 @@ pub struct BoardEventConsumer {
 
 impl EventConsumer for BoardEventConsumer {
     fn handle_event(&mut self, event_object: &GameEventObject) {
-        if !matches!(event_object.event.kind, Undo(_)) && event_object.sender == self.own_sender_id {
+        if !matches!(event_object.event, Undo(_)) && event_object.sender == self.own_sender_id {
             return;
         }
 
         let event = &event_object.event;
         println!("Handling event {:?}", event);
 
-        event.get_events().iter().for_each(|e| {
+        event.get_compound_event().get_events().iter().for_each(|e| {
             BoardEventConsumer::handle_event_internal((*self.game).borrow_mut().as_mut(), e)
         });
     }

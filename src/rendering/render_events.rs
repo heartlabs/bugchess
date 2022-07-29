@@ -12,6 +12,7 @@ use std::{
     cell::{RefCell},
     rc::Rc,
 };
+use crate::game_events::AttackCompoundEvent;
 
 pub struct RenderEventConsumer {
     pub(crate) board_render: Rc<RefCell<Box<BoardRender>>>,
@@ -22,7 +23,7 @@ impl RenderEventConsumer {
         let mut board_render = (*self.board_render).borrow_mut();
         info!("Handling {} Render Events: {:?}", events.len(), t);
         match t {
-            CompoundEventType::Attack(piece_kind) => {
+            CompoundEventType::Attack(AttackCompoundEvent{ piece_kind, ..}) => {
                 let mut animations: Vec<Animation> = vec![];
                 let mut i = 0;
                 let mut target_points = vec![];
@@ -68,7 +69,7 @@ impl RenderEventConsumer {
 
                 board_render.add_animation_sequence(animations);
             }
-            CompoundEventType::Place => {
+            CompoundEventType::Place(_) => {
                 let place_piece = if let Some(Place(point, piece)) = events.get(0) {
                     PlacePieceAnimation::new(piece.team_id, *point)
                 } else {
@@ -94,7 +95,7 @@ impl RenderEventConsumer {
 
                 board_render.add_animation_sequence(vec![animation]);
             }
-            CompoundEventType::Move => {
+            CompoundEventType::Move(_) => {
                 let mut animations = vec![];
                 let mut i = 0;
 
@@ -177,7 +178,7 @@ impl RenderEventConsumer {
 
                 board_render.add_animation_sequence(animations);
             }
-            CompoundEventType::FinishTurn => {
+            CompoundEventType::FinishTurn(_) => {
                 let mut animations: Vec<Animation> = vec![];
 
                 for event in events {
@@ -265,6 +266,6 @@ impl RenderEventConsumer {
 
 impl EventConsumer for RenderEventConsumer {
     fn handle_event(&mut self, event: &GameEventObject) {
-        self.handle_event_internal(&event.event.get_events(), event.event.get_event_type());
+        self.handle_event_internal(&event.event.get_compound_event().get_events(), &event.event);
     }
 }

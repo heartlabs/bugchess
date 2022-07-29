@@ -11,6 +11,7 @@ use crate::{
     GameEvent::Place,
 };
 use macroquad::prelude::*;
+use crate::game_events::PlaceCompoundEvent;
 
 pub struct CoreGameState {
     game: Rc<RefCell<Box<Game>>>,
@@ -168,7 +169,7 @@ impl CoreGameSubstate {
                             ),
                             GameEvent::RemoveUnusedPiece(game.current_team_index),
                         ],
-                        CompoundEventType::Place,
+                        CompoundEventType::place(),
                     );
 
                     Self::push_effects_if_present(event_composer, &board, &new_piece, target_point);
@@ -182,7 +183,7 @@ impl CoreGameSubstate {
                                 Power::Blast => {
                                     let mut exhaustion_clone = target_piece.exhaustion.clone();
                                     exhaustion_clone.on_attack();
-                                    event_composer.start_transaction(CompoundEventType::Attack(target_piece.piece_kind));
+                                    event_composer.start_transaction(CompoundEventType::attack(target_piece.piece_kind));
                                     for point in activatable.range.reachable_points(
                                         target_point,
                                         board,
@@ -213,7 +214,7 @@ impl CoreGameSubstate {
                         .reachable_points(&itself, board, &RangeContext::Moving(*selected_piece))
                         .contains(target_point)
                     {
-                        event_composer.start_transaction(CompoundEventType::Move);
+                        event_composer.start_transaction(CompoundEventType::moving());
 
                         if let Some(target_piece) = board.get_piece_at(target_point) {
                             event_composer.push_event(Remove(*target_point, *target_piece));
@@ -247,7 +248,7 @@ impl CoreGameSubstate {
                                 Remove(*target_point, *target_piece),
                                 ChangeExhaustion(target_piece.exhaustion, exhaustion_clone, *active_piece_pos),
                             ],
-                            CompoundEventType::Attack(active_piece.piece_kind),
+                            CompoundEventType::attack(active_piece.piece_kind),
                         );
 
                         Self::remove_effects_if_present(event_composer, board, target_piece, target_point);
@@ -458,7 +459,7 @@ fn next_turn(game: &mut Rc<RefCell<Box<Game>>>, event_composer: &mut EventCompos
     {
         let g = (**game).borrow_mut();
         let current_team_index = g.current_team_index;
-        event_composer.start_transaction(CompoundEventType::FinishTurn);
+        event_composer.start_transaction(CompoundEventType::finish_turn());
         event_composer.push_event(GameEvent::NextTurn);
         event_composer.push_event(GameEvent::AddUnusedPiece(current_team_index));
         event_composer.push_event(GameEvent::AddUnusedPiece(current_team_index));

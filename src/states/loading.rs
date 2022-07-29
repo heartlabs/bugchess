@@ -238,7 +238,7 @@ impl GameState for LoadingState {
 fn set_up_pieces(team_count: usize, event_composer: &mut EventComposer) {
     let start_pieces = 6;
 
-    event_composer.start_transaction(CompoundEventType::FinishTurn);
+    event_composer.start_transaction(CompoundEventType::finish_turn());
 
     for team_id in 0..team_count {
         let target_point = Point2::new((2 + team_id * 3) as u8, (2 + team_id * 3) as u8);
