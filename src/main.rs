@@ -1,5 +1,5 @@
 mod constants;
-mod game_events;
+mod events;
 mod game_logic;
 mod matchbox;
 mod rendering;
@@ -7,7 +7,6 @@ mod states;
 
 use crate::{
     constants::*,
-    game_events::{BoardEventConsumer, CompoundEventType, EventBroker, GameEvent},
     game_logic::{board::*, piece::*, ranges::*},
     rendering::{BoardRender, CustomRenderContext},
 };
@@ -15,9 +14,13 @@ use crate::{
 use macroquad::{prelude::*};
 use macroquad_canvas::Canvas2D;
 
-use crate::states::{core_game_state::CoreGameState, loading::LoadingState, GameState};
+use crate::states::{core_game_state::CoreGameState, GameState, loading::LoadingState};
 use std::{borrow::BorrowMut, cell::RefCell, rc::Rc};
 use egui_macroquad::egui;
+use events::atomic_events::AtomicEvent;
+use events::board_event_consumer::BoardEventConsumer;
+use events::compound_events::GameAction;
+use events::event_broker::EventBroker;
 
 //use wasm_bindgen::prelude::*;
 

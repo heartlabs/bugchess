@@ -1,5 +1,5 @@
 use crate::{
-    game_events::{EventConsumer, GameEventObject},
+    events::game_events::{EventConsumer, GameEventObject},
 };
 use macroquad::prelude::*;
 use matchbox_socket::{RtcIceServerConfig, WebRtcSocket, WebRtcSocketConfig};

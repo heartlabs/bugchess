@@ -1,6 +1,6 @@
 use crate::{
-    matchbox, BoardEventConsumer, BoardRender, CompoundEventType, CoreGameState,
-    EventBroker, GameEvent, GameState, ONLINE,
+    BoardRender, CoreGameState,
+    GameState, matchbox, ONLINE,
 };
 use std::{
     cell::RefCell,
@@ -22,6 +22,10 @@ use macroquad::{prelude::*, rand::srand};
 use macroquad_canvas::Canvas2D;
 use uuid::Uuid;
 use crate::egui::{Align, Color32, FontData, TextEdit};
+use crate::events::atomic_events::AtomicEvent;
+use crate::events::board_event_consumer::BoardEventConsumer;
+use crate::events::compound_events::GameAction;
+use crate::events::event_broker::EventBroker;
 
 pub struct LoadingState {
     core_game_state: Option<CoreGameState>,
@@ -240,23 +244,23 @@ impl GameState for LoadingState {
     }
 }
 
-fn set_up_pieces(team_count: usize, game: &mut Game) -> CompoundEventType{
+fn set_up_pieces(team_count: usize, game: &mut Game) -> GameAction {
     let start_pieces = 6;
 
-    let mut compound_event = CompoundEventType::finish_turn();
+    let mut compound_event = GameAction::finish_turn();
 
     for team_id in 0..team_count {
         let target_point = Point2::new((2 + team_id * 3) as u8, (2 + team_id * 3) as u8);
         let mut piece = Piece::new(team_id, PieceKind::Simple);
         piece.exhaustion.reset();
-        compound_event.get_compound_event_mut().push_event(GameEvent::Place(target_point, piece));
+        compound_event.get_compound_event_mut().push_event(AtomicEvent::Place(target_point, piece));
 
         for _ in 0..start_pieces {
-            compound_event.get_compound_event_mut().push_event(GameEvent::AddUnusedPiece(team_id));
+            compound_event.get_compound_event_mut().push_event(AtomicEvent::AddUnusedPiece(team_id));
         }
     }
 
-    compound_event.get_compound_event_mut().flush(game);
+    BoardEventConsumer::flush(game, &mut compound_event);
     compound_event
 }
 
