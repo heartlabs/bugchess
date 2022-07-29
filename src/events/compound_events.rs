@@ -1,4 +1,4 @@
-use crate::{AtomicEvent, PieceKind};
+use crate::{AtomicEvent, Exhaustion, Piece, PieceKind, Point2};
 use nanoserde::{DeBin, SerBin};
 use std::fmt::Debug;
 
@@ -203,6 +203,34 @@ impl CompoundEvent for FinishTurnCompoundEvent {
     }
 }
 
+pub struct FinishTurnBuilder {
+    event: FinishTurnCompoundEvent
+}
+
+impl FinishTurnBuilder {
+    pub fn build(self) -> GameAction {
+        GameAction::FinishTurn(self.event)
+    }
+
+    pub fn place_piece(&mut self, point: Point2, piece: Piece) -> &mut Self {
+        self.event.events.push(AtomicEvent::Place(point, piece));
+
+        self
+    }
+
+    pub fn add_unused_piece(&mut self, team: usize) -> &mut Self {
+        self.event.events.push(AtomicEvent::AddUnusedPiece(team));
+
+        self
+    }
+
+    pub fn change_exhaustion(&mut self, from: Exhaustion, to: Exhaustion, at: Point2) -> &mut Self {
+        self.event.events.push(AtomicEvent::ChangeExhaustion(from,to,at));
+
+        self
+    }
+}
+
 pub trait CompoundEvent: Debug {
     fn get_events(&self) -> Vec<AtomicEvent>;
 
@@ -255,11 +283,13 @@ impl GameAction {
         })
     }
 
-    pub fn finish_turn() -> GameAction {
-        GameAction::FinishTurn(FinishTurnCompoundEvent {
-            events: vec![],
-            was_flushed: false,
-        })
+    pub fn finish_turn() -> FinishTurnBuilder {
+        FinishTurnBuilder {
+            event: FinishTurnCompoundEvent {
+                    events: vec![AtomicEvent::NextTurn],
+                    was_flushed: false,
+            }
+        }
     }
 
     pub fn get_compound_event(&self) -> Box<&dyn CompoundEvent> {

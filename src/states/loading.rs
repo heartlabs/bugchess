@@ -170,14 +170,12 @@ impl GameState for LoadingState {
 
                 let matchbox_client = self.client.take().unwrap();
 
-                let mut start_event_option = None;
+                let mut start_events = vec![];
                 if matchbox_client.get_own_player_index().unwrap() != 0 {
                     core_game_state.set_sub_state(CoreGameSubstate::Wait);
                 } else {
                     let num_teams = 2;
-                    let start_events =
-                        set_up_pieces(num_teams, (*core_game_state.game).borrow_mut().as_mut());
-                    start_event_option = Some(start_events);
+                    start_events = set_up_pieces(num_teams, (*core_game_state.game).borrow_mut().as_mut());
                 }
 
                 let matchbox_events =
@@ -188,8 +186,8 @@ impl GameState for LoadingState {
                         client: Rc::clone(matchbox_events.as_ref().unwrap()),
                     }));
 
-                if let Some(start_events) = start_event_option.as_ref() {
-                    core_game_state.event_broker.handle_new_event(start_events);
+                for start_event in &start_events {
+                    core_game_state.event_broker.handle_new_event(start_event);
                 }
 
                 core_game_state.matchbox_events = matchbox_events;
@@ -227,9 +225,9 @@ impl GameState for LoadingState {
                 } else {
                     let mut core_game_state = self.core_game_state.as_mut().unwrap();
                     let num_teams = 2;
-                    let start_events =
-                        set_up_pieces(num_teams, (*core_game_state.game).borrow_mut().as_mut());
-                    core_game_state.event_broker.handle_new_event(&start_events);
+                    for start_event in &set_up_pieces(num_teams, (*core_game_state.game).borrow_mut().as_mut()) {
+                        core_game_state.event_broker.handle_new_event(start_event);
+                    }
                 }
                 return Option::Some(Box::new(self.core_game_state.take().unwrap()));
             }
@@ -253,28 +251,30 @@ impl GameState for LoadingState {
     }
 }
 
-fn set_up_pieces(team_count: usize, game: &mut Game) -> GameAction {
+fn set_up_pieces(team_count: usize, game: &mut Game) -> Vec<GameAction> {
     let start_pieces = 6;
 
-    let mut compound_event = GameAction::finish_turn();
+    let mut events = vec![];
 
     for team_id in 0..team_count {
+        let mut finish_turn = GameAction::finish_turn();
+
         let target_point = Point2::new((2 + team_id * 3) as u8, (2 + team_id * 3) as u8);
         let mut piece = Piece::new(team_id, PieceKind::Simple);
         piece.exhaustion.reset();
-        compound_event
-            .get_compound_event_mut()
-            .push_event(AtomicEvent::Place(target_point, piece));
+        finish_turn.place_piece(target_point, piece);
 
         for _ in 0..start_pieces {
-            compound_event
-                .get_compound_event_mut()
-                .push_event(AtomicEvent::AddUnusedPiece(team_id));
+            finish_turn.add_unused_piece(team_id);
         }
+
+        let mut compound_event = finish_turn.build();
+        BoardEventConsumer::flush(game, &mut compound_event);
+        events.push(compound_event);
     }
 
-    BoardEventConsumer::flush(game, &mut compound_event);
-    compound_event
+    events
+
 }
 
 fn init_game() -> Game {
