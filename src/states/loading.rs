@@ -159,12 +159,13 @@ impl GameState for LoadingState {
 
                 let matchbox_client = self.client.take().unwrap();
 
+                let mut start_event_option = None;
                 if matchbox_client.get_own_player_index().unwrap() != 0 {
                     core_game_state.set_sub_state(CoreGameSubstate::Wait);
                 } else {
                     let num_teams = 2;
                     let start_events = set_up_pieces(num_teams, (*core_game_state.game).borrow_mut().as_mut());
-                    core_game_state.event_broker.handle_new_event(&start_events);
+                    start_event_option = Some(start_events);
                 }
 
                 let matchbox_events =
@@ -174,6 +175,10 @@ impl GameState for LoadingState {
                     .subscribe_committed(Box::new(MatchboxEventConsumer {
                         client: Rc::clone(matchbox_events.as_ref().unwrap()),
                     }));
+
+                if let Some(start_events) = start_event_option.as_ref() {
+                    core_game_state.event_broker.handle_new_event(start_events);
+                }
 
                 core_game_state.matchbox_events = matchbox_events;
 
