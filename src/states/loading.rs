@@ -1,4 +1,4 @@
-use crate::{matchbox, BoardRender, CoreGameState, GameState, ONLINE};
+use crate::{BoardRender, CoreGameState, GameState, matchbox, ONLINE};
 use egui_macroquad::{
     egui,
     egui::{FontDefinitions, FontFamily, FontTweak, Layout, Visuals},
@@ -14,7 +14,7 @@ use crate::{
     egui::{Align, Color32, FontData, TextEdit},
     events::{
         atomic_events::AtomicEvent, board_event_consumer::BoardEventConsumer,
-        compound_events::GameAction, event_broker::EventBroker,
+        event_broker::EventBroker,
     },
     game_logic::{board::*, game::*, piece::*},
     matchbox::{MatchboxClient, MatchboxEventConsumer},
@@ -25,6 +25,7 @@ use instant::Instant;
 use macroquad::{prelude::*, rand::srand};
 use macroquad_canvas::Canvas2D;
 use uuid::Uuid;
+use crate::events::actions::compound_events::GameAction;
 
 pub struct LoadingState {
     core_game_state: Option<CoreGameState>,

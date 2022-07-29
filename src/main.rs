@@ -14,13 +14,14 @@ use crate::{
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
 
-use crate::states::{core_game_state::CoreGameState, loading::LoadingState, GameState};
+use crate::states::{core_game_state::CoreGameState, GameState, loading::LoadingState};
 use egui_macroquad::egui;
 use events::{
     atomic_events::AtomicEvent, board_event_consumer::BoardEventConsumer,
-    compound_events::GameAction, event_broker::EventBroker,
+    event_broker::EventBroker,
 };
 use std::{borrow::BorrowMut, cell::RefCell, rc::Rc};
+use events::actions::compound_events::GameAction;
 
 //use wasm_bindgen::prelude::*;
 

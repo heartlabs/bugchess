@@ -4,10 +4,10 @@ use crate::{info, rand::rand};
 
 use crate::events::{
     atomic_events::{AtomicEvent, AtomicEvent::*},
-    compound_events::{CompoundEvent, GameAction},
 };
 use macroquad::logging::warn;
 use std::{cell::RefCell, fmt::Debug, rc::Rc, slice::Iter};
+use crate::events::actions::compound_events::{CompoundEvent, GameAction};
 
 #[derive(Debug, Clone, SerBin, DeBin)]
 pub struct GameEventObject {

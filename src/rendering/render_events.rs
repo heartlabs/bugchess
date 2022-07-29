@@ -1,14 +1,15 @@
 use crate::{
+    BoardRender,
     events::{
         atomic_events::AtomicEvent,
-        compound_events::{AttackCompoundEvent, GameAction},
         game_events::*,
     },
-    rendering::animation::{Animation, PlacePieceAnimation},
-    BoardRender, PieceKind,
+    PieceKind, rendering::animation::{Animation, PlacePieceAnimation},
 };
 use macroquad::miniquad::info;
 use std::{cell::RefCell, rc::Rc};
+use crate::events::actions::attack::AttackCompoundEvent;
+use crate::events::actions::compound_events::GameAction;
 
 pub struct RenderEventConsumer {
     pub(crate) board_render: Rc<RefCell<Box<BoardRender>>>,
