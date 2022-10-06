@@ -35,7 +35,10 @@ impl EventConsumer for BoardEventConsumer {
 
 impl BoardEventConsumer {
     pub fn new(own_sender_id: String, game: Rc<RefCell<Box<Game>>>) -> Self {
-        BoardEventConsumer { own_sender_id, game }
+        BoardEventConsumer {
+            own_sender_id,
+            game,
+        }
     }
 
     pub fn flush(game: &mut Game, action: &mut GameAction) {

@@ -1,13 +1,11 @@
-use game_logic::game::Game;
 use game_events::{
     actions::compound_events::GameAction, atomic_events::AtomicEvent, event_broker::EventBroker,
 };
+use game_logic::game::Game;
 
 use crate::*;
 
-use crate::{
-    matchbox::MatchboxClient,
-};
+use crate::matchbox::MatchboxClient;
 use macroquad::prelude::*;
 
 pub struct CoreGameState {

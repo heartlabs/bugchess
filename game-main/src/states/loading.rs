@@ -1,25 +1,24 @@
 use crate::{
     constants::{BOARD_HEIGHT, BOARD_WIDTH},
-    matchbox, BoardRender, CoreGameState, GameState, ONLINE,
+    egui::{Align, Color32, FontData, TextEdit},
+    matchbox,
+    matchbox::{MatchboxClient, MatchboxEventConsumer},
+    rendering::render_events::RenderEventConsumer,
+    states::core_game_state::CoreGameSubstate,
+    BoardRender, CoreGameState, GameState, ONLINE,
 };
 use egui_macroquad::{
     egui,
     egui::{FontDefinitions, FontFamily, FontTweak, Layout, Visuals},
 };
+use game_events::{board_event_consumer::BoardEventConsumer, event_broker::EventBroker};
+use game_logic::{board::*, game::*, piece::*};
 use std::{
     borrow::BorrowMut,
     cell::RefCell,
     fmt::{Display, Formatter},
     rc::Rc,
 };
-use game_events::{board_event_consumer::BoardEventConsumer, event_broker::EventBroker};
-use crate::{
-    egui::{Align, Color32, FontData, TextEdit},
-    matchbox::{MatchboxClient, MatchboxEventConsumer},
-    rendering::render_events::RenderEventConsumer,
-    states::core_game_state::CoreGameSubstate,
-};
-use game_logic::{board::*, game::*, piece::*};
 
 use game_events::actions::compound_events::GameAction;
 use instant::Instant;
@@ -62,9 +61,10 @@ impl LoadingState {
         let game = Rc::new(RefCell::new(Box::new(init_game())));
         let own_sender_id = Uuid::new_v4().to_string();
         let mut event_broker = EventBroker::new(own_sender_id.clone());
-        event_broker.subscribe_committed(
-            Box::new(BoardEventConsumer::new(own_sender_id, Rc::clone(&game)))
-        );
+        event_broker.subscribe_committed(Box::new(BoardEventConsumer::new(
+            own_sender_id,
+            Rc::clone(&game),
+        )));
 
         let board_render = Rc::new(RefCell::new(Box::new(BoardRender::new(
             (*game).borrow().as_ref(),
