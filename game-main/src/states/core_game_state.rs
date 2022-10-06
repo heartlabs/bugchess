@@ -1,3 +1,5 @@
+use game_logic::game::Game;
+
 use crate::*;
 
 use crate::{
@@ -5,7 +7,7 @@ use crate::{
         atomic_events::{AtomicEvent, AtomicEvent::Place},
         event_broker::EventBroker,
     },
-    game_logic::game::Game,
+    
     matchbox::MatchboxClient,
 };
 use macroquad::prelude::*;

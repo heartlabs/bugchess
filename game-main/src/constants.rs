@@ -1,6 +1,6 @@
 use std::rc::Rc;
 use std::cell::RefCell;
-use crate::Point2;
+use game_logic::board::Point2;
 use macroquad_canvas::Canvas2D;
 
 #[cfg(target_family = "wasm")]
@@ -52,20 +52,6 @@ pub fn cell_hovered(canvas: &Canvas2D) -> Point2 {
     coords_to_cell(mouse_x, mouse_y)
 }
 
-impl Into<(u8, u8)> for Point2 {
-    fn into(self) -> (u8, u8) {
-        (self.x, self.y)
-    }
-}
-
-impl Into<Point2> for (u8, u8) {
-    fn into(self) -> Point2 {
-        Point2 {
-            x: self.0,
-            y: self.1,
-        }
-    }
-}
 
 pub struct Util {}
 

@@ -1,10 +1,11 @@
+use game_logic::piece::PieceKind;
 use crate::{
     BoardRender,
     events::{
         atomic_events::AtomicEvent,
         game_events::*,
     },
-    PieceKind, rendering::animation::{Animation, PlacePieceAnimation},
+    rendering::animation::{Animation, PlacePieceAnimation},
 };
 use macroquad::miniquad::info;
 use std::{cell::RefCell, rc::Rc};

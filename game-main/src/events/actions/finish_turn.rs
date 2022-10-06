@@ -1,5 +1,7 @@
 use nanoserde::{DeBin, SerBin};
-use crate::{AtomicEvent, Exhaustion, GameAction, Piece, Point2};
+use game_logic::piece::{Exhaustion, Piece};
+use game_logic::board::{Point2};
+use crate::{AtomicEvent, GameAction};
 use crate::events::actions::compound_events::CompoundEvent;
 
 #[derive(Debug, Clone, SerBin, DeBin)]

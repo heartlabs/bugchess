@@ -1,5 +1,6 @@
 use nanoserde::{DeBin, SerBin};
-use crate::{AtomicEvent, GameAction, PieceKind};
+use game_logic::piece::PieceKind;
+use crate::{AtomicEvent, GameAction};
 use crate::events::actions::compound_events::CompoundEvent;
 use crate::events::actions::merge::MergeCompoundEvent;
 

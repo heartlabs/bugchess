@@ -7,8 +7,9 @@ use crate::{
     events::{
         game_events::{EventConsumer, GameEventObject},
     },
-    game_logic::game::Game,
+    
 };
+use game_logic::game::Game;
 use macroquad::logging::warn;
 use std::{cell::RefCell, rc::Rc};
 use crate::events::actions::compound_events::{CompoundEvent, GameAction};

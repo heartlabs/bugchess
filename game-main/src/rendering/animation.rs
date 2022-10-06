@@ -1,8 +1,10 @@
 use crate::{
     constants::*,
     rendering::{EffectRender, SpriteKind, SpriteRender},
-    BoardRender, EffectKind, Exhaustion, PieceKind, Point2,
+    BoardRender,
 };
+use game_logic::board::Point2;
+use game_logic::piece::{PieceKind, Exhaustion, EffectKind};
 use instant::{Duration, Instant};
 use macroquad::{color::WHITE, logging::info, math::Rect, rand::rand};
 use std::{

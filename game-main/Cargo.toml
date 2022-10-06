@@ -1,0 +1,36 @@
+[package]
+name = "megachess"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+macroquad = "0.3.24"
+egui-macroquad = "0.12.0"
+urlencoding = "2.1.0"
+#nakama-rs = "*"
+#matchbox_socket = { path = "../../matchbox/matchbox_socket" }
+ matchbox_socket = { git = "https://github.com/johanhelsing/matchbox" }
+#matchbox_socket = { git = "https://github.com/heartlabs/matchbox", branch = "feature/ice-server-config"}
+# matchbox_socket = "0.3.0"
+async-executor = "1.4.1"
+nanoserde = "0.1.29"
+futures = "0.3.15"
+instant = { version = "0.1.12", features = ["wasm-bindgen"] }
+macroquad-canvas = "0.3.0"
+uuid = {version = "1.0.0", features = ["v4"]}
+
+game-logic = {path = "../game-logic"}
+
+[target.'cfg(target_family = "wasm")'.dependencies]
+sapp-jsutils = "0.1.5"
+wasm-bindgen = "0.2.83"
+wasm-bindgen-futures = "0.4"
+
+[target.'cfg(target_os = "windows")'.dependencies]
+openssl = { version = "0.10", features = ["vendored"] }
+
+[profile.release]
+lto = true
+opt-level = 's'

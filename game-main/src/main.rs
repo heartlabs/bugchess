@@ -1,13 +1,13 @@
 mod constants;
 mod events;
-mod game_logic;
+//mod game_logic;
 mod matchbox;
 mod rendering;
 mod states;
 
+use game_logic::{board::*, piece::*, ranges::*};
 use crate::{
     constants::*,
-    game_logic::{board::*, piece::*, ranges::*},
     rendering::{BoardRender, CustomRenderContext},
 };
 

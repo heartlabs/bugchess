@@ -16,11 +16,12 @@ use crate::{
         atomic_events::AtomicEvent, board_event_consumer::BoardEventConsumer,
         event_broker::EventBroker,
     },
-    game_logic::{board::*, game::*, piece::*},
     matchbox::{MatchboxClient, MatchboxEventConsumer},
     rendering::render_events::RenderEventConsumer,
     states::core_game_state::CoreGameSubstate,
 };
+use game_logic::{board::*, game::*, piece::*};
+
 use instant::Instant;
 use macroquad::{prelude::*, rand::srand};
 use macroquad_canvas::Canvas2D;
