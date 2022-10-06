@@ -50,21 +50,3 @@ pub fn cell_hovered(canvas: &Canvas2D) -> Point2 {
     let (mouse_x, mouse_y) = canvas.mouse_position();
     coords_to_cell(mouse_x, mouse_y)
 }
-
-pub struct Util {}
-
-impl Util {
-    pub fn with<T, F>(board: Rc<RefCell<Box<T>>>, mut closure: F)
-    where
-        F: FnMut(&T),
-    {
-        closure((*board).borrow().as_ref());
-    }
-
-    pub fn with_mut<T, F>(board: Rc<RefCell<Box<T>>>, mut closure: F)
-    where
-        F: FnMut(&mut T),
-    {
-        closure((*board).borrow_mut().as_mut());
-    }
-}

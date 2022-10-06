@@ -14,7 +14,6 @@ use egui_macroquad::{
 use game_events::{board_event_consumer::BoardEventConsumer, event_broker::EventBroker};
 use game_logic::{board::*, game::*, piece::*};
 use std::{
-    borrow::BorrowMut,
     cell::RefCell,
     fmt::{Display, Formatter},
     rc::Rc,

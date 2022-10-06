@@ -212,9 +212,6 @@ impl Animation {
         self.expert.start(board_render);
     }
 
-    pub fn append(&mut self, animation: Animation) {
-        self.next_animations.push(animation)
-    }
 }
 
 pub trait AnimationExpert: Debug {

@@ -8,19 +8,14 @@ use crate::{
     rendering::{BoardRender, CustomRenderContext},
 };
 use game_logic::{board::*, piece::*, ranges::*};
+use game_events::board_event_consumer::BoardEventConsumer;
 
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
 
 use crate::states::{core_game_state::CoreGameState, loading::LoadingState, GameState};
 use egui_macroquad::egui;
-use game_events::{
-    actions::compound_events::GameAction, atomic_events::AtomicEvent,
-    board_event_consumer::BoardEventConsumer,
-};
 use std::{borrow::BorrowMut, cell::RefCell, rc::Rc};
-
-//use wasm_bindgen::prelude::*;
 
 fn window_conf() -> Conf {
     Conf {

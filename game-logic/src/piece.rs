@@ -179,14 +179,6 @@ impl Exhaustion {
         }
     }
 
-    pub(crate) fn new_rested(strategy: ExhaustionStrategy) -> Exhaustion {
-        Exhaustion {
-            moved: false,
-            used_special: false,
-            strategy,
-        }
-    }
-
     pub fn can_move(&self) -> bool {
         match &self.strategy {
             ExhaustionStrategy::Special => false,
