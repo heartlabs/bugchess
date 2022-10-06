@@ -8,9 +8,7 @@ use crate::{
     },
     AtomicEvent,
 };
-use game_logic::{
-    piece::{PieceKind},
-};
+use game_logic::piece::PieceKind;
 use nanoserde::{DeBin, SerBin};
 use std::fmt::Debug;
 

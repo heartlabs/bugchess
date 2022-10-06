@@ -1,12 +1,10 @@
 use nanoserde::{DeBin, SerBin};
 
-use crate::{rand::rand};
+use crate::rand::rand;
 
-use crate::events::{
-    actions::compound_events::{GameAction},
-};
+use crate::events::actions::compound_events::GameAction;
 
-use std::{fmt::Debug};
+use std::fmt::Debug;
 
 #[derive(Debug, Clone, SerBin, DeBin)]
 pub struct GameEventObject {

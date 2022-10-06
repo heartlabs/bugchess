@@ -15,10 +15,7 @@ use std::{
 
 use crate::{
     egui::{Align, Color32, FontData, TextEdit},
-    events::{
-        board_event_consumer::BoardEventConsumer,
-        event_broker::EventBroker,
-    },
+    events::{board_event_consumer::BoardEventConsumer, event_broker::EventBroker},
     matchbox::{MatchboxClient, MatchboxEventConsumer},
     rendering::render_events::RenderEventConsumer,
     states::core_game_state::CoreGameSubstate,
