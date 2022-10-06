@@ -101,9 +101,11 @@
 <!-- Minified and statically hosted version of https://github.com/not-fl3/macroquad/blob/master/js/mq_js_bundle.js -->
 <!--<script src="https://v6p9d9t4.ssl.hwcdn.net/html/3660624-387905/mq_js_bundle.js"></script>-->
 
-<script src="https://not-fl3.github.io/miniquad-samples/mq_js_bundle.js"></script>
+<!--<script src="https://not-fl3.github.io/miniquad-samples/mq_js_bundle.js"></script>-->
+<script src="gl.js"></script>
 <script type="module">
         window.getStunUrl = () => {
+            //return "stun:stun.johanhelsing.studio:3478"
             return "stun:stun.l.google.com:19302"
         }
         import init, { set_wasm } from "./megachess.js";
