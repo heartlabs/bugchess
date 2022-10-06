@@ -10,7 +10,7 @@ pub struct EventBroker {
 }
 
 impl EventBroker {
-    pub(crate) fn new(sender_id: String) -> Self {
+    pub fn new(sender_id: String) -> Self {
         EventBroker {
             sender_id,
             past_events: vec![],
@@ -18,7 +18,7 @@ impl EventBroker {
         }
     }
 
-    pub(crate) fn subscribe_committed(&mut self, subscriber: Box<dyn EventConsumer>) {
+    pub fn subscribe_committed(&mut self, subscriber: Box<dyn EventConsumer>) {
         self.subscribers.push(subscriber);
     }
 

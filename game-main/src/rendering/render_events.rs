@@ -1,9 +1,10 @@
+use game_events::{
+    actions::{attack::AttackCompoundEvent, compound_events::GameAction},
+    atomic_events::AtomicEvent,
+    game_events::*,
+};
+
 use crate::{
-    events::{
-        actions::{attack::AttackCompoundEvent, compound_events::GameAction},
-        atomic_events::AtomicEvent,
-        game_events::*,
-    },
     rendering::animation::{Animation, PlacePieceAnimation},
     BoardRender,
 };

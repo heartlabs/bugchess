@@ -12,6 +12,8 @@ use game_logic::piece::PieceKind;
 use nanoserde::{DeBin, SerBin};
 use std::fmt::Debug;
 
+use super::undo::UndoBuilder;
+
 pub trait CompoundEvent: Debug {
     fn get_events(&self) -> Vec<AtomicEvent>;
 
@@ -44,11 +46,7 @@ impl GameAction {
     }
 
     pub fn undo(undone: Box<GameAction>) -> GameAction {
-        GameAction::Undo(UndoCompoundEvent {
-            events: vec![],
-            undone,
-            was_flushed: false,
-        })
+        UndoBuilder::new(undone).build()
     }
 
     pub fn finish_turn() -> FinishTurnBuilder {

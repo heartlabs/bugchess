@@ -1635,6 +1635,7 @@ dependencies = [
  "async-executor",
  "egui-macroquad",
  "futures",
+ "game-events",
  "game-logic",
  "instant",
  "macroquad",

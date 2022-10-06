@@ -1,6 +1,4 @@
 mod constants;
-mod events;
-//mod game_logic;
 mod matchbox;
 mod rendering;
 mod states;
@@ -16,7 +14,7 @@ use macroquad_canvas::Canvas2D;
 
 use crate::states::{core_game_state::CoreGameState, loading::LoadingState, GameState};
 use egui_macroquad::egui;
-use events::{
+use game_events::{
     actions::compound_events::GameAction, atomic_events::AtomicEvent,
     board_event_consumer::BoardEventConsumer,
 };

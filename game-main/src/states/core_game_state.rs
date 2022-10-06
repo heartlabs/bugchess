@@ -1,11 +1,11 @@
 use game_logic::game::Game;
+use game_events::{
+    actions::compound_events::GameAction, atomic_events::AtomicEvent, event_broker::EventBroker,
+};
 
 use crate::*;
 
 use crate::{
-    events::{
-        actions::compound_events::GameAction, atomic_events::AtomicEvent, event_broker::EventBroker,
-    },
     matchbox::MatchboxClient,
 };
 use macroquad::prelude::*;
