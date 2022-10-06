@@ -1,4 +1,7 @@
-use crate::{BoardRender, CoreGameState, GameState, matchbox, ONLINE, constants::{BOARD_WIDTH, BOARD_HEIGHT}};
+use crate::{
+    constants::{BOARD_HEIGHT, BOARD_WIDTH},
+    matchbox, BoardRender, CoreGameState, GameState, ONLINE,
+};
 use egui_macroquad::{
     egui,
     egui::{FontDefinitions, FontFamily, FontTweak, Layout, Visuals},
@@ -22,11 +25,11 @@ use crate::{
 };
 use game_logic::{board::*, game::*, piece::*};
 
+use crate::events::actions::compound_events::GameAction;
 use instant::Instant;
 use macroquad::{prelude::*, rand::srand};
 use macroquad_canvas::Canvas2D;
 use uuid::Uuid;
-use crate::events::actions::compound_events::GameAction;
 
 pub struct LoadingState {
     core_game_state: Option<CoreGameState>,
@@ -177,7 +180,8 @@ impl GameState for LoadingState {
                     core_game_state.set_sub_state(CoreGameSubstate::Wait);
                 } else {
                     let num_teams = 2;
-                    start_events = set_up_pieces(num_teams, (*core_game_state.game).borrow_mut().as_mut());
+                    start_events =
+                        set_up_pieces(num_teams, (*core_game_state.game).borrow_mut().as_mut());
                 }
 
                 let matchbox_events =
@@ -227,7 +231,9 @@ impl GameState for LoadingState {
                 } else {
                     let mut core_game_state = self.core_game_state.as_mut().unwrap();
                     let num_teams = 2;
-                    for start_event in &set_up_pieces(num_teams, (*core_game_state.game).borrow_mut().as_mut()) {
+                    for start_event in
+                        &set_up_pieces(num_teams, (*core_game_state.game).borrow_mut().as_mut())
+                    {
                         core_game_state.event_broker.handle_new_event(start_event);
                     }
                 }
@@ -276,7 +282,6 @@ fn set_up_pieces(team_count: usize, game: &mut Game) -> Vec<GameAction> {
     }
 
     events
-
 }
 
 fn init_game() -> Game {

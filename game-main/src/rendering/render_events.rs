@@ -1,16 +1,15 @@
-use game_logic::piece::PieceKind;
 use crate::{
-    BoardRender,
     events::{
+        actions::{attack::AttackCompoundEvent, compound_events::GameAction},
         atomic_events::AtomicEvent,
         game_events::*,
     },
     rendering::animation::{Animation, PlacePieceAnimation},
+    BoardRender,
 };
+use game_logic::piece::PieceKind;
 use macroquad::miniquad::info;
 use std::{cell::RefCell, rc::Rc};
-use crate::events::actions::attack::AttackCompoundEvent;
-use crate::events::actions::compound_events::GameAction;
 
 pub struct RenderEventConsumer {
     pub(crate) board_render: Rc<RefCell<Box<BoardRender>>>,

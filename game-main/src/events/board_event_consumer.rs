@@ -1,18 +1,17 @@
 use crate::{
+    events::{
+        actions::compound_events::{CompoundEvent, GameAction},
+        game_events::{EventConsumer, GameEventObject},
+    },
     AtomicEvent,
     AtomicEvent::{
         AddEffect, AddUnusedPiece, ChangeExhaustion, NextTurn, Place, Remove, RemoveEffect,
         RemoveUnusedPiece,
     },
-    events::{
-        game_events::{EventConsumer, GameEventObject},
-    },
-    
 };
 use game_logic::game::Game;
 use macroquad::logging::warn;
 use std::{cell::RefCell, rc::Rc};
-use crate::events::actions::compound_events::{CompoundEvent, GameAction};
 
 pub struct BoardEventConsumer {
     pub own_sender_id: String,

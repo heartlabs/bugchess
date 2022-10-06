@@ -1,4 +1,4 @@
-use crate::{piece::*};
+use crate::piece::*;
 use nanoserde::{DeBin, SerBin};
 
 #[derive(Clone)]
@@ -367,7 +367,6 @@ impl Pattern {
         ]
     }
 }
-
 
 impl Into<(u8, u8)> for Point2 {
     fn into(self) -> (u8, u8) {

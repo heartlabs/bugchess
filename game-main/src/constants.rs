@@ -1,7 +1,6 @@
-use std::rc::Rc;
-use std::cell::RefCell;
 use game_logic::board::Point2;
 use macroquad_canvas::Canvas2D;
+use std::{cell::RefCell, rc::Rc};
 
 #[cfg(target_family = "wasm")]
 pub const ONLINE: bool = true;
@@ -51,7 +50,6 @@ pub fn cell_hovered(canvas: &Canvas2D) -> Point2 {
     let (mouse_x, mouse_y) = canvas.mouse_position();
     coords_to_cell(mouse_x, mouse_y)
 }
-
 
 pub struct Util {}
 

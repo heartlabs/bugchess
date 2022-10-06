@@ -10,8 +10,8 @@ macroquad = "0.3.24"
 egui-macroquad = "0.12.0"
 urlencoding = "2.1.0"
 #nakama-rs = "*"
-#matchbox_socket = { path = "../../matchbox/matchbox_socket" }
- matchbox_socket = { git = "https://github.com/johanhelsing/matchbox" }
+matchbox_socket = { path = "../../matchbox/matchbox_socket" }
+# matchbox_socket = { git = "https://github.com/johanhelsing/matchbox" }
 #matchbox_socket = { git = "https://github.com/heartlabs/matchbox", branch = "feature/ice-server-config"}
 # matchbox_socket = "0.3.0"
 async-executor = "1.4.1"

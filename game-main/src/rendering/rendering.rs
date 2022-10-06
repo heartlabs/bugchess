@@ -1,10 +1,9 @@
-use game_logic::{board::*, game::*, piece::*, ranges::*};
 use crate::{
     constants::*,
-    
     rendering::{animation::*, ui::Button},
     states::core_game_state::CoreGameSubstate,
 };
+use game_logic::{board::*, game::*, piece::*, ranges::*};
 use instant::{Duration, Instant};
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;

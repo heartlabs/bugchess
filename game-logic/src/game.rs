@@ -1,4 +1,4 @@
-use crate::board::{Board};
+use crate::board::Board;
 use macroquad::prelude::Color;
 
 pub struct Game {

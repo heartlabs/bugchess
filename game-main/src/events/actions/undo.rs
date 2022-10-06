@@ -1,6 +1,5 @@
+use crate::{events::actions::compound_events::CompoundEvent, AtomicEvent, GameAction};
 use nanoserde::{DeBin, SerBin};
-use crate::{AtomicEvent, GameAction};
-use crate::events::actions::compound_events::CompoundEvent;
 
 #[derive(Debug, Clone, SerBin, DeBin)]
 pub struct UndoCompoundEvent {
@@ -9,9 +8,8 @@ pub struct UndoCompoundEvent {
     pub was_flushed: bool,
 }
 
-
 pub struct UndoBuilder {
-    event: UndoCompoundEvent
+    event: UndoCompoundEvent,
 }
 
 impl UndoBuilder {
@@ -27,7 +25,7 @@ impl UndoBuilder {
                 events: vec![],
                 undone,
                 was_flushed: false,
-            }
+            },
         }
     }
 }

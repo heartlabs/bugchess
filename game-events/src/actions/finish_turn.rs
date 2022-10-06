@@ -1,8 +1,9 @@
+use crate::{actions::compound_events::CompoundEvent, atomic_events::AtomicEvent};
+use game_logic::{
+    board::Point2,
+    piece::{Exhaustion, Piece},
+};
 use nanoserde::{DeBin, SerBin};
-use game_logic::piece::{Exhaustion, Piece};
-use game_logic::board::{Point2};
-use crate::atomic_events::{AtomicEvent};
-use crate::actions::compound_events::CompoundEvent;
 
 use super::compound_events::GameAction;
 
@@ -37,7 +38,7 @@ impl CompoundEvent for FinishTurnCompoundEvent {
 }
 
 pub struct FinishTurnBuilder {
-    event: FinishTurnCompoundEvent
+    event: FinishTurnCompoundEvent,
 }
 
 impl FinishTurnBuilder {
@@ -46,7 +47,7 @@ impl FinishTurnBuilder {
             event: FinishTurnCompoundEvent {
                 events: vec![AtomicEvent::NextTurn],
                 was_flushed: false,
-            }
+            },
         }
     }
 }
@@ -69,7 +70,9 @@ impl FinishTurnBuilder {
     }
 
     pub fn change_exhaustion(&mut self, from: Exhaustion, to: Exhaustion, at: Point2) -> &mut Self {
-        self.event.events.push(AtomicEvent::ChangeExhaustion(from,to,at));
+        self.event
+            .events
+            .push(AtomicEvent::ChangeExhaustion(from, to, at));
 
         self
     }

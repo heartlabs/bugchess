@@ -1,13 +1,19 @@
-use game_logic::piece::{Exhaustion, Piece, PieceKind};
-use game_logic::board::{Point2};
-use crate::atomic_events::{AtomicEvent};
+use crate::{
+    actions::{
+        attack::{AttackBuilder, AttackCompoundEvent},
+        finish_turn::{FinishTurnBuilder, FinishTurnCompoundEvent},
+        moving::{MoveBuilder, MoveCompoundEvent},
+        place::{PlaceBuilder, PlaceCompoundEvent},
+        undo::UndoCompoundEvent,
+    },
+    atomic_events::AtomicEvent,
+};
+use game_logic::{
+    board::Point2,
+    piece::{Exhaustion, Piece, PieceKind},
+};
 use nanoserde::{DeBin, SerBin};
 use std::fmt::Debug;
-use crate::actions::attack::{AttackBuilder, AttackCompoundEvent};
-use crate::actions::finish_turn::{FinishTurnBuilder, FinishTurnCompoundEvent};
-use crate::actions::moving::{MoveBuilder, MoveCompoundEvent};
-use crate::actions::place::{PlaceBuilder, PlaceCompoundEvent};
-use crate::actions::undo::UndoCompoundEvent;
 
 pub trait CompoundEvent: Debug {
     fn get_events(&self) -> Vec<AtomicEvent>;

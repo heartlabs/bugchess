@@ -4,14 +4,13 @@ use crate::*;
 
 use crate::{
     events::{
+        actions::compound_events::GameAction,
         atomic_events::{AtomicEvent, AtomicEvent::Place},
         event_broker::EventBroker,
     },
-    
     matchbox::MatchboxClient,
 };
 use macroquad::prelude::*;
-use crate::events::actions::compound_events::GameAction;
 
 pub struct CoreGameState {
     pub game: Rc<RefCell<Box<Game>>>,

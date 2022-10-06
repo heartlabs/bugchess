@@ -5,23 +5,22 @@ mod matchbox;
 mod rendering;
 mod states;
 
-use game_logic::{board::*, piece::*, ranges::*};
 use crate::{
     constants::*,
     rendering::{BoardRender, CustomRenderContext},
 };
+use game_logic::{board::*, piece::*, ranges::*};
 
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
 
-use crate::states::{core_game_state::CoreGameState, GameState, loading::LoadingState};
+use crate::states::{core_game_state::CoreGameState, loading::LoadingState, GameState};
 use egui_macroquad::egui;
 use events::{
-    atomic_events::AtomicEvent, board_event_consumer::BoardEventConsumer,
-    event_broker::EventBroker,
+    actions::compound_events::GameAction, atomic_events::AtomicEvent,
+    board_event_consumer::BoardEventConsumer, event_broker::EventBroker,
 };
 use std::{borrow::BorrowMut, cell::RefCell, rc::Rc};
-use events::actions::compound_events::GameAction;
 
 //use wasm_bindgen::prelude::*;
 

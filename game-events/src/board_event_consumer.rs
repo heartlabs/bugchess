@@ -1,13 +1,11 @@
 use crate::{
-    atomic_events::AtomicEvent::{*, self},
+    actions::compound_events::{CompoundEvent, GameAction},
+    atomic_events::AtomicEvent::{self, *},
     game_events::{EventConsumer, GameEventObject},
-
-    
 };
 use game_logic::game::Game;
 use macroquad::logging::warn;
 use std::{cell::RefCell, rc::Rc};
-use crate::actions::compound_events::{CompoundEvent, GameAction};
 
 pub struct BoardEventConsumer {
     pub own_sender_id: String,

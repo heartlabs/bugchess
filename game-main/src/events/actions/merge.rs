@@ -1,6 +1,5 @@
+use crate::{events::actions::compound_events::CompoundEvent, AtomicEvent};
 use nanoserde::{DeBin, SerBin};
-use crate::AtomicEvent;
-use crate::events::actions::compound_events::CompoundEvent;
 
 #[derive(Debug, Clone, SerBin, DeBin)]
 pub struct MergeCompoundEvent {

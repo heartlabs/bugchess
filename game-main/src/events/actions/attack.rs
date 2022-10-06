@@ -1,8 +1,9 @@
-use nanoserde::{DeBin, SerBin};
+use crate::{
+    events::actions::{compound_events::CompoundEvent, merge::MergeCompoundEvent},
+    AtomicEvent, GameAction,
+};
 use game_logic::piece::PieceKind;
-use crate::{AtomicEvent, GameAction};
-use crate::events::actions::compound_events::CompoundEvent;
-use crate::events::actions::merge::MergeCompoundEvent;
+use nanoserde::{DeBin, SerBin};
 
 #[derive(Debug, Clone, SerBin, DeBin)]
 pub struct AttackCompoundEvent {
@@ -13,7 +14,7 @@ pub struct AttackCompoundEvent {
 }
 
 pub struct AttackBuilder {
-    event: AttackCompoundEvent
+    event: AttackCompoundEvent,
 }
 
 impl AttackBuilder {
@@ -30,7 +31,7 @@ impl AttackBuilder {
                 piece_kind,
                 merge_events: MergeCompoundEvent::new(),
                 was_flushed: false,
-            }
+            },
         }
     }
 }

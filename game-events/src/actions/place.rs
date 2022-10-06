@@ -1,7 +1,8 @@
+use crate::{
+    actions::{compound_events::CompoundEvent, merge::MergeCompoundEvent},
+    atomic_events::AtomicEvent,
+};
 use nanoserde::{DeBin, SerBin};
-use crate::atomic_events::{AtomicEvent};
-use crate::actions::compound_events::CompoundEvent;
-use crate::actions::merge::MergeCompoundEvent;
 
 use super::compound_events::GameAction;
 
@@ -12,9 +13,8 @@ pub struct PlaceCompoundEvent {
     was_flushed: bool,
 }
 
-
 pub struct PlaceBuilder {
-    event: PlaceCompoundEvent
+    event: PlaceCompoundEvent,
 }
 
 impl PlaceBuilder {
@@ -30,11 +30,10 @@ impl PlaceBuilder {
                 events: vec![],
                 merge_events: MergeCompoundEvent::new(),
                 was_flushed: false,
-            }
+            },
         }
     }
 }
-
 
 impl CompoundEvent for PlaceCompoundEvent {
     fn get_events(&self) -> Vec<AtomicEvent> {

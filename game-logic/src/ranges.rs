@@ -1,8 +1,7 @@
 use nanoserde::{DeBin, SerBin};
 use std::{collections::HashSet, iter::successors};
 
-use crate::board::*;
-use crate::piece::*;
+use crate::{board::*, piece::*};
 
 #[derive(Debug, Copy, Clone, SerBin, DeBin)]
 pub struct Range {

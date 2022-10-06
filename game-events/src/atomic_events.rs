@@ -1,6 +1,8 @@
-use game_logic::piece::{Exhaustion, Piece, EffectKind};
-use game_logic::board::{Point2};
-use crate::atomic_events::{AtomicEvent::*,};
+use crate::atomic_events::AtomicEvent::*;
+use game_logic::{
+    board::Point2,
+    piece::{EffectKind, Exhaustion, Piece},
+};
 use nanoserde::{DeBin, SerBin};
 
 #[derive(Debug, Copy, Clone, SerBin, DeBin)]

@@ -1,7 +1,8 @@
+use crate::{
+    actions::{compound_events::CompoundEvent, merge::MergeCompoundEvent},
+    atomic_events::AtomicEvent,
+};
 use nanoserde::{DeBin, SerBin};
-use crate::atomic_events::{AtomicEvent};
-use crate::actions::compound_events::CompoundEvent;
-use crate::actions::merge::MergeCompoundEvent;
 
 use super::compound_events::GameAction;
 
@@ -12,9 +13,8 @@ pub struct MoveCompoundEvent {
     was_flushed: bool,
 }
 
-
 pub struct MoveBuilder {
-    event: MoveCompoundEvent
+    event: MoveCompoundEvent,
 }
 
 impl MoveBuilder {
@@ -30,7 +30,7 @@ impl MoveBuilder {
                 events: vec![],
                 merge_events: MergeCompoundEvent::new(),
                 was_flushed: false,
-            }
+            },
         }
     }
 }

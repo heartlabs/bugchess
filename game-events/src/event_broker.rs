@@ -1,5 +1,7 @@
-use crate::game_events::{EventConsumer, GameEventObject};
-use crate::actions::compound_events::GameAction;
+use crate::{
+    actions::compound_events::GameAction,
+    game_events::{EventConsumer, GameEventObject},
+};
 
 pub struct EventBroker {
     sender_id: String,
