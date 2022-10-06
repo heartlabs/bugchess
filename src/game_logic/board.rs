@@ -1,4 +1,4 @@
-use crate::{constants::*, game_logic::piece::*};
+use crate::{game_logic::piece::*};
 use nanoserde::{DeBin, SerBin};
 
 #[derive(Clone)]
@@ -15,12 +15,12 @@ pub struct Board {
 }
 
 impl Board {
-    pub fn new() -> Board {
+    pub fn new(width: u8, height: u8) -> Board {
         let mut cells = vec![];
 
-        for x in 0..BOARD_WIDTH {
+        for x in 0..width {
             let mut column = vec![];
-            for y in 0..BOARD_HEIGHT {
+            for y in 0..height {
                 column.push(Cell {
                     point: Point2::new(x, y),
                     piece: Option::None,
@@ -32,8 +32,8 @@ impl Board {
 
         Board {
             cells,
-            w: BOARD_WIDTH,
-            h: BOARD_HEIGHT,
+            w: width,
+            h: height,
         }
     }
 

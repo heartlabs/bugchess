@@ -1,4 +1,4 @@
-use crate::{BoardRender, CoreGameState, GameState, matchbox, ONLINE};
+use crate::{BoardRender, CoreGameState, GameState, matchbox, ONLINE, constants::{BOARD_WIDTH, BOARD_HEIGHT}};
 use egui_macroquad::{
     egui,
     egui::{FontDefinitions, FontFamily, FontTweak, Layout, Visuals},
@@ -301,5 +301,5 @@ fn init_game() -> Game {
         },
     ];
 
-    Game::new(teams)
+    Game::new(teams, BOARD_WIDTH, BOARD_HEIGHT)
 }

@@ -1736,7 +1736,6 @@ dependencies = [
  "macroquad",
  "macroquad-canvas",
  "matchbox_socket",
- "miniquad",
  "nanoserde",
  "openssl",
  "sapp-jsutils",

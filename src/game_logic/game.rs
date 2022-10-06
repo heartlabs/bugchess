@@ -1,4 +1,4 @@
-use crate::Board;
+use crate::{Board};
 use macroquad::prelude::Color;
 
 pub struct Game {
@@ -17,9 +17,9 @@ pub struct Team {
 }
 
 impl Game {
-    pub fn new(teams: Vec<Team>) -> Self {
+    pub fn new(teams: Vec<Team>, board_width: u8, board_height: u8) -> Self {
         Game {
-            board: Board::new(),
+            board: Board::new(board_width, board_height),
             teams,
             current_team_index: 0,
         }

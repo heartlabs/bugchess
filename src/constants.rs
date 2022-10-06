@@ -1,4 +1,7 @@
-use crate::*;
+use std::rc::Rc;
+use std::cell::RefCell;
+use crate::Point2;
+use macroquad_canvas::Canvas2D;
 
 #[cfg(target_family = "wasm")]
 pub const ONLINE: bool = true;
