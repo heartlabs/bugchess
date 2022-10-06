@@ -50,7 +50,7 @@ pub struct MatchboxClient {
 }
 
 impl MatchboxClient {
-    pub fn new(client: WebRtcSocket, _message_loop: Pin<Box<dyn Future<Output = ()>>>) -> Self {
+    pub fn new(client: WebRtcSocket, message_loop: Pin<Box<dyn Future<Output = ()>>>) -> Self {
         let own_player_id = client.id().to_string();
         let client = MatchboxClient {
             sent_events: HashSet::new(),
