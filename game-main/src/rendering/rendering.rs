@@ -99,7 +99,7 @@ impl BoardRender {
         ));
     }
 
-    pub fn add_animation_sequence(&mut self, mut animations: Vec<Animation>) {
+    pub fn add_animation_sequence(&mut self, animations: Vec<Animation>) {
         self.next_animations.push_back(animations);
     }
 

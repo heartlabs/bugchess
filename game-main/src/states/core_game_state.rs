@@ -5,7 +5,7 @@ use crate::*;
 use crate::{
     events::{
         actions::compound_events::GameAction,
-        atomic_events::{AtomicEvent, AtomicEvent::Place},
+        atomic_events::{AtomicEvent},
         event_broker::EventBroker,
     },
     matchbox::MatchboxClient,

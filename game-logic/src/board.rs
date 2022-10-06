@@ -163,7 +163,7 @@ impl Board {
     }
 
     pub fn remove_effect(&mut self, kind: &EffectKind, pos: &Point2) {
-        let mut effects = &mut self.get_cell_mut(pos).effects;
+        let effects = &mut self.get_cell_mut(pos).effects;
         let index = effects.iter().position(|e| e == kind).expect(
             format!(
                 "Can't remove effect {:?} at {:?} because it doesn't exist",

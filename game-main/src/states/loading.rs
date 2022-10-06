@@ -16,7 +16,7 @@ use std::{
 use crate::{
     egui::{Align, Color32, FontData, TextEdit},
     events::{
-        atomic_events::AtomicEvent, board_event_consumer::BoardEventConsumer,
+        board_event_consumer::BoardEventConsumer,
         event_broker::EventBroker,
     },
     matchbox::{MatchboxClient, MatchboxEventConsumer},
@@ -63,7 +63,7 @@ impl LoadingState {
     pub fn new() -> Self {
         let start_time = Instant::now();
 
-        let mut game = Rc::new(RefCell::new(Box::new(init_game())));
+        let game = Rc::new(RefCell::new(Box::new(init_game())));
         let own_sender_id = Uuid::new_v4().to_string();
         let mut event_broker = EventBroker::new(own_sender_id.clone());
         event_broker.subscribe_committed(Box::new(BoardEventConsumer {
@@ -71,7 +71,7 @@ impl LoadingState {
             game: Rc::clone(&game),
         }));
 
-        let mut board_render = Rc::new(RefCell::new(Box::new(BoardRender::new(
+        let board_render = Rc::new(RefCell::new(Box::new(BoardRender::new(
             (*game).borrow().as_ref(),
         ))));
         event_broker.subscribe_committed(Box::new(RenderEventConsumer {
@@ -202,7 +202,7 @@ impl GameState for LoadingState {
             }
             LoadingSubState::WaitForOpponent => {
                 if ONLINE {
-                    let mut core_game_state = self.core_game_state.as_mut().unwrap();
+                    let core_game_state = self.core_game_state.as_mut().unwrap();
                     let wait_for_opponent = {
                         let client = core_game_state
                             .matchbox_events
@@ -229,7 +229,7 @@ impl GameState for LoadingState {
                         return None;
                     }
                 } else {
-                    let mut core_game_state = self.core_game_state.as_mut().unwrap();
+                    let core_game_state = self.core_game_state.as_mut().unwrap();
                     let num_teams = 2;
                     for start_event in
                         &set_up_pieces(num_teams, (*core_game_state.game).borrow_mut().as_mut())

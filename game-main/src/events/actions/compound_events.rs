@@ -2,7 +2,6 @@ use crate::{
     events::actions::{
         attack::{AttackBuilder, AttackCompoundEvent},
         finish_turn::{FinishTurnBuilder, FinishTurnCompoundEvent},
-        merge::MergeCompoundEvent,
         moving::{MoveBuilder, MoveCompoundEvent},
         place::{PlaceBuilder, PlaceCompoundEvent},
         undo::UndoCompoundEvent,
@@ -10,8 +9,7 @@ use crate::{
     AtomicEvent,
 };
 use game_logic::{
-    board::Point2,
-    piece::{Exhaustion, Piece, PieceKind},
+    piece::{PieceKind},
 };
 use nanoserde::{DeBin, SerBin};
 use std::fmt::Debug;

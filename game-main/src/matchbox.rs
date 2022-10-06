@@ -22,7 +22,7 @@ fn getStunUrl() -> String {
 
 pub fn connect(room_id: &str) -> MatchboxClient {
     info!("Stun URL: {}", getStunUrl());
-    let (mut socket, loop_fut) = WebRtcSocket::new_with_config(WebRtcSocketConfig {
+    let (socket, loop_fut) = WebRtcSocket::new_with_config(WebRtcSocketConfig {
         room_url: format!("wss://heartlabs.tech:3537/{}?next=2", encode(room_id)),
         ice_server: RtcIceServerConfig {
             urls: vec![getStunUrl()],
@@ -50,7 +50,7 @@ pub struct MatchboxClient {
 }
 
 impl MatchboxClient {
-    pub fn new(client: WebRtcSocket, message_loop: Pin<Box<dyn Future<Output = ()>>>) -> Self {
+    pub fn new(client: WebRtcSocket, _message_loop: Pin<Box<dyn Future<Output = ()>>>) -> Self {
         let own_player_id = client.id().to_string();
         let client = MatchboxClient {
             sent_events: HashSet::new(),

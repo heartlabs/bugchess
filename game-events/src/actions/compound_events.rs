@@ -9,8 +9,7 @@ use crate::{
     atomic_events::AtomicEvent,
 };
 use game_logic::{
-    board::Point2,
-    piece::{Exhaustion, Piece, PieceKind},
+    piece::{PieceKind},
 };
 use nanoserde::{DeBin, SerBin};
 use std::fmt::Debug;

@@ -18,7 +18,7 @@ use crate::states::{core_game_state::CoreGameState, loading::LoadingState, GameS
 use egui_macroquad::egui;
 use events::{
     actions::compound_events::GameAction, atomic_events::AtomicEvent,
-    board_event_consumer::BoardEventConsumer, event_broker::EventBroker,
+    board_event_consumer::BoardEventConsumer,
 };
 use std::{borrow::BorrowMut, cell::RefCell, rc::Rc};
 

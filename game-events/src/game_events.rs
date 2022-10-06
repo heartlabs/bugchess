@@ -3,11 +3,10 @@ use nanoserde::{DeBin, SerBin};
 use macroquad::prelude::rand::rand;
 
 use crate::{
-    actions::compound_events::{CompoundEvent, GameAction},
-    atomic_events::{AtomicEvent, AtomicEvent::*},
+    actions::compound_events::{GameAction},
 };
-use macroquad::logging::warn;
-use std::{cell::RefCell, fmt::Debug, rc::Rc, slice::Iter};
+
+use std::{fmt::Debug};
 
 #[derive(Debug, Clone, SerBin, DeBin)]
 pub struct GameEventObject {
