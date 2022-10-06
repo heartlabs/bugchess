@@ -1593,6 +1593,7 @@ dependencies = [
 [[package]]
 name = "matchbox_socket"
 version = "0.3.0"
+source = "git+https://github.com/heartlabs/matchbox?branch=feature/upgrade-webrtc#1de68c0db64539f78f08bedda591413389fbeb74"
 dependencies = [
  "async-compat",
  "async-tungstenite",
