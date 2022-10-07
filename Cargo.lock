@@ -1219,17 +1219,28 @@ dependencies = [
 name = "game-events"
 version = "0.1.0"
 dependencies = [
- "game-logic",
+ "game-model",
  "miniquad",
  "nanoserde",
  "quad-rand",
 ]
 
 [[package]]
-name = "game-logic"
+name = "game-model"
 version = "0.1.0"
 dependencies = [
  "nanoserde",
+]
+
+[[package]]
+name = "game-render"
+version = "0.1.0"
+dependencies = [
+ "game-events",
+ "game-model",
+ "instant",
+ "macroquad",
+ "macroquad-canvas",
 ]
 
 [[package]]
@@ -1637,7 +1648,8 @@ dependencies = [
  "egui-macroquad",
  "futures",
  "game-events",
- "game-logic",
+ "game-model",
+ "game-render",
  "instant",
  "macroquad",
  "macroquad-canvas",

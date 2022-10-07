@@ -1,5 +1,5 @@
 // TODO: That doesnt belong in the events crate - maybe put it in its own crate?
-use game_logic::{
+use game_model::{
     board::{Point2, Board, Pattern}, 
     game::Game, 
     piece::{Piece, PieceKind, Power, EffectKind}, 

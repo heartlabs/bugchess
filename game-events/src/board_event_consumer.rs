@@ -3,7 +3,7 @@ use crate::{
     atomic_events::AtomicEvent::{self, *},
     game_events::{EventConsumer, GameEventObject},
 };
-use game_logic::game::Game;
+use game_model::game::Game;
 use miniquad::warn;
 use std::{cell::RefCell, rc::Rc};
 

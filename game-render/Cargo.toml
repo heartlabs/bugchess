@@ -1,12 +1,13 @@
 [package]
-name = "game-events"
+name = "game-render"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+macroquad = "0.3.24"
+macroquad-canvas = "0.3.0"
+instant = "0.1.12"
 game-model = {path = "../game-model"}
-nanoserde = "0.1.30"
-miniquad = "0.3.13" # only used for logging
-quad-rand = "0.2.1"
+game-events = {path = "../game-events"}

@@ -2,7 +2,7 @@ use crate::{
     actions::{compound_events::CompoundEvent, merge::MergeCompoundEvent},
     atomic_events::AtomicEvent,
 };
-use game_logic::piece::PieceKind;
+use game_model::piece::PieceKind;
 use nanoserde::{DeBin, SerBin};
 
 use super::compound_events::GameAction;

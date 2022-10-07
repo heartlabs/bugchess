@@ -1,9 +1,8 @@
 use crate::{
-    constants::{BOARD_HEIGHT, BOARD_WIDTH},
     egui::{Align, Color32, FontData, TextEdit},
     matchbox,
     matchbox::{MatchboxClient, MatchboxEventConsumer},
-    rendering::render_events::RenderEventConsumer,
+    
     BoardRender, CoreGameState, GameState, ONLINE,
 };
 use egui_macroquad::{
@@ -15,7 +14,9 @@ use game_events::{
     board_event_consumer::BoardEventConsumer, 
     event_broker::EventBroker, core_game::CoreGameSubstate,
 };
-use game_logic::{board::*, game::*, piece::*};
+use game_model::{board::*, game::*, piece::*};
+use game_render::constants::{BOARD_WIDTH, BOARD_HEIGHT};
+use game_render::render_events::RenderEventConsumer;
 use std::{
     cell::RefCell,
     fmt::{Display, Formatter},
@@ -70,9 +71,7 @@ impl LoadingState {
         let board_render = Rc::new(RefCell::new(Box::new(BoardRender::new(
             (*game).borrow().as_ref(),
         ))));
-        event_broker.subscribe_committed(Box::new(RenderEventConsumer {
-            board_render: board_render.clone(),
-        }));
+        event_broker.subscribe_committed(Box::new(RenderEventConsumer::new(&board_render)));
 
         info!(
             "{}ns to set up pieces. {}",

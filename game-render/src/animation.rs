@@ -2,7 +2,7 @@ use crate::{
     constants::*,
     rendering::{EffectRender, SpriteKind, SpriteRender,BoardRender},
 };
-use game_logic::{
+use game_model::{
     board::Point2,
     piece::{EffectKind, Exhaustion, PieceKind},
 };

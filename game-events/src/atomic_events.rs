@@ -1,5 +1,5 @@
 use crate::atomic_events::AtomicEvent::*;
-use game_logic::{
+use game_model::{
     board::Point2,
     piece::{EffectKind, Exhaustion, Piece},
 };

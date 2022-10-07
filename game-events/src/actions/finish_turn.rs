@@ -1,5 +1,5 @@
 use crate::{actions::compound_events::CompoundEvent, atomic_events::AtomicEvent};
-use game_logic::{
+use game_model::{
     board::Point2,
     piece::{Exhaustion, Piece},
 };

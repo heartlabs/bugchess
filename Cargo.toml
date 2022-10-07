@@ -1,5 +1,5 @@
 [workspace]
-members = ["game-logic", "game-events", "game-main"]
+members = ["game-model", "game-events", "game-main", "game-render"]
 
 [profile.release]
 lto = true

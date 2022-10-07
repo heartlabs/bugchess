@@ -3,9 +3,9 @@ use game_events::{
     atomic_events::AtomicEvent,
     game_events::*,
 };
-use game_logic::piece::PieceKind;
+use game_model::piece::PieceKind;
 
-use crate::rendering::{
+use crate::{
     animation::{Animation, PlacePieceAnimation},
     BoardRender,
 };
@@ -17,6 +17,10 @@ pub struct RenderEventConsumer {
 }
 
 impl RenderEventConsumer {
+    pub fn new (board_render: &Rc<RefCell<Box<BoardRender>>>) -> Self {
+        RenderEventConsumer { board_render: board_render.clone() }
+    }
+
     pub(crate) fn handle_event_internal(&self, events: &[AtomicEvent], t: &GameAction) {
         let mut board_render = (*self.board_render).borrow_mut();
         info!("Handling {} Render Events: {:?}", events.len(), t);
@@ -53,7 +57,7 @@ impl RenderEventConsumer {
 
                         Animation::new_exhaustion(*to, *at)
                     } else {
-                        panic!("CompoundEventType::Attack must start with an an Exhaust");
+                        panic!("CompoundEventType::Attack must start with an an Exhaust!");
                     };
 
                 let merge_events = &events[i..];

@@ -1,14 +1,12 @@
 mod constants;
 mod matchbox;
-mod rendering;
 mod states;
 
 use crate::{
     constants::*,
-    rendering::{BoardRender},
     states::{core_game_state::CoreGameState, loading::LoadingState, GameState}
 };
-
+use game_render::{BoardRender};
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
 

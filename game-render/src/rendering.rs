@@ -1,12 +1,13 @@
 use crate::{
     constants::*,
-    rendering::{animation::*, ui::Button},
+    animation::*,
+    ui::Button,
 };
 use game_events::core_game::CoreGameSubstate;
-use game_logic::{board::*, game::*, piece::*, ranges::*};
+use game_model::{board::*, game::*, piece::*, ranges::*};
 use instant::{Duration, Instant};
-use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
+use macroquad::prelude::*;
 use std::collections::{HashMap, VecDeque};
 #[derive(Debug, Clone)]
 pub struct CustomRenderContext {
@@ -18,14 +19,14 @@ pub struct CustomRenderContext {
 }
 
 impl CustomRenderContext {
-    pub(crate) fn new() -> Self {
+    pub fn new() -> Self {
         CustomRenderContext {
             pieces_texture: Texture2D::from_file_with_format(
-                include_bytes!("../../resources/sprites/pieces.png"),
+                include_bytes!("../resources/sprites/pieces.png"),
                 None,
             ),
             special_texture: Texture2D::from_file_with_format(
-                include_bytes!("../../resources/sprites/special.png"),
+                include_bytes!("../resources/sprites/special.png"),
                 None,
             ),
             game_state: CoreGameSubstate::Place,
@@ -46,6 +47,8 @@ pub struct BoardRender {
 }
 
 impl BoardRender {
+
+
     pub fn new(game: &Game) -> Self {
         let unused_pieces = vec![vec![], vec![]];
         let mut placed_pieces = HashMap::new();
@@ -75,6 +78,10 @@ impl BoardRender {
             current_animations: vec![],
         }
     }
+
+    pub fn get_team_color(&self, index: usize) -> &Color {
+        self.team_colors.get(index).expect("Team with that index does not exist")
+    } 
 
     pub fn add_unused_piece(&mut self, team_id: usize) {
         let unused_pieces = &mut self.unused_pieces[team_id];

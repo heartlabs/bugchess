@@ -6,15 +6,17 @@ use game_events::{
     event_broker::EventBroker, 
     core_game::CoreGameSubstate,
 };
-use game_logic::{
+use game_model::{
     game::Game,
 };
+
+use game_render::constants::cell_hovered;
+use game_render::{BoardRender, CustomRenderContext};
 use macroquad_canvas::Canvas2D;
 
 use crate::{
-    constants::{cell_hovered, ONLINE},
+    constants::{ONLINE},
     matchbox::MatchboxClient,
-    rendering::{BoardRender, CustomRenderContext},
     GameState,
 };
 use macroquad::prelude::*;
@@ -122,7 +124,7 @@ impl GameState for CoreGameState {
                 10.,
                 670. + (i * 50) as f32,
                 50.,
-                board_render.team_colors[game.current_team_index],
+                board_render.get_team_color(game.current_team_index).clone(),
             );
         }
     }
