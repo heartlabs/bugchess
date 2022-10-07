@@ -1,7 +1,6 @@
 use crate::{
     constants::*,
-    rendering::{EffectRender, SpriteKind, SpriteRender},
-    BoardRender,
+    rendering::{EffectRender, SpriteKind, SpriteRender,BoardRender},
 };
 use game_logic::{
     board::Point2,
@@ -211,7 +210,6 @@ impl Animation {
         //info!("Starting {:?}", self.expert);
         self.expert.start(board_render);
     }
-
 }
 
 pub trait AnimationExpert: Debug {

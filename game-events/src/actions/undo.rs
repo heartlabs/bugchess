@@ -1,7 +1,8 @@
-use crate::{actions::compound_events::CompoundEvent, atomic_events::AtomicEvent};
+use crate::{
+    actions::compound_events::{CompoundEvent, GameAction},
+    atomic_events::AtomicEvent
+};
 use nanoserde::{DeBin, SerBin};
-
-use super::compound_events::GameAction;
 
 #[derive(Debug, Clone, SerBin, DeBin)]
 pub struct UndoCompoundEvent {

@@ -3,12 +3,12 @@ use game_events::{
     atomic_events::AtomicEvent,
     game_events::*,
 };
+use game_logic::piece::PieceKind;
 
-use crate::{
-    rendering::animation::{Animation, PlacePieceAnimation},
+use crate::rendering::{
+    animation::{Animation, PlacePieceAnimation},
     BoardRender,
 };
-use game_logic::piece::PieceKind;
 use macroquad::miniquad::info;
 use std::{cell::RefCell, rc::Rc};
 

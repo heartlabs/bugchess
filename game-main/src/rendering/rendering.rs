@@ -1,8 +1,8 @@
 use crate::{
     constants::*,
     rendering::{animation::*, ui::Button},
-    states::core_game_state::CoreGameSubstate,
 };
+use game_events::core_game::CoreGameSubstate;
 use game_logic::{board::*, game::*, piece::*, ranges::*};
 use instant::{Duration, Instant};
 use macroquad::prelude::*;
@@ -52,13 +52,15 @@ impl BoardRender {
 
         let board = &game.board;
 
+        let team_colors = vec![Color::new(0.76, 0.17, 0.10, 1.), Color::new(0.90, 0.68, 0.15, 1.)];
+
         board.for_each_placed_piece(|point, piece| {
             placed_pieces.insert(
                 point,
                 SpriteRender::for_piece(
                     &point,
                     piece.piece_kind,
-                    game.get_team(piece.team_id).color,
+                    team_colors[piece.team_id],
                 ),
             );
         });
@@ -66,7 +68,7 @@ impl BoardRender {
         BoardRender {
             unused_pieces,
             placed_pieces,
-            team_colors: game.teams.iter().map(|t| t.color).collect(),
+            team_colors,
             special_sprites: HashMap::new(),
             next_animations: VecDeque::new(),
             effects: HashMap::new(),

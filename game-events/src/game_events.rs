@@ -1,6 +1,6 @@
 use nanoserde::{DeBin, SerBin};
 
-use macroquad::prelude::rand::rand;
+use quad_rand::rand;
 
 use crate::actions::compound_events::GameAction;
 

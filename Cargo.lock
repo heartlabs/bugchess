@@ -1220,15 +1220,15 @@ name = "game-events"
 version = "0.1.0"
 dependencies = [
  "game-logic",
- "macroquad",
+ "miniquad",
  "nanoserde",
+ "quad-rand",
 ]
 
 [[package]]
 name = "game-logic"
 version = "0.1.0"
 dependencies = [
- "macroquad",
  "nanoserde",
 ]
 

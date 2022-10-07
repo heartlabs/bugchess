@@ -5,17 +5,14 @@ mod states;
 
 use crate::{
     constants::*,
-    rendering::{BoardRender, CustomRenderContext},
+    rendering::{BoardRender},
+    states::{core_game_state::CoreGameState, loading::LoadingState, GameState}
 };
-use game_logic::{board::*, piece::*, ranges::*};
-use game_events::board_event_consumer::BoardEventConsumer;
 
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
 
-use crate::states::{core_game_state::CoreGameState, loading::LoadingState, GameState};
 use egui_macroquad::egui;
-use std::{borrow::BorrowMut, cell::RefCell, rc::Rc};
 
 fn window_conf() -> Conf {
     Conf {

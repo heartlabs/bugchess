@@ -1,10 +1,10 @@
 use crate::{
-    actions::compound_events::{GameAction},
+    actions::compound_events::GameAction,
     atomic_events::AtomicEvent::{self, *},
     game_events::{EventConsumer, GameEventObject},
 };
 use game_logic::game::Game;
-use macroquad::logging::warn;
+use miniquad::warn;
 use std::{cell::RefCell, rc::Rc};
 
 pub struct BoardEventConsumer {

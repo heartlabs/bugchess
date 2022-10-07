@@ -4,14 +4,17 @@ use crate::{
     matchbox,
     matchbox::{MatchboxClient, MatchboxEventConsumer},
     rendering::render_events::RenderEventConsumer,
-    states::core_game_state::CoreGameSubstate,
     BoardRender, CoreGameState, GameState, ONLINE,
 };
 use egui_macroquad::{
     egui,
     egui::{FontDefinitions, FontFamily, FontTweak, Layout, Visuals},
 };
-use game_events::{board_event_consumer::BoardEventConsumer, event_broker::EventBroker};
+use game_events::{
+    actions::compound_events::GameAction,
+    board_event_consumer::BoardEventConsumer, 
+    event_broker::EventBroker, core_game::CoreGameSubstate,
+};
 use game_logic::{board::*, game::*, piece::*};
 use std::{
     cell::RefCell,
@@ -19,7 +22,6 @@ use std::{
     rc::Rc,
 };
 
-use game_events::actions::compound_events::GameAction;
 use instant::Instant;
 use macroquad::{prelude::*, rand::srand};
 use macroquad_canvas::Canvas2D;
@@ -286,7 +288,6 @@ fn init_game() -> Game {
             // color: Srgba::new(1., 1., 0.2, 1.),
             // color: Srgba::new(0.96,  0.49, 0.37, 1.),
             // color: Srgba::new(0.96, 0.37, 0.23, 1.),
-            color: Color::new(0.76, 0.17, 0.10, 1.),
             lost: false,
             unused_pieces: 0,
         },
@@ -295,7 +296,6 @@ fn init_game() -> Game {
             id: 1,
             // color: Srgba::new(0., 0., 0., 1.),
             // color: Srgba::new(0.93, 0.78, 0.31, 1.),
-            color: Color::new(0.90, 0.68, 0.15, 1.),
             lost: false,
             unused_pieces: 0,
         },

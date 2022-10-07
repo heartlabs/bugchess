@@ -8,4 +8,5 @@ edition = "2021"
 [dependencies]
 game-logic = {path = "../game-logic"}
 nanoserde = "0.1.30"
-macroquad = "0.3.24"
+miniquad = "0.3.13" # only used for logging
+quad-rand = "0.2.1"

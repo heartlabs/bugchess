@@ -1,6 +1,5 @@
 use game_logic::board::Point2;
 use macroquad_canvas::Canvas2D;
-use std::{cell::RefCell, rc::Rc};
 
 #[cfg(target_family = "wasm")]
 pub const ONLINE: bool = true;

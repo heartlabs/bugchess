@@ -7,4 +7,3 @@ edition = "2021"
 
 [dependencies]
 nanoserde = "0.1.29"
-macroquad = "0.3.24"
