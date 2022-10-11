@@ -2,7 +2,7 @@
 use game_model::{
     board::{Board, Pattern, Point2},
     game::Game,
-    piece::{EffectKind, Piece, PieceKind, Power},
+    piece::{Piece, PieceKind, Power},
     ranges::RangeContext,
 };
 
@@ -14,7 +14,6 @@ use crate::{
         moving::MoveBuilder,
         place::EffectBuilder,
     },
-    atomic_events::AtomicEvent,
 };
 
 #[derive(Debug, Copy, Clone)]

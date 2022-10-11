@@ -1,9 +1,9 @@
 use crate::{
     actions::{
-        attack::{AttackBuilder, AttackCompoundEvent},
+        attack::{AttackCompoundEvent},
         finish_turn::{FinishTurnBuilder, FinishTurnCompoundEvent},
         merge::{MergeBuilder, MergeCompoundEvent},
-        moving::{MoveBuilder, MoveCompoundEvent},
+        moving::{MoveCompoundEvent},
         place::{PlaceBuilder, PlaceCompoundEvent},
         undo::{UndoBuilder, UndoCompoundEvent},
     },
@@ -11,8 +11,7 @@ use crate::{
 };
 use game_model::{
     board::Point2,
-    game::Game,
-    piece::{EffectKind, Piece, PieceKind},
+    piece::{Piece},
 };
 use nanoserde::{DeBin, SerBin};
 use std::fmt::Debug;
