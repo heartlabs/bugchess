@@ -272,7 +272,7 @@ fn set_up_pieces(team_count: usize, game: &mut Game) -> Vec<GameAction> {
         }
 
         let mut compound_event = finish_turn.build();
-        BoardEventConsumer::flush(game, &mut compound_event);
+        BoardEventConsumer::flush_unsafe(game, &compound_event);
         events.push(compound_event);
     }
 

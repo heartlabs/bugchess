@@ -1,5 +1,6 @@
 use std::{borrow::BorrowMut, cell::RefCell, rc::Rc};
 
+use game_events::actions::compound_events::CompoundEventBuilder;
 use game_events::{
     actions::compound_events::GameAction,
     board_event_consumer::BoardEventConsumer, 
@@ -213,7 +214,6 @@ fn handle_player_input(
     render_context: &mut CustomRenderContext,
     canvas: &Canvas2D,
 ) {
-    let mut event_option: Option<GameAction> = None;
 
     if is_key_pressed(KeyCode::U) || render_context.button_undo.clicked(canvas) {
         event_broker.undo();
@@ -221,31 +221,35 @@ fn handle_player_input(
         || is_key_pressed(KeyCode::KpEnter)
         || render_context.button_next.clicked(canvas)
     {
-        event_option = Some(next_turn(&mut game));
+        let event_option = next_turn(&mut game);
         render_context.game_state = CoreGameSubstate::Wait;
+       // BoardEventConsumer::flush_unsafe(game.as_ref().borrow_mut().borrow_mut(), &event_option);
+        event_broker.handle_new_event(&event_option);
+
+
     } else if is_mouse_button_pressed(MouseButton::Left) {
+        let mut builder_option = None;
         let next_game_state = render_context.game_state.on_click(
             &cell_hovered(canvas),
             game.as_ref().borrow_mut().borrow_mut(),
-            &mut event_option,
+            &mut builder_option,
         );
+
         info!("{:?} -> {:?}", render_context.game_state, next_game_state);
         render_context.game_state = next_game_state;
 
-        if let Some(event_composer) = event_option.as_mut() {
-            BoardEventConsumer::flush(game.as_ref().borrow_mut().borrow_mut(), event_composer);
+        if let Some(event_composer) = builder_option {
+            let mut merge_builder = BoardEventConsumer::flush(game.as_ref().borrow_mut().borrow_mut(), event_composer);
             CoreGameSubstate::merge_patterns(
                 &mut (**game).borrow_mut().as_mut().board,
-                event_composer,
+                &mut merge_builder,
             );
-            BoardEventConsumer::flush(game.as_ref().borrow_mut().borrow_mut(), event_composer);
+            let merge_builder = BoardEventConsumer::flush(game.as_ref().borrow_mut().borrow_mut(), Box::new(merge_builder));
+            event_broker.handle_new_event(&merge_builder.build());
         }
     }
 
-    if let Some(compound_event) = event_option.as_mut() {
-        BoardEventConsumer::flush(game.as_ref().borrow_mut().borrow_mut(), compound_event);
-        event_broker.handle_new_event(compound_event)
-    }
+
 }
 
 fn next_turn(game: &mut Rc<RefCell<Box<Game>>>) -> GameAction {
@@ -273,7 +277,7 @@ fn next_turn(game: &mut Rc<RefCell<Box<Game>>>) -> GameAction {
     }
     let mut finish_turn_action = finish_turn.build();
 
-    BoardEventConsumer::flush(
+    BoardEventConsumer::flush_unsafe(
         game.as_ref().borrow_mut().borrow_mut(),
         &mut finish_turn_action,
     );

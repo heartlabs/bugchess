@@ -18,23 +18,6 @@ impl CompoundEvent for FinishTurnCompoundEvent {
         self.events.clone()
     }
 
-    fn push_event(&mut self, event: AtomicEvent) {
-        assert!(
-            !self.was_flushed,
-            "Cannot push event after already being flushed"
-        );
-        self.events.push(event);
-    }
-
-    fn flush(&mut self) -> Vec<AtomicEvent> {
-        if self.was_flushed {
-            return vec![];
-        }
-
-        self.was_flushed = true;
-
-        self.get_events()
-    }
 }
 
 pub struct FinishTurnBuilder {

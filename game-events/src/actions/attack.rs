@@ -2,17 +2,23 @@ use crate::{
     actions::{compound_events::CompoundEvent, merge::MergeCompoundEvent},
     atomic_events::AtomicEvent,
 };
-use game_model::piece::PieceKind;
+use derive_getters::Getters;
+use game_model::{piece::{PieceKind, Piece, Exhaustion, EffectKind}, board::Point2};
 use nanoserde::{DeBin, SerBin};
 
-use super::compound_events::GameAction;
+use super::{compound_events::{GameAction, CompoundEventBuilder}, place::EffectBuilder, merge::{ MergeBuilder}};
 
-#[derive(Debug, Clone, SerBin, DeBin)]
+#[derive(Debug, Clone, SerBin, DeBin, Getters)]
 pub struct AttackCompoundEvent {
-    events: Vec<AtomicEvent>,
-    pub piece_kind: PieceKind,
-    merge_events: MergeCompoundEvent,
-    was_flushed: bool,
+    piece_kind: PieceKind,
+    attacking_piece_pos: Point2,
+    exhaustion_before: Exhaustion,
+    exhaustion_afterwards: Exhaustion,
+    removed_pieces: Vec<(Point2, Piece)>,
+    added_effects: Vec<Point2>,
+    removed_effects: Vec<Point2>,
+
+    merge_events: Option<MergeCompoundEvent>,
 }
 
 pub struct AttackBuilder {
@@ -20,45 +26,83 @@ pub struct AttackBuilder {
 }
 
 impl AttackBuilder {
-    pub fn build(self) -> GameAction {
-        GameAction::Attack(self.event)
-    }
-}
-
-impl AttackBuilder {
-    pub(crate) fn new(piece_kind: PieceKind) -> Self {
+    pub(crate) fn new(piece: &Piece, piece_pos: Point2) -> Self {
+        let mut exhaustion_afterwards = piece.exhaustion.clone();
+        exhaustion_afterwards.on_attack();
         AttackBuilder {
             event: AttackCompoundEvent {
-                events: vec![],
-                piece_kind,
-                merge_events: MergeCompoundEvent::new(),
-                was_flushed: false,
+                piece_kind: piece.piece_kind,
+                attacking_piece_pos: piece_pos,
+                exhaustion_before: piece.exhaustion,
+                exhaustion_afterwards,
+                removed_pieces: vec![],
+                removed_effects: vec![],
+                added_effects: vec![],
+
+                merge_events: None,
             },
         }
     }
+
+    pub fn remove_piece(&mut self, point: Point2, piece: Piece) -> &mut Self {
+        self.event.removed_pieces.push((point, piece));
+        self
+    }
+
+
 }
 
 impl CompoundEvent for AttackCompoundEvent {
     fn get_events(&self) -> Vec<AtomicEvent> {
         let mut all_events: Vec<AtomicEvent> = vec![];
-        all_events.extend(&self.events);
-        all_events.extend(&self.merge_events.events);
+
+        for (at, piece) in self.removed_pieces.iter() {
+            all_events.push(AtomicEvent::Remove(*at, *piece));
+        }
+
+        all_events.push(AtomicEvent::ChangeExhaustion(
+            self.exhaustion_before,
+            self.exhaustion_afterwards,
+            self.attacking_piece_pos,
+        ));
+
+        for effect in self.removed_effects.iter() {
+            all_events.push(AtomicEvent::RemoveEffect(EffectKind::Protection, *effect));
+        }
+        for effect in self.added_effects.iter() {
+            all_events.push(AtomicEvent::AddEffect(EffectKind::Protection, *effect));
+        }
+
+        if let Some(merge_events) = &self.merge_events {            
+            all_events.extend(&merge_events.get_events());
+        }
         all_events
     }
+}
 
-    fn push_event(&mut self, event: AtomicEvent) {
-        if self.was_flushed {
-            self.merge_events.push_event(event);
-        } else {
-            self.events.push(event);
-        }
+impl CompoundEventBuilder for AttackBuilder {
+    fn build_with_merge_event(mut self: Box<Self>, merge_event: MergeCompoundEvent) -> GameAction {
+        self.event.merge_events = Some(merge_event);
+        self.build()
     }
 
-    fn flush(&mut self) -> Vec<AtomicEvent> {
-        if self.was_flushed {
-            return self.merge_events.flush();
-        }
+    fn build(self) -> GameAction {
+        GameAction::Attack(self.event)
+    }
 
-        self.get_events()
+    fn flush(self: Box<Self>, consumer: &mut dyn FnMut(&AtomicEvent)) -> MergeBuilder {
+        self.event.get_events().iter().for_each(|e| consumer(e));
+
+        MergeBuilder::new(self)
+    }
+}
+
+impl EffectBuilder for AttackBuilder {
+    fn add_effect(&mut self, at: Point2) {
+        self.event.added_effects.push(at);
+    }
+    
+    fn remove_effect(&mut self, at: Point2) {
+        self.event.removed_effects.push(at);
     }
 }

@@ -8,19 +8,22 @@ use crate::{
     },
     atomic_events::AtomicEvent,
 };
-use game_model::piece::PieceKind;
+use game_model::{piece::{PieceKind, Piece, EffectKind}, board::Point2, game::Game};
 use nanoserde::{DeBin, SerBin};
 use std::fmt::Debug;
 
-use super::undo::UndoBuilder;
+use super::{undo::UndoBuilder, place::EffectBuilder, merge::{MergeCompoundEvent, MergeBuilder}};
+
+pub trait CompoundEventBuilder {
+    fn build_with_merge_event(self: Box<Self>, merge_event: MergeCompoundEvent) -> GameAction;
+
+    fn build(self) -> GameAction;
+
+    fn flush(self: Box<Self>, consumer: &mut dyn FnMut(&AtomicEvent)) -> MergeBuilder;
+}
 
 pub trait CompoundEvent: Debug {
     fn get_events(&self) -> Vec<AtomicEvent>;
-
-    fn push_event(&mut self, event: AtomicEvent); // TODO remove
-                                                  //    fn get_event_type(&self) -> &CompoundEventType;
-
-    fn flush(&mut self) -> Vec<AtomicEvent>;
 }
 
 #[derive(Debug, Clone, SerBin, DeBin)]
@@ -33,16 +36,9 @@ pub enum GameAction {
 }
 
 impl GameAction {
-    pub fn attack(piece_kind: PieceKind) -> GameAction {
-        AttackBuilder::new(piece_kind).build()
-    }
 
-    pub fn place() -> GameAction {
-        PlaceBuilder::new().build()
-    }
-
-    pub fn moving() -> GameAction {
-        MoveBuilder::new().build()
+    pub fn place(at: Point2, piece: Piece, team_id: usize) -> PlaceBuilder {
+        PlaceBuilder::new(at, piece, team_id)
     }
 
     pub fn undo(undone: Box<GameAction>) -> GameAction {
@@ -54,16 +50,6 @@ impl GameAction {
     }
 
     pub fn get_compound_event(&self) -> Box<&dyn CompoundEvent> {
-        match self {
-            GameAction::Attack(e) => Box::new(e),
-            GameAction::Place(e) => Box::new(e),
-            GameAction::Move(e) => Box::new(e),
-            GameAction::Undo(e) => Box::new(e),
-            GameAction::FinishTurn(e) => Box::new(e),
-        }
-    }
-
-    pub fn get_compound_event_mut(&mut self) -> Box<&mut dyn CompoundEvent> {
         match self {
             GameAction::Attack(e) => Box::new(e),
             GameAction::Place(e) => Box::new(e),

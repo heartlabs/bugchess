@@ -9,7 +9,6 @@ pub struct Game {
 #[derive(Clone, Copy)]
 pub struct Team {
     pub id: usize,
-//    pub color: Color,
     pub name: &'static str,
     pub lost: bool,
     pub unused_pieces: u8,
