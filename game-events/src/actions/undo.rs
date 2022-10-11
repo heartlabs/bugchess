@@ -1,6 +1,6 @@
 use crate::{
     actions::compound_events::{CompoundEvent, GameAction},
-    atomic_events::AtomicEvent
+    atomic_events::AtomicEvent,
 };
 use nanoserde::{DeBin, SerBin};
 
@@ -37,5 +37,4 @@ impl CompoundEvent for UndoCompoundEvent {
     fn get_events(&self) -> Vec<AtomicEvent> {
         self.events.clone()
     }
-
 }

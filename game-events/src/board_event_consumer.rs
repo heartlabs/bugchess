@@ -1,5 +1,8 @@
 use crate::{
-    actions::{compound_events::{GameAction, CompoundEventBuilder}, merge::MergeBuilder},
+    actions::{
+        compound_events::{CompoundEventBuilder, GameAction},
+        merge::MergeBuilder,
+    },
     atomic_events::AtomicEvent::{self, *},
     game_events::{EventConsumer, GameEventObject},
 };
@@ -40,7 +43,7 @@ impl BoardEventConsumer {
             game,
         }
     }
-    
+
     pub fn flush_unsafe(game: &mut Game, action: &GameAction) {
         for event in action.get_compound_event().get_events() {
             BoardEventConsumer::handle_event_internal(game, &event);
@@ -48,11 +51,13 @@ impl BoardEventConsumer {
     }
 
     pub fn flush(game: &mut Game, action: Box<dyn CompoundEventBuilder>) -> MergeBuilder {
-     //   for event in action.get_compound_event_mut().flush() {
-     //       BoardEventConsumer::handle_event_internal(game, &event);
-     //   }
+        //   for event in action.get_compound_event_mut().flush() {
+        //       BoardEventConsumer::handle_event_internal(game, &event);
+        //   }
         let g = game;
-        action.flush(&mut |event| {BoardEventConsumer::handle_event_internal(g, &event);})
+        action.flush(&mut |event| {
+            BoardEventConsumer::handle_event_internal(g, &event);
+        })
     }
 
     fn handle_event_internal(game: &mut Game, event: &AtomicEvent) {

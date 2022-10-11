@@ -1,15 +1,21 @@
-use crate::{actions::compound_events::CompoundEvent, atomic_events::AtomicEvent};
+use crate::{
+    actions::{
+        compound_events::{CompoundEvent, CompoundEventBuilder, GameAction},
+        place::EffectBuilder,
+    },
+    atomic_events::AtomicEvent,
+};
 use derive_getters::Getters;
-use game_model::{piece::{EffectKind, Piece}, board::Point2};
+use game_model::{
+    board::Point2,
+    piece::{EffectKind, Piece},
+};
 use nanoserde::{DeBin, SerBin};
-
-use super::{compound_events::{GameAction, CompoundEventBuilder}, place::EffectBuilder};
 
 pub struct MergeBuilder {
     event: MergeCompoundEvent,
     super_event: Box<dyn CompoundEventBuilder>,
 }
-
 
 impl MergeBuilder {
     pub(crate) fn new(super_event: Box<dyn CompoundEventBuilder>) -> Self {
@@ -26,7 +32,6 @@ impl MergeBuilder {
     pub fn place_piece(&mut self, point: Point2, piece: Piece) {
         self.event.placed_pieces.push((point, piece));
     }
-
 }
 
 #[derive(Debug, Clone, SerBin, DeBin, Getters)]
@@ -69,7 +74,7 @@ impl CompoundEvent for MergeCompoundEvent {
             all_events.push(AtomicEvent::AddEffect(EffectKind::Protection, *effect));
         }
 
-        if let Some(merge_events) = &self.merge_events {            
+        if let Some(merge_events) = &self.merge_events {
             all_events.extend(&merge_events.get_events());
         }
         all_events
@@ -80,7 +85,7 @@ impl EffectBuilder for MergeBuilder {
     fn add_effect(&mut self, at: Point2) {
         self.event.added_effects.push(at);
     }
-    
+
     fn remove_effect(&mut self, at: Point2) {
         self.event.removed_effects.push(at);
     }
@@ -96,7 +101,8 @@ impl CompoundEventBuilder for MergeBuilder {
         self.super_event.build_with_merge_event(self.event)
     }
 
-    fn flush(self: Box<Self>, consumer: &mut dyn FnMut(&AtomicEvent)) -> MergeBuilder { // TODO -> Option<MergeBuilder>; NONE when no events
+    fn flush(self: Box<Self>, consumer: &mut dyn FnMut(&AtomicEvent)) -> MergeBuilder {
+        // TODO -> Option<MergeBuilder>; NONE when no events
         self.event.get_events().iter().for_each(|e| consumer(e));
 
         MergeBuilder::new(self)

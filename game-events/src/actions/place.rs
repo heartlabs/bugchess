@@ -1,12 +1,16 @@
 use crate::{
-    actions::{compound_events::CompoundEvent, merge::MergeCompoundEvent},
+    actions::{
+        compound_events::{CompoundEvent, CompoundEventBuilder, GameAction},
+        merge::{MergeBuilder, MergeCompoundEvent},
+    },
     atomic_events::AtomicEvent,
 };
 use derive_getters::Getters;
-use game_model::{board::Point2, piece::{Piece, EffectKind}};
+use game_model::{
+    board::Point2,
+    piece::{EffectKind, Piece},
+};
 use nanoserde::{DeBin, SerBin};
-
-use super::{compound_events::{GameAction, CompoundEventBuilder}, merge::{MergeBuilder}};
 
 #[derive(Debug, Clone, SerBin, DeBin, Getters)]
 pub struct PlaceCompoundEvent {
@@ -45,11 +49,7 @@ impl CompoundEventBuilder for PlaceBuilder {
 }
 
 impl PlaceBuilder {
-
-
-    pub(crate) fn new(at: Point2,
-        piece: Piece,
-        team_id: usize) -> Self {
+    pub(crate) fn new(at: Point2, piece: Piece, team_id: usize) -> Self {
         PlaceBuilder {
             event: PlaceCompoundEvent {
                 merge_events: None,
@@ -60,15 +60,13 @@ impl PlaceBuilder {
             },
         }
     }
-
-
 }
 
 impl EffectBuilder for PlaceBuilder {
     fn add_effect(&mut self, at: Point2) {
         self.event.added_effects.push(at);
     }
-    
+
     fn remove_effect(&mut self, _at: Point2) {
         panic!("No effect can be removed during 'Place'")
     }
@@ -85,7 +83,7 @@ impl CompoundEvent for PlaceCompoundEvent {
             all_events.push(AtomicEvent::AddEffect(EffectKind::Protection, *effect));
         }
 
-        if let Some(merge_events) = &self.merge_events {            
+        if let Some(merge_events) = &self.merge_events {
             all_events.extend(&merge_events.get_events());
         }
         all_events

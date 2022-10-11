@@ -2,7 +2,6 @@ use crate::{
     egui::{Align, Color32, FontData, TextEdit},
     matchbox,
     matchbox::{MatchboxClient, MatchboxEventConsumer},
-    
     BoardRender, CoreGameState, GameState, ONLINE,
 };
 use egui_macroquad::{
@@ -10,13 +9,14 @@ use egui_macroquad::{
     egui::{FontDefinitions, FontFamily, FontTweak, Layout, Visuals},
 };
 use game_events::{
-    actions::compound_events::GameAction,
-    board_event_consumer::BoardEventConsumer, 
-    event_broker::EventBroker, core_game::CoreGameSubstate,
+    actions::compound_events::GameAction, board_event_consumer::BoardEventConsumer,
+    core_game::CoreGameSubstate, event_broker::EventBroker,
 };
 use game_model::{board::*, game::*, piece::*};
-use game_render::constants::{BOARD_WIDTH, BOARD_HEIGHT};
-use game_render::render_events::RenderEventConsumer;
+use game_render::{
+    constants::{BOARD_HEIGHT, BOARD_WIDTH},
+    render_events::RenderEventConsumer,
+};
 use std::{
     cell::RefCell,
     fmt::{Display, Formatter},

@@ -17,7 +17,6 @@ pub const MOVE_PIECE_SPEED: u64 = ANIMATION_SPEED;
 pub const BULLET_SPEED: u64 = ANIMATION_SPEED;
 pub const ADD_UNUSED_SPEED: u64 = ANIMATION_SPEED / 3;
 
-
 pub const BOARD_WIDTH: u8 = 8;
 pub const BOARD_HEIGHT: u8 = 8;
 
@@ -37,7 +36,6 @@ pub fn coords_to_cell(x_pos: f32, y_pos: f32) -> Point2 {
 
     (x as u8, y as u8).into()
 }
-
 
 pub fn cell_hovered(canvas: &Canvas2D) -> Point2 {
     let (mouse_x, mouse_y) = canvas.mouse_position();

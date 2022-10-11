@@ -1,6 +1,6 @@
 use crate::{
     constants::*,
-    rendering::{EffectRender, SpriteKind, SpriteRender,BoardRender},
+    rendering::{BoardRender, EffectRender, SpriteKind, SpriteRender},
 };
 use game_model::{
     board::Point2,

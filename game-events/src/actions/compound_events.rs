@@ -2,17 +2,20 @@ use crate::{
     actions::{
         attack::{AttackBuilder, AttackCompoundEvent},
         finish_turn::{FinishTurnBuilder, FinishTurnCompoundEvent},
+        merge::{MergeBuilder, MergeCompoundEvent},
         moving::{MoveBuilder, MoveCompoundEvent},
         place::{PlaceBuilder, PlaceCompoundEvent},
-        undo::UndoCompoundEvent,
+        undo::{UndoBuilder, UndoCompoundEvent},
     },
     atomic_events::AtomicEvent,
 };
-use game_model::{piece::{PieceKind, Piece, EffectKind}, board::Point2, game::Game};
+use game_model::{
+    board::Point2,
+    game::Game,
+    piece::{EffectKind, Piece, PieceKind},
+};
 use nanoserde::{DeBin, SerBin};
 use std::fmt::Debug;
-
-use super::{undo::UndoBuilder, place::EffectBuilder, merge::{MergeCompoundEvent, MergeBuilder}};
 
 pub trait CompoundEventBuilder {
     fn build_with_merge_event(self: Box<Self>, merge_event: MergeCompoundEvent) -> GameAction;
@@ -36,7 +39,6 @@ pub enum GameAction {
 }
 
 impl GameAction {
-
     pub fn place(at: Point2, piece: Piece, team_id: usize) -> PlaceBuilder {
         PlaceBuilder::new(at, piece, team_id)
     }

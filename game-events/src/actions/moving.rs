@@ -1,18 +1,23 @@
 use crate::{
-    actions::{compound_events::CompoundEvent, merge::MergeCompoundEvent},
+    actions::{
+        compound_events::{CompoundEvent, CompoundEventBuilder, GameAction},
+        merge::{MergeBuilder, MergeCompoundEvent},
+        place::EffectBuilder,
+    },
     atomic_events::AtomicEvent,
 };
 use derive_getters::Getters;
-use game_model::{piece::{EffectKind, Piece, Exhaustion}, board::Point2};
+use game_model::{
+    board::Point2,
+    piece::{EffectKind, Exhaustion, Piece},
+};
 use nanoserde::{DeBin, SerBin};
-
-use super::{compound_events::{GameAction, CompoundEventBuilder}, place::EffectBuilder, merge::{MergeBuilder}};
 
 #[derive(Debug, Clone, SerBin, DeBin, Getters)]
 pub struct MoveCompoundEvent {
     //events: Vec<AtomicEvent>,
-    from: Point2, 
-    to: Point2, 
+    from: Point2,
+    to: Point2,
     moved_piece: Piece,
     exhaustion_afterwards: Exhaustion,
     captured_piece: Option<Piece>,
@@ -45,14 +50,12 @@ impl MoveBuilder {
             },
         }
     }
-    
+
     pub fn remove_piece(&mut self, piece: Piece) -> &mut Self {
         self.event.captured_piece = Some(piece);
-        
+
         self
     }
-
-
 }
 
 impl CompoundEvent for MoveCompoundEvent {
@@ -65,8 +68,6 @@ impl CompoundEvent for MoveCompoundEvent {
 
         all_events.push(AtomicEvent::Remove(self.from, self.moved_piece));
         all_events.push(AtomicEvent::Place(self.to, self.moved_piece));
-
-
 
         all_events.push(AtomicEvent::ChangeExhaustion(
             self.moved_piece.exhaustion,
@@ -81,12 +82,11 @@ impl CompoundEvent for MoveCompoundEvent {
             all_events.push(AtomicEvent::AddEffect(EffectKind::Protection, *effect));
         }
 
-        if let Some(merge_events) = &self.merge_events {            
+        if let Some(merge_events) = &self.merge_events {
             all_events.extend(&merge_events.get_events());
         }
         all_events
     }
-
 }
 
 impl CompoundEventBuilder for MoveBuilder {
@@ -110,7 +110,7 @@ impl EffectBuilder for MoveBuilder {
     fn add_effect(&mut self, at: Point2) {
         self.event.added_effects.push(at);
     }
-    
+
     fn remove_effect(&mut self, at: Point2) {
         self.event.removed_effects.push(at);
     }

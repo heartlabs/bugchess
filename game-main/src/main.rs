@@ -4,9 +4,9 @@ mod states;
 
 use crate::{
     constants::*,
-    states::{core_game_state::CoreGameState, loading::LoadingState, GameState}
+    states::{core_game_state::CoreGameState, loading::LoadingState, GameState},
 };
-use game_render::{BoardRender};
+use game_render::BoardRender;
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
 

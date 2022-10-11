@@ -1,12 +1,17 @@
 use crate::{
-    actions::{compound_events::CompoundEvent, merge::MergeCompoundEvent},
+    actions::{
+        compound_events::{CompoundEvent, CompoundEventBuilder, GameAction},
+        merge::{MergeBuilder, MergeCompoundEvent},
+        place::EffectBuilder,
+    },
     atomic_events::AtomicEvent,
 };
 use derive_getters::Getters;
-use game_model::{piece::{PieceKind, Piece, Exhaustion, EffectKind}, board::Point2};
+use game_model::{
+    board::Point2,
+    piece::{EffectKind, Exhaustion, Piece, PieceKind},
+};
 use nanoserde::{DeBin, SerBin};
-
-use super::{compound_events::{GameAction, CompoundEventBuilder}, place::EffectBuilder, merge::{ MergeBuilder}};
 
 #[derive(Debug, Clone, SerBin, DeBin, Getters)]
 pub struct AttackCompoundEvent {
@@ -48,8 +53,6 @@ impl AttackBuilder {
         self.event.removed_pieces.push((point, piece));
         self
     }
-
-
 }
 
 impl CompoundEvent for AttackCompoundEvent {
@@ -73,7 +76,7 @@ impl CompoundEvent for AttackCompoundEvent {
             all_events.push(AtomicEvent::AddEffect(EffectKind::Protection, *effect));
         }
 
-        if let Some(merge_events) = &self.merge_events {            
+        if let Some(merge_events) = &self.merge_events {
             all_events.extend(&merge_events.get_events());
         }
         all_events
@@ -101,7 +104,7 @@ impl EffectBuilder for AttackBuilder {
     fn add_effect(&mut self, at: Point2) {
         self.event.added_effects.push(at);
     }
-    
+
     fn remove_effect(&mut self, at: Point2) {
         self.event.removed_effects.push(at);
     }

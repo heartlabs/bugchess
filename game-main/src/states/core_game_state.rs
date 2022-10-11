@@ -1,25 +1,17 @@
 use std::{borrow::BorrowMut, cell::RefCell, rc::Rc};
 
-use game_events::actions::compound_events::CompoundEventBuilder;
 use game_events::{
-    actions::compound_events::GameAction,
-    board_event_consumer::BoardEventConsumer, 
-    event_broker::EventBroker, 
+    actions::compound_events::{CompoundEventBuilder, GameAction},
+    board_event_consumer::BoardEventConsumer,
     core_game::CoreGameSubstate,
+    event_broker::EventBroker,
 };
-use game_model::{
-    game::Game,
-};
+use game_model::game::Game;
 
-use game_render::constants::cell_hovered;
-use game_render::{BoardRender, CustomRenderContext};
+use game_render::{constants::cell_hovered, BoardRender, CustomRenderContext};
 use macroquad_canvas::Canvas2D;
 
-use crate::{
-    constants::{ONLINE},
-    matchbox::MatchboxClient,
-    GameState,
-};
+use crate::{constants::ONLINE, matchbox::MatchboxClient, GameState};
 use macroquad::prelude::*;
 
 pub struct CoreGameState {
@@ -116,10 +108,7 @@ impl GameState for CoreGameState {
             canvas,
         );
 
-        for (i, text) in description(&self.render_context, &game)
-            .iter()
-            .enumerate()
-        {
+        for (i, text) in description(&self.render_context, &game).iter().enumerate() {
             draw_text(
                 text.as_str(),
                 10.,
@@ -134,7 +123,6 @@ impl GameState for CoreGameState {
         false
     }
 }
-
 
 fn check_if_somebody_won(game: &Game, render_context: &mut CustomRenderContext) {
     let board = &game.board;
@@ -214,7 +202,6 @@ fn handle_player_input(
     render_context: &mut CustomRenderContext,
     canvas: &Canvas2D,
 ) {
-
     if is_key_pressed(KeyCode::U) || render_context.button_undo.clicked(canvas) {
         event_broker.undo();
     } else if is_key_pressed(KeyCode::Enter)
@@ -223,10 +210,8 @@ fn handle_player_input(
     {
         let event_option = next_turn(&mut game);
         render_context.game_state = CoreGameSubstate::Wait;
-       // BoardEventConsumer::flush_unsafe(game.as_ref().borrow_mut().borrow_mut(), &event_option);
+        // BoardEventConsumer::flush_unsafe(game.as_ref().borrow_mut().borrow_mut(), &event_option);
         event_broker.handle_new_event(&event_option);
-
-
     } else if is_mouse_button_pressed(MouseButton::Left) {
         let mut builder_option = None;
         let next_game_state = render_context.game_state.on_click(
@@ -239,17 +224,19 @@ fn handle_player_input(
         render_context.game_state = next_game_state;
 
         if let Some(event_composer) = builder_option {
-            let mut merge_builder = BoardEventConsumer::flush(game.as_ref().borrow_mut().borrow_mut(), event_composer);
+            let mut merge_builder =
+                BoardEventConsumer::flush(game.as_ref().borrow_mut().borrow_mut(), event_composer);
             CoreGameSubstate::merge_patterns(
                 &mut (**game).borrow_mut().as_mut().board,
                 &mut merge_builder,
             );
-            let merge_builder = BoardEventConsumer::flush(game.as_ref().borrow_mut().borrow_mut(), Box::new(merge_builder));
+            let merge_builder = BoardEventConsumer::flush(
+                game.as_ref().borrow_mut().borrow_mut(),
+                Box::new(merge_builder),
+            );
             event_broker.handle_new_event(&merge_builder.build());
         }
     }
-
-
 }
 
 fn next_turn(game: &mut Rc<RefCell<Box<Game>>>) -> GameAction {

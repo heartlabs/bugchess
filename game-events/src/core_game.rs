@@ -1,14 +1,21 @@
-
 // TODO: That doesnt belong in the events crate - maybe put it in its own crate?
 use game_model::{
-    board::{Point2, Board, Pattern}, 
-    game::Game, 
-    piece::{Piece, PieceKind, Power, EffectKind}, 
-    ranges::RangeContext
+    board::{Board, Pattern, Point2},
+    game::Game,
+    piece::{EffectKind, Piece, PieceKind, Power},
+    ranges::RangeContext,
 };
 
-use crate::{actions::{compound_events::{GameAction, CompoundEventBuilder}, place::EffectBuilder, attack::AttackBuilder, moving::MoveBuilder, merge::{MergeBuilder}}, atomic_events::AtomicEvent};
-
+use crate::{
+    actions::{
+        attack::AttackBuilder,
+        compound_events::{CompoundEventBuilder, GameAction},
+        merge::MergeBuilder,
+        moving::MoveBuilder,
+        place::EffectBuilder,
+    },
+    atomic_events::AtomicEvent,
+};
 
 #[derive(Debug, Copy, Clone)]
 pub enum CoreGameSubstate {
@@ -43,8 +50,8 @@ impl CoreGameSubstate {
                     }
                 } else if game.unused_piece_available() {
                     let new_piece = Piece::new(game.current_team_index, PieceKind::Simple);
-                    let mut place_event = GameAction::place(*target_point, new_piece, game.current_team_index);
-                    
+                    let mut place_event =
+                        GameAction::place(*target_point, new_piece, game.current_team_index);
 
                     Self::push_effects_if_present(
                         &mut place_event,
@@ -62,7 +69,6 @@ impl CoreGameSubstate {
                         if let Some(activatable) = target_piece.activatable {
                             return match activatable.kind {
                                 Power::Blast => {
-
                                     let mut attack_event =
                                         AttackBuilder::new(target_piece, *target_point);
                                     for point in activatable.range.reachable_points(
@@ -71,8 +77,7 @@ impl CoreGameSubstate {
                                         &RangeContext::Special(*target_piece),
                                     ) {
                                         if let Some(piece) = board.get_piece_at(&point) {
-                                            attack_event
-                                                .remove_piece(point, *piece);
+                                            attack_event.remove_piece(point, *piece);
                                             Self::remove_effects_if_present(
                                                 &mut attack_event,
                                                 board,
@@ -101,7 +106,8 @@ impl CoreGameSubstate {
                         .reachable_points(&itself, board, &RangeContext::Moving(*selected_piece))
                         .contains(target_point)
                     {
-                        let mut move_event = MoveBuilder::new(*itself, *target_point, *selected_piece);
+                        let mut move_event =
+                            MoveBuilder::new(*itself, *target_point, *selected_piece);
 
                         if let Some(target_piece) = board.get_piece_at(target_point) {
                             move_event.remove_piece(*target_piece);
@@ -164,8 +170,7 @@ impl CoreGameSubstate {
                 .reachable_points(pos, &board, &RangeContext::Area)
                 .iter()
                 .for_each(|&point| {
-                    event_composer
-                        .add_effect(point);
+                    event_composer.add_effect(point);
                 });
         }
     }

@@ -3,13 +3,16 @@ use game_events::{
     atomic_events::AtomicEvent,
     game_events::*,
 };
-use game_model::{piece::{PieceKind, EffectKind}, board::Point2};
+use game_model::{
+    board::Point2,
+    piece::{EffectKind, PieceKind},
+};
 
 use crate::{
     animation::{Animation, PlacePieceAnimation},
     BoardRender,
 };
-use macroquad::{miniquad::info};
+use macroquad::miniquad::info;
 use std::{cell::RefCell, rc::Rc};
 
 pub struct RenderEventConsumer {
@@ -17,8 +20,10 @@ pub struct RenderEventConsumer {
 }
 
 impl RenderEventConsumer {
-    pub fn new (board_render: &Rc<RefCell<Box<BoardRender>>>) -> Self {
-        RenderEventConsumer { board_render: board_render.clone() }
+    pub fn new(board_render: &Rc<RefCell<Box<BoardRender>>>) -> Self {
+        RenderEventConsumer {
+            board_render: board_render.clone(),
+        }
     }
 
     pub(crate) fn handle_event_internal(&self, t: &GameAction) {
@@ -30,32 +35,41 @@ impl RenderEventConsumer {
 
                 for (target, _) in attack_event.removed_pieces() {
                     animations.push(attack_animation(
-                        attack_event.piece_kind(), 
-                        *attack_event.attacking_piece_pos(), 
-                        *target
+                        attack_event.piece_kind(),
+                        *attack_event.attacking_piece_pos(),
+                        *target,
                     ));
                 }
 
-                let exhaustion_animation =  Animation::new_exhaustion(*attack_event.exhaustion_afterwards(), *attack_event.attacking_piece_pos());
+                let exhaustion_animation = Animation::new_exhaustion(
+                    *attack_event.exhaustion_afterwards(),
+                    *attack_event.attacking_piece_pos(),
+                );
 
-                let mut merge_animations = attack_event.merge_events()
+                let mut merge_animations = attack_event
+                    .merge_events()
                     .as_ref()
                     .map(Self::handle_merge_events)
                     .unwrap_or(vec![]);
 
-                let first_animation = &mut animations[0];                
+                let first_animation = &mut animations[0];
                 first_animation.next_animations.push(exhaustion_animation);
-                first_animation.next_animations.append(&mut merge_animations);
+                first_animation
+                    .next_animations
+                    .append(&mut merge_animations);
 
                 board_render.add_animation_sequence(animations);
             }
             GameAction::Place(place_event) => {
-                let place_piece = PlacePieceAnimation::new(*place_event.team_id(), *place_event.at());
+                let place_piece =
+                    PlacePieceAnimation::new(*place_event.team_id(), *place_event.at());
 
                 let mut animation = Animation::new(Box::new(place_piece));
 
                 if let Some(merge_events) = place_event.merge_events() {
-                    animation.next_animations.append(&mut Self::handle_merge_events(merge_events));
+                    animation
+                        .next_animations
+                        .append(&mut Self::handle_merge_events(merge_events));
                 }
 
                 board_render.add_animation_sequence(vec![animation]);
@@ -65,17 +79,21 @@ impl RenderEventConsumer {
 
                 if let Some(_) = move_event.captured_piece() {
                     animations.push(Animation::new_remove(*move_event.to()));
-                }               
+                }
 
                 let mut move_animation = Animation::new_move(*move_event.from(), *move_event.to());
 
                 move_animation
                     .next_animations
-                    .push(Animation::new_exhaustion(*move_event.exhaustion_afterwards(), *move_event.to()));
-   
+                    .push(Animation::new_exhaustion(
+                        *move_event.exhaustion_afterwards(),
+                        *move_event.to(),
+                    ));
 
                 if let Some(merge_events) = move_event.merge_events() {
-                    move_animation.next_animations.append(&mut Self::handle_merge_events(merge_events));
+                    move_animation
+                        .next_animations
+                        .append(&mut Self::handle_merge_events(merge_events));
                 }
                 animations.push(move_animation);
                 board_render.add_animation_sequence(animations);
@@ -179,11 +197,11 @@ impl RenderEventConsumer {
 
         for pos in merge_events.added_effects() {
             let last_remove = animations
-            .last_mut()
-            .unwrap()
-            .next_animations
-            .last_mut()
-            .unwrap();
+                .last_mut()
+                .unwrap()
+                .next_animations
+                .last_mut()
+                .unwrap();
 
             last_remove
                 .next_animations
@@ -203,9 +221,9 @@ impl RenderEventConsumer {
 fn attack_animation(piece_kind: &PieceKind, pos: Point2, target: Point2) -> Animation {
     let mut bullet_animation = match piece_kind {
         PieceKind::Queen => Animation::new_blast(pos),
-        PieceKind::HorizontalBar
-        | PieceKind::VerticalBar
-        | PieceKind::Sniper => Animation::new_bullet(pos, target),
+        PieceKind::HorizontalBar | PieceKind::VerticalBar | PieceKind::Sniper => {
+            Animation::new_bullet(pos, target)
+        }
         _ => panic!("Unknown piece_kind - can't generate bullet animation"),
     };
     bullet_animation
@@ -216,8 +234,6 @@ fn attack_animation(piece_kind: &PieceKind, pos: Point2, target: Point2) -> Anim
 
 impl EventConsumer for RenderEventConsumer {
     fn handle_event(&mut self, event: &GameEventObject) {
-        self.handle_event_internal(
-            &event.event,
-        );
+        self.handle_event_internal(&event.event);
     }
 }
