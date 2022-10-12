@@ -142,6 +142,35 @@ impl GameController {
 
         return Ok(flush_and_merge(game, Box::new(attack_event)));
     }
+
+    pub fn next_turn(game: &mut Game) -> GameAction {
+        let mut finish_turn = GameAction::finish_turn();
+        {
+            let current_team_index = game.current_team_index;
+
+            finish_turn
+                .add_unused_piece(current_team_index)
+                .add_unused_piece(current_team_index);
+
+            game.board.for_each_placed_piece(|point, piece| {
+                if piece.movement.is_none() && piece.activatable.is_none() {
+                    return;
+                }
+
+                let mut exhaustion_clone = piece.exhaustion.clone();
+                exhaustion_clone.reset();
+
+                if exhaustion_clone != piece.exhaustion {
+                    finish_turn.change_exhaustion(piece.exhaustion, exhaustion_clone, point);
+                }
+            });
+        }
+        let mut finish_turn_action = finish_turn.build();
+
+        BoardEventConsumer::flush_unsafe(game, &mut finish_turn_action);
+
+        finish_turn_action
+    }
 }
 
 fn push_effects_if_present(
@@ -227,6 +256,8 @@ fn merge_patterns(board: &Board, merge_builder: &mut MergeBuilder) {
             }
         }
     }
+
+    
 }
 
 fn flush_and_merge(game: &mut Game, event_builder: Box<dyn CompoundEventBuilder>) -> GameAction {
@@ -239,6 +270,6 @@ fn flush_and_merge(game: &mut Game, event_builder: Box<dyn CompoundEventBuilder>
         // always true
         game_action
     } else {
-        panic!()
+        panic!("unreachable code")
     }
 }

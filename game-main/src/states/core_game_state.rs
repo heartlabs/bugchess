@@ -1,18 +1,16 @@
-use std::{borrow::BorrowMut, cell::RefCell, rc::Rc};
+use std::{cell::RefCell, rc::Rc};
 
 use game_events::{
-    actions::compound_events::{CompoundEventBuilder, GameAction},
-    board_event_consumer::BoardEventConsumer,
     core_game::CoreGameSubstate,
-    event_broker::EventBroker,
+    event_broker::EventBroker, game_controller::GameController,
 };
 use game_model::game::Game;
 
 use game_render::{constants::cell_hovered, BoardRender, CustomRenderContext};
-use macroquad_canvas::Canvas2D;
 
 use crate::{constants::ONLINE, matchbox::MatchboxClient, GameState};
 use macroquad::prelude::*;
+use macroquad_canvas::Canvas2D;
 
 pub struct CoreGameState {
     pub game: Rc<RefCell<Box<Game>>>,
@@ -197,7 +195,7 @@ fn can_control_player(game: &Game, own_player_id: &mut Option<usize>, is_online:
 }
 
 fn handle_player_input(
-    mut game: &mut Rc<RefCell<Box<Game>>>,
+    game: &mut Rc<RefCell<Box<Game>>>,
     event_broker: &mut EventBroker,
     render_context: &mut CustomRenderContext,
     canvas: &Canvas2D,
@@ -208,15 +206,14 @@ fn handle_player_input(
         || is_key_pressed(KeyCode::KpEnter)
         || render_context.button_next.clicked(canvas)
     {
-        let event_option = next_turn(&mut game);
+        let event_option = GameController::next_turn(&mut (**game).borrow_mut());
         render_context.game_state = CoreGameSubstate::Wait;
         // BoardEventConsumer::flush_unsafe(game.as_ref().borrow_mut().borrow_mut(), &event_option);
         event_broker.handle_new_event(&event_option);
     } else if is_mouse_button_pressed(MouseButton::Left) {
         let mut builder_option = None;
         let game: &mut Game = &mut (**game).borrow_mut();
-        let next_game_state =
-            render_context
+        let next_game_state = render_context
                 .game_state
                 .on_click(&cell_hovered(canvas), game, &mut builder_option);
 
@@ -227,34 +224,4 @@ fn handle_player_input(
             event_broker.handle_new_event(&game_action);
         }
     }
-}
-
-fn next_turn(game: &mut Rc<RefCell<Box<Game>>>) -> GameAction {
-    let mut finish_turn = GameAction::finish_turn();
-    {
-        let g = (**game).borrow_mut();
-        let current_team_index = g.current_team_index;
-
-        finish_turn
-            .add_unused_piece(current_team_index)
-            .add_unused_piece(current_team_index);
-
-        g.board.for_each_placed_piece(|point, piece| {
-            if piece.movement.is_none() && piece.activatable.is_none() {
-                return;
-            }
-
-            let mut exhaustion_clone = piece.exhaustion.clone();
-            exhaustion_clone.reset();
-
-            if exhaustion_clone != piece.exhaustion {
-                finish_turn.change_exhaustion(piece.exhaustion, exhaustion_clone, point);
-            }
-        });
-    }
-    let mut finish_turn_action = finish_turn.build();
-
-    BoardEventConsumer::flush_unsafe(&mut (**game).borrow_mut(), &mut finish_turn_action);
-
-    finish_turn_action
 }
