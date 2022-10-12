@@ -12,6 +12,9 @@ use game_model::{
 };
 use nanoserde::{DeBin, SerBin};
 
+use super::compound_events::FlushResult;
+
+// TODO: there should be a current and n past events with separate merges
 pub struct MergeBuilder {
     event: MergeCompoundEvent,
     super_event: Box<dyn CompoundEventBuilder>,
@@ -101,10 +104,14 @@ impl CompoundEventBuilder for MergeBuilder {
         self.super_event.build_with_merge_event(self.event)
     }
 
-    fn flush(self: Box<Self>, consumer: &mut dyn FnMut(&AtomicEvent)) -> MergeBuilder {
-        // TODO -> Option<MergeBuilder>; NONE when no events
-        self.event.get_events().iter().for_each(|e| consumer(e));
+    fn flush(self: Box<Self>, consumer: &mut dyn FnMut(&AtomicEvent)) -> FlushResult {
+        let events = self.event.get_events();
+        if events.is_empty() {
+            return FlushResult::Build(self.build());
+        }
 
-        MergeBuilder::new(self)
+        events.iter().for_each(consumer);
+
+        FlushResult::Merge(MergeBuilder::new(self))
     }
 }

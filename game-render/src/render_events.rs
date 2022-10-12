@@ -212,6 +212,10 @@ impl RenderEventConsumer {
             animations.push(Animation::new_remove_effect(EffectKind::Protection, *pos));
         }
 
+        if let Some(merge_event) = merge_events.merge_events() {
+            animations[0].next_animations.extend(Self::handle_merge_events(merge_event));
+        }
+
         info!("MERGE ANIMATIONS\n{:?}", animations);
 
         animations

@@ -63,7 +63,7 @@ impl LoadingState {
         let game = Rc::new(RefCell::new(Box::new(init_game())));
         let own_sender_id = Uuid::new_v4().to_string();
         let mut event_broker = EventBroker::new(own_sender_id.clone());
-        event_broker.subscribe_committed(Box::new(BoardEventConsumer::new(
+        event_broker.subscribe(Box::new(BoardEventConsumer::new(
             own_sender_id,
             Rc::clone(&game),
         )));
@@ -71,7 +71,7 @@ impl LoadingState {
         let board_render = Rc::new(RefCell::new(Box::new(BoardRender::new(
             (*game).borrow().as_ref(),
         ))));
-        event_broker.subscribe_committed(Box::new(RenderEventConsumer::new(&board_render)));
+        event_broker.subscribe(Box::new(RenderEventConsumer::new(&board_render)));
 
         info!(
             "{}ns to set up pieces. {}",
@@ -183,7 +183,7 @@ impl GameState for LoadingState {
                     Option::Some(Rc::new(RefCell::new(Box::new(matchbox_client))));
                 core_game_state
                     .event_broker
-                    .subscribe_committed(Box::new(MatchboxEventConsumer {
+                    .subscribe(Box::new(MatchboxEventConsumer {
                         client: Rc::clone(matchbox_events.as_ref().unwrap()),
                     }));
 

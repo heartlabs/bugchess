@@ -21,7 +21,12 @@ pub trait CompoundEventBuilder {
 
     fn build(self) -> GameAction;
 
-    fn flush(self: Box<Self>, consumer: &mut dyn FnMut(&AtomicEvent)) -> MergeBuilder;
+    fn flush(self: Box<Self>, consumer: &mut dyn FnMut(&AtomicEvent)) -> FlushResult;
+}
+
+pub enum FlushResult {
+    Merge(MergeBuilder),
+    Build(GameAction)
 }
 
 pub trait CompoundEvent: Debug {

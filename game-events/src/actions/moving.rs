@@ -13,9 +13,10 @@ use game_model::{
 };
 use nanoserde::{DeBin, SerBin};
 
+use super::compound_events::FlushResult;
+
 #[derive(Debug, Clone, SerBin, DeBin, Getters)]
 pub struct MoveCompoundEvent {
-    //events: Vec<AtomicEvent>,
     from: Point2,
     to: Point2,
     moved_piece: Piece,
@@ -99,10 +100,10 @@ impl CompoundEventBuilder for MoveBuilder {
         GameAction::Move(self.event)
     }
 
-    fn flush(self: Box<Self>, consumer: &mut dyn FnMut(&AtomicEvent)) -> MergeBuilder {
-        self.event.get_events().iter().for_each(|e| consumer(e));
+    fn flush(self: Box<Self>, consumer: &mut dyn FnMut(&AtomicEvent)) -> FlushResult {
+        self.event.get_events().iter().for_each(consumer);
 
-        MergeBuilder::new(self)
+        FlushResult::Merge(MergeBuilder::new(self))
     }
 }
 

@@ -18,7 +18,7 @@ impl EventBroker {
         }
     }
 
-    pub fn subscribe_committed(&mut self, subscriber: Box<dyn EventConsumer>) {
+    pub fn subscribe(&mut self, subscriber: Box<dyn EventConsumer>) {
         self.subscribers.push(subscriber);
     }
 

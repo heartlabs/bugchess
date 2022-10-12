@@ -1,12 +1,12 @@
 use std::{borrow::BorrowMut, cell::RefCell, rc::Rc};
 
 use game_events::{
-    actions::compound_events::{CompoundEventBuilder, GameAction},
+    actions::compound_events::{CompoundEventBuilder, GameAction, FlushResult},
     board_event_consumer::BoardEventConsumer,
     core_game::CoreGameSubstate,
     event_broker::EventBroker,
 };
-use game_model::game::Game;
+use game_model::game::{Game, Team};
 
 use game_render::{constants::cell_hovered, BoardRender, CustomRenderContext};
 use macroquad_canvas::Canvas2D;
@@ -214,30 +214,22 @@ fn handle_player_input(
         event_broker.handle_new_event(&event_option);
     } else if is_mouse_button_pressed(MouseButton::Left) {
         let mut builder_option = None;
+        let game: &mut Game = &mut (**game).borrow_mut();
         let next_game_state = render_context.game_state.on_click(
             &cell_hovered(canvas),
-            game.as_ref().borrow_mut().borrow_mut(),
+            game,
             &mut builder_option,
         );
 
         info!("{:?} -> {:?}", render_context.game_state, next_game_state);
         render_context.game_state = next_game_state;
 
-        if let Some(event_composer) = builder_option {
-            let mut merge_builder =
-                BoardEventConsumer::flush(game.as_ref().borrow_mut().borrow_mut(), event_composer);
-            CoreGameSubstate::merge_patterns(
-                &mut (**game).borrow_mut().as_mut().board,
-                &mut merge_builder,
-            );
-            let merge_builder = BoardEventConsumer::flush(
-                game.as_ref().borrow_mut().borrow_mut(),
-                Box::new(merge_builder),
-            );
-            event_broker.handle_new_event(&merge_builder.build());
+        if let Some(game_action) = builder_option {
+            event_broker.handle_new_event(&game_action);
         }
     }
 }
+
 
 fn next_turn(game: &mut Rc<RefCell<Box<Game>>>) -> GameAction {
     let mut finish_turn = GameAction::finish_turn();
@@ -265,7 +257,7 @@ fn next_turn(game: &mut Rc<RefCell<Box<Game>>>) -> GameAction {
     let mut finish_turn_action = finish_turn.build();
 
     BoardEventConsumer::flush_unsafe(
-        game.as_ref().borrow_mut().borrow_mut(),
+        &mut (**game).borrow_mut(),
         &mut finish_turn_action,
     );
 

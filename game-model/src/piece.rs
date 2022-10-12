@@ -68,7 +68,6 @@ impl Piece {
             movement: None,
             activatable: None,
             effect: None,
-            dying: false,
             exhaustion: Exhaustion::new_exhausted(ExhaustionStrategy::Either),
             team_id,
         };
@@ -150,7 +149,6 @@ pub struct Piece {
     pub movement: Option<Move>,
     pub activatable: Option<ActivatablePower>,
     pub effect: Option<Effect>,
-    pub dying: bool,
     pub exhaustion: Exhaustion,
     pub team_id: usize,
 }
