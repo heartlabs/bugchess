@@ -1,12 +1,12 @@
 use std::{borrow::BorrowMut, cell::RefCell, rc::Rc};
 
 use game_events::{
-    actions::compound_events::{CompoundEventBuilder, GameAction, FlushResult},
+    actions::compound_events::{CompoundEventBuilder, GameAction},
     board_event_consumer::BoardEventConsumer,
     core_game::CoreGameSubstate,
     event_broker::EventBroker,
 };
-use game_model::game::{Game, Team};
+use game_model::game::Game;
 
 use game_render::{constants::cell_hovered, BoardRender, CustomRenderContext};
 use macroquad_canvas::Canvas2D;
@@ -215,11 +215,10 @@ fn handle_player_input(
     } else if is_mouse_button_pressed(MouseButton::Left) {
         let mut builder_option = None;
         let game: &mut Game = &mut (**game).borrow_mut();
-        let next_game_state = render_context.game_state.on_click(
-            &cell_hovered(canvas),
-            game,
-            &mut builder_option,
-        );
+        let next_game_state =
+            render_context
+                .game_state
+                .on_click(&cell_hovered(canvas), game, &mut builder_option);
 
         info!("{:?} -> {:?}", render_context.game_state, next_game_state);
         render_context.game_state = next_game_state;
@@ -229,7 +228,6 @@ fn handle_player_input(
         }
     }
 }
-
 
 fn next_turn(game: &mut Rc<RefCell<Box<Game>>>) -> GameAction {
     let mut finish_turn = GameAction::finish_turn();
@@ -256,10 +254,7 @@ fn next_turn(game: &mut Rc<RefCell<Box<Game>>>) -> GameAction {
     }
     let mut finish_turn_action = finish_turn.build();
 
-    BoardEventConsumer::flush_unsafe(
-        &mut (**game).borrow_mut(),
-        &mut finish_turn_action,
-    );
+    BoardEventConsumer::flush_unsafe(&mut (**game).borrow_mut(), &mut finish_turn_action);
 
     finish_turn_action
 }

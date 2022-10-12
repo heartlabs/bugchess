@@ -1,22 +1,8 @@
-use std::{collections::HashSet, default};
-
 // TODO: That doesnt belong in the events crate - maybe put it in its own crate?
-use game_model::{
-    board::{Board, Pattern, Point2},
-    game::Game,
-    piece::{Piece, PieceKind, Power},
-    ranges::RangeContext,
-};
+use game_model::{board::Point2, game::Game, piece::Power};
 
 use crate::{
-    actions::{
-        attack::AttackBuilder,
-        compound_events::{CompoundEventBuilder, GameAction, FlushResult},
-        merge::MergeBuilder,
-        moving::MoveBuilder,
-        place::EffectBuilder,
-    }, 
-    board_event_consumer::BoardEventConsumer, 
+    actions::compound_events::GameAction,
     game_controller::{GameController, MoveError},
 };
 
@@ -46,17 +32,19 @@ impl CoreGameSubstate {
                 match GameController::place_piece(game, target_point) {
                     Ok(event) => {
                         let _ = event_option.insert(event);
-                    },
+                    }
                     Err(MoveError::PieceAlreadyPresent(target_piece)) => {
                         if target_piece.team_id == game.current_team_index {
                             if target_piece.can_move() {
                                 return CoreGameSubstate::Move(*target_point);
                             } else if target_piece.can_use_special() {
                                 return CoreGameSubstate::Activate(*target_point);
-                            } 
+                            }
                         }
-                    },
-                    Err(error) => {panic!("Unexpected error {:?}", error)},
+                    }
+                    Err(error) => {
+                        panic!("Unexpected error {:?}", error)
+                    }
                 };
             }
             CoreGameSubstate::Move(itself) => {
@@ -65,7 +53,9 @@ impl CoreGameSubstate {
                         if let Some(activatable) = target_piece.activatable {
                             return match activatable.kind {
                                 Power::Blast => {
-                                    if let Ok(game_action) = GameController::blast(game, target_point) {
+                                    if let Ok(game_action) =
+                                        GameController::blast(game, target_point)
+                                    {
                                         let _ = event_option.insert(game_action);
                                     }
 
@@ -85,7 +75,9 @@ impl CoreGameSubstate {
                 }
             }
             CoreGameSubstate::Activate(active_piece_pos) => {
-                if let Ok(game_action) = GameController::targeted_shoot(game, active_piece_pos, target_point) {
+                if let Ok(game_action) =
+                    GameController::targeted_shoot(game, active_piece_pos, target_point)
+                {
                     let _ = event_option.insert(game_action);
                 }
             }
@@ -97,8 +89,4 @@ impl CoreGameSubstate {
 
         CoreGameSubstate::Place
     }
-
-    
-
-    
 }

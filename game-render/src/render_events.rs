@@ -213,7 +213,9 @@ impl RenderEventConsumer {
         }
 
         if let Some(merge_event) = merge_events.merge_events() {
-            animations[0].next_animations.extend(Self::handle_merge_events(merge_event));
+            animations[0]
+                .next_animations
+                .extend(Self::handle_merge_events(merge_event));
         }
 
         info!("MERGE ANIMATIONS\n{:?}", animations);

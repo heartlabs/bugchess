@@ -1,8 +1,5 @@
 use crate::{
-    actions::{
-        compound_events::{CompoundEventBuilder, GameAction, FlushResult},
-        merge::MergeBuilder,
-    },
+    actions::compound_events::{CompoundEventBuilder, FlushResult, GameAction},
     atomic_events::AtomicEvent::{self, *},
     game_events::{EventConsumer, GameEventObject},
 };

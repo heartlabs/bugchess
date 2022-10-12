@@ -1,18 +1,15 @@
 use crate::{
     actions::{
-        attack::{AttackCompoundEvent},
+        attack::AttackCompoundEvent,
         finish_turn::{FinishTurnBuilder, FinishTurnCompoundEvent},
         merge::{MergeBuilder, MergeCompoundEvent},
-        moving::{MoveCompoundEvent},
+        moving::MoveCompoundEvent,
         place::{PlaceBuilder, PlaceCompoundEvent},
         undo::{UndoBuilder, UndoCompoundEvent},
     },
     atomic_events::AtomicEvent,
 };
-use game_model::{
-    board::Point2,
-    piece::{Piece},
-};
+use game_model::{board::Point2, piece::Piece};
 use nanoserde::{DeBin, SerBin};
 use std::fmt::Debug;
 
@@ -26,7 +23,7 @@ pub trait CompoundEventBuilder {
 
 pub enum FlushResult {
     Merge(MergeBuilder),
-    Build(GameAction)
+    Build(GameAction),
 }
 
 pub trait CompoundEvent: Debug {
