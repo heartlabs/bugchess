@@ -3,7 +3,7 @@ use game_model::{board::Point2, game::Game, piece::Power};
 
 use crate::{
     actions::compound_events::GameAction,
-    game_controller::{GameController, MoveError},
+    game_controller::{GameController, MoveError}, event_broker::EventBroker,
 };
 
 #[derive(Debug, Copy, Clone)]
@@ -20,10 +20,12 @@ impl CoreGameSubstate {
         &self,
         target_point: &Point2,
         game: &mut Game, // TODO: Operate on a clone of Game instead and re-perform events on actual game outside?
-        event_option: &mut Option<GameAction>,
+        event_broker: &mut EventBroker,
+        //event_option: &mut Option<GameAction>,
     ) -> CoreGameSubstate {
         let board = &game.board;
         if !board.has_cell(target_point) {
+
             return CoreGameSubstate::Place;
         }
 
@@ -31,7 +33,8 @@ impl CoreGameSubstate {
             CoreGameSubstate::Place => {
                 match GameController::place_piece(game, target_point) {
                     Ok(event) => {
-                        let _ = event_option.insert(event);
+                        //std::mem::drop(game);
+                        event_broker.handle_new_event(&event);
                     }
                     Err(MoveError::PieceAlreadyPresent(target_piece)) => {
                         if target_piece.team_id == game.current_team_index {
@@ -41,6 +44,9 @@ impl CoreGameSubstate {
                                 return CoreGameSubstate::Activate(*target_point);
                             }
                         }
+                    }
+                    Err(MoveError::NoPieceAvailable) => {
+                        return CoreGameSubstate::Place;
                     }
                     Err(error) => {
                         panic!("Unexpected error {:?}", error)
@@ -56,7 +62,8 @@ impl CoreGameSubstate {
                                     if let Ok(game_action) =
                                         GameController::blast(game, target_point)
                                     {
-                                        let _ = event_option.insert(game_action);
+                                        std::mem::drop(game);
+                                        event_broker.handle_new_event(&game_action);
                                     }
 
                                     CoreGameSubstate::Place
@@ -71,14 +78,16 @@ impl CoreGameSubstate {
                 }
 
                 if let Ok(game_action) = GameController::move_piece(game, itself, target_point) {
-                    let _ = event_option.insert(game_action);
+                    std::mem::drop(game);
+                    event_broker.handle_new_event(&game_action);
                 }
             }
             CoreGameSubstate::Activate(active_piece_pos) => {
                 if let Ok(game_action) =
                     GameController::targeted_shoot(game, active_piece_pos, target_point)
                 {
-                    let _ = event_option.insert(game_action);
+                    std::mem::drop(game);
+                    event_broker.handle_new_event(&game_action);
                 }
             }
             CoreGameSubstate::Won(team) => {

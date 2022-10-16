@@ -16,11 +16,11 @@ use macroquad::miniquad::info;
 use std::{cell::RefCell, rc::Rc};
 
 pub struct RenderEventConsumer {
-    pub(crate) board_render: Rc<RefCell<Box<BoardRender>>>,
+    pub(crate) board_render: Rc<RefCell<BoardRender>>,
 }
 
 impl RenderEventConsumer {
-    pub fn new(board_render: &Rc<RefCell<Box<BoardRender>>>) -> Self {
+    pub fn new(board_render: &Rc<RefCell<BoardRender>>) -> Self {
         RenderEventConsumer {
             board_render: board_render.clone(),
         }

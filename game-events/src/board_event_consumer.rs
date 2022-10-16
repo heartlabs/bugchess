@@ -9,7 +9,7 @@ use std::{cell::RefCell, rc::Rc};
 
 pub struct BoardEventConsumer {
     pub own_sender_id: String,
-    pub(crate) game: Rc<RefCell<Box<Game>>>,
+    pub(crate) game: Rc<RefCell<Game>>,
 }
 
 impl EventConsumer for BoardEventConsumer {
@@ -28,13 +28,13 @@ impl EventConsumer for BoardEventConsumer {
             .get_events()
             .iter()
             .for_each(|e| {
-                BoardEventConsumer::handle_event_internal((*self.game).borrow_mut().as_mut(), e)
+                BoardEventConsumer::handle_event_internal(&mut (*self.game).borrow_mut(), e)
             });
     }
 }
 
 impl BoardEventConsumer {
-    pub fn new(own_sender_id: String, game: Rc<RefCell<Box<Game>>>) -> Self {
+    pub fn new(own_sender_id: String, game: Rc<RefCell<Game>>) -> Self {
         BoardEventConsumer {
             own_sender_id,
             game,

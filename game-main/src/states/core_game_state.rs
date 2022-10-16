@@ -8,25 +8,25 @@ use game_model::game::Game;
 
 use game_render::{constants::cell_hovered, BoardRender, CustomRenderContext};
 
-use crate::{constants::ONLINE, matchbox::MatchboxClient, GameState};
+use crate::{constants::ONLINE, matchbox::MatchboxClient, GameState,multiplayer_connector::{MultiplayerClient, MultiplayerConector}};
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
 
 pub struct CoreGameState {
-    pub game: Rc<RefCell<Box<Game>>>,
+    pub game: Rc<RefCell<Game>>,
     pub(crate) event_broker: EventBroker,
-    board_render: Rc<RefCell<Box<BoardRender>>>,
-    pub matchbox_events: Option<Rc<RefCell<Box<MatchboxClient>>>>,
+    board_render: Rc<RefCell<BoardRender>>,
+    pub matchbox_events: Option<Rc<RefCell<MultiplayerConector>>>,
     render_context: CustomRenderContext,
-    own_player_id: Option<usize>,
+    own_player_team_id: Option<usize>,
 }
 
 impl CoreGameState {
     pub(crate) fn new(
-        game: Rc<RefCell<Box<Game>>>,
+        game: Rc<RefCell<Game>>,
         event_broker: EventBroker,
-        board_render: Rc<RefCell<Box<BoardRender>>>,
-        matchbox_events: Option<Rc<RefCell<Box<MatchboxClient>>>>,
+        board_render: Rc<RefCell<BoardRender>>,
+        matchbox_events: Option<Rc<RefCell<MultiplayerConector>>>,
     ) -> Self {
         CoreGameState {
             game,
@@ -34,7 +34,7 @@ impl CoreGameState {
             board_render,
             matchbox_events,
             render_context: CustomRenderContext::new(),
-            own_player_id: Option::None,
+            own_player_team_id: Option::None,
         }
     }
 
@@ -54,20 +54,19 @@ impl GameState for CoreGameState {
                 .iter()
                 .for_each(|e| self.event_broker.handle_remote_event(&e));
 
-            if self.own_player_id.is_none() {
-                self.own_player_id = (**self.matchbox_events.as_ref().unwrap())
+            if self.own_player_team_id.is_none() {
+                self.own_player_team_id = (**self.matchbox_events.as_ref().unwrap())
                     .borrow()
-                    .as_ref()
                     .get_own_player_index();
-                info!("own player id: {:?}", self.own_player_id);
+                info!("own player id: {:?}", self.own_player_team_id);
             }
         }
 
         match self.render_context.game_state {
             CoreGameSubstate::Wait => {
                 if can_control_player(
-                    (*self.game).borrow().as_ref(),
-                    &mut self.own_player_id,
+                    &(*self.game).borrow(),
+                    &mut self.own_player_team_id,
                     ONLINE,
                 ) {
                     self.render_context.game_state = CoreGameSubstate::Place;
@@ -84,15 +83,15 @@ impl GameState for CoreGameState {
             }
         }
 
-        check_if_somebody_won((*self.game).borrow().as_ref(), &mut self.render_context);
+        check_if_somebody_won(&(*self.game).borrow(), &mut self.render_context);
 
         if false {
-            self.board_render = Rc::new(RefCell::new(Box::new(BoardRender::new(
-                (*self.game).borrow().as_ref(),
-            ))));
+            self.board_render = Rc::new(RefCell::new(BoardRender::new(
+                &(*self.game).borrow(),
+            )));
         }
 
-        (*self.board_render).borrow_mut().as_mut().update();
+        (*self.board_render).borrow_mut().update();
 
         Option::None
     }
@@ -101,7 +100,7 @@ impl GameState for CoreGameState {
         let board_render = (*self.board_render).borrow();
         let game = (*self.game).borrow();
         board_render.render(
-            &(*self.game).borrow().as_ref().board,
+            &(*self.game).borrow().board,
             &self.render_context,
             canvas,
         );
@@ -195,7 +194,7 @@ fn can_control_player(game: &Game, own_player_id: &mut Option<usize>, is_online:
 }
 
 fn handle_player_input(
-    game: &mut Rc<RefCell<Box<Game>>>,
+    game: &mut Rc<RefCell<Game>>,
     event_broker: &mut EventBroker,
     render_context: &mut CustomRenderContext,
     canvas: &Canvas2D,
@@ -215,7 +214,8 @@ fn handle_player_input(
         let game: &mut Game = &mut (**game).borrow_mut();
         let next_game_state = render_context
                 .game_state
-                .on_click(&cell_hovered(canvas), game, &mut builder_option);
+                .on_click(&cell_hovered(canvas), game, event_broker);
+                //.on_click(&cell_hovered(canvas), game, &mut builder_option);
 
         info!("{:?} -> {:?}", render_context.game_state, next_game_state);
         render_context.game_state = next_game_state;
@@ -224,4 +224,101 @@ fn handle_player_input(
             event_broker.handle_new_event(&game_action);
         }
     }
+}
+
+
+
+
+
+
+
+
+#[cfg(test)]
+mod tests {
+    use std::{collections::VecDeque, cell::RefCell, rc::Rc};
+
+    use game_model::{game::{Game, Team}, piece::PieceKind};
+    use game_render::{render_events::RenderEventConsumer, BoardRender};
+
+    use game_events::{event_broker::{EventBroker}, game_events::{GameEventObject, EventConsumer}, actions::compound_events::GameAction, board_event_consumer::BoardEventConsumer};
+    use crate::{multiplayer_connector::{MultiplayerConector, MultiplayerEventConsumer}, fakebox::FakeboxClient, test_utils::*};
+    use super::CoreGameSubstate;
+
+    #[test]
+    fn test_place_single_piece() {
+        let mut game = create_game_object();
+        let sender_id = "1".to_string();
+        let mut event_broker = EventBroker::new(sender_id);
+        let event_log: Rc<RefCell<VecDeque<GameEventObject>>> = Rc::new(RefCell::new(VecDeque::new()));
+        event_broker.subscribe(Box::new(EventLogger { events: event_log.clone() }));
+
+        let game_state = CoreGameSubstate::Place;
+        game_state.on_click(&(0,0).into(), &mut game, &mut event_broker);
+
+        let log: &VecDeque<GameEventObject> = &(*event_log).borrow();
+        assert!(log.len() == 1, "Logged events: {:?}", log);
+
+        if let GameAction::Place(p) = &log[0].event {
+            assert!(p.piece().piece_kind == PieceKind::Simple);
+            assert!(p.at() == &(0,0).into());
+            assert!(p.team_id() == &0);
+        } else {
+            panic!("Expected place event but was {:?}", log[0].event)
+        }        
+    }
+
+    #[test]
+    fn test_place_single_piece_multiplayer() {
+        let (mut test_game1, mut test_game2) = create_multiplayer_game();
+        
+        // Make Move
+        let game_state1 = CoreGameSubstate::Place;
+        game_state1.on_click(
+            &(0,0).into(), 
+            &mut (*test_game1.game.borrow_mut()), 
+            &mut test_game1.event_broker);
+        
+        // Recieve move in Game 2
+        test_game2.recieve_multiplayer_events();
+
+        // Assertions Game 1
+        let log: &VecDeque<GameEventObject> = &(*test_game1.logs).borrow();
+        assert!(log.len() == 1, "Logged events: {:?}", log);
+
+        if let GameAction::Place(p) = &log[0].event {
+            assert!(p.piece().piece_kind == PieceKind::Simple);
+            assert!(p.at() == &(0,0).into());
+            assert!(p.team_id() == &0);
+        } else {
+            panic!("Expected place event but was {:?}", log[0].event)
+        }
+
+        let game = &mut (*test_game1.game.borrow_mut());
+        assert!(game.board.placed_pieces(0).len() == 1);
+        assert!(game.board.placed_pieces(1).is_empty());
+
+        let placed_piece = game.board.get_piece_at(&(0,0).into()).expect("Placed piece not found on board");
+        assert!(placed_piece.piece_kind == PieceKind::Simple);
+
+        // Assertions Game 2
+        let log: &VecDeque<GameEventObject> = &(*test_game2.logs).borrow();
+        assert!(log.len() == 1, "Logged events: {:?}", log);
+
+        if let GameAction::Place(p) = &log[0].event {
+            assert!(p.piece().piece_kind == PieceKind::Simple);
+            assert!(p.at() == &(0,0).into());
+            assert!(p.team_id() == &0);
+        } else {
+            panic!("Expected place event but was {:?}", log[0].event)
+        }
+
+        let game = &(*test_game2.game).borrow();
+        assert!(game.board.placed_pieces(0).len() == 1);
+        assert!(game.board.placed_pieces(1).is_empty());
+
+        let placed_piece = game.board.get_piece_at(&(0,0).into()).expect("Placed piece not found on board");
+        assert!(placed_piece.piece_kind == PieceKind::Simple);
+    }
+
+    
 }

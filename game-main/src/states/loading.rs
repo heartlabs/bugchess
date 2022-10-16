@@ -1,8 +1,8 @@
 use crate::{
     egui::{Align, Color32, FontData, TextEdit},
-    matchbox,
-    matchbox::{MatchboxClient, MatchboxEventConsumer},
-    BoardRender, CoreGameState, GameState, ONLINE,
+    matchbox::{MatchboxClient},
+    BoardRender, CoreGameState, GameState, ONLINE, 
+    multiplayer_connector::{MultiplayerConector, MultiplayerEventConsumer},
 };
 use egui_macroquad::{
     egui,
@@ -11,6 +11,7 @@ use egui_macroquad::{
 use game_events::{
     actions::compound_events::GameAction, board_event_consumer::BoardEventConsumer,
     core_game::CoreGameSubstate, event_broker::EventBroker,
+    
 };
 use game_model::{board::*, game::*, piece::*};
 use game_render::{
@@ -31,7 +32,7 @@ use uuid::Uuid;
 pub struct LoadingState {
     core_game_state: Option<CoreGameState>,
     sub_state: LoadingSubState,
-    client: Option<MatchboxClient>,
+    client: Option<MultiplayerConector>,
     room_id: String,
 }
 
@@ -60,7 +61,7 @@ impl LoadingState {
     pub fn new() -> Self {
         let start_time = Instant::now();
 
-        let game = Rc::new(RefCell::new(Box::new(init_game())));
+        let game = Rc::new(RefCell::new(init_game()));
         let own_sender_id = Uuid::new_v4().to_string();
         let mut event_broker = EventBroker::new(own_sender_id.clone());
         event_broker.subscribe(Box::new(BoardEventConsumer::new(
@@ -68,15 +69,15 @@ impl LoadingState {
             Rc::clone(&game),
         )));
 
-        let board_render = Rc::new(RefCell::new(Box::new(BoardRender::new(
-            (*game).borrow().as_ref(),
-        ))));
+        let board_render = Rc::new(RefCell::new(BoardRender::new(
+            &(*game).borrow(),
+        )));
         event_broker.subscribe(Box::new(RenderEventConsumer::new(&board_render)));
 
         info!(
             "{}ns to set up pieces. {}",
             start_time.elapsed().as_nanos(),
-            (*game).borrow().as_ref().teams[0].unused_pieces
+            (*game).borrow().teams[0].unused_pieces
         );
 
         srand((start_time.elapsed().as_nanos() % u64::MAX as u128) as u64);
@@ -150,7 +151,7 @@ impl GameState for LoadingState {
                                     .text_color(Color32::from_rgb(0, 200, 0)),
                             );
                             if child_ui.button("OK").clicked() {
-                                let client = matchbox::connect(self.room_id.as_str());
+                                let client = MatchboxClient::new_connector(self.room_id.as_str());
                                 self.client = Some(client);
                                 self.sub_state = LoadingSubState::Matchmaking;
                             }
@@ -176,22 +177,22 @@ impl GameState for LoadingState {
                 } else {
                     let num_teams = 2;
                     start_events =
-                        set_up_pieces(num_teams, (*core_game_state.game).borrow_mut().as_mut());
+                        set_up_pieces(num_teams, &mut (*core_game_state.game).borrow_mut());
                 }
 
-                let matchbox_events =
-                    Option::Some(Rc::new(RefCell::new(Box::new(matchbox_client))));
+                let multiplayer_events =
+                    Option::Some(Rc::new(RefCell::new(matchbox_client)));
                 core_game_state
                     .event_broker
-                    .subscribe(Box::new(MatchboxEventConsumer {
-                        client: Rc::clone(matchbox_events.as_ref().unwrap()),
+                    .subscribe(Box::new(MultiplayerEventConsumer {
+                        client: Rc::clone(multiplayer_events.as_ref().unwrap()),
                     }));
 
                 for start_event in &start_events {
                     core_game_state.event_broker.handle_new_event(start_event);
                 }
 
-                core_game_state.matchbox_events = matchbox_events;
+                core_game_state.matchbox_events = multiplayer_events;
 
                 self.sub_state = LoadingSubState::WaitForOpponent;
             }
@@ -227,7 +228,7 @@ impl GameState for LoadingState {
                     let core_game_state = self.core_game_state.as_mut().unwrap();
                     let num_teams = 2;
                     for start_event in
-                        &set_up_pieces(num_teams, (*core_game_state.game).borrow_mut().as_mut())
+                        &set_up_pieces(num_teams, &mut (*core_game_state.game).borrow_mut())
                     {
                         core_game_state.event_broker.handle_new_event(start_event);
                     }
@@ -284,17 +285,12 @@ fn init_game() -> Game {
         Team {
             name: "Red",
             id: 0,
-            // color: Srgba::new(1., 1., 0.2, 1.),
-            // color: Srgba::new(0.96,  0.49, 0.37, 1.),
-            // color: Srgba::new(0.96, 0.37, 0.23, 1.),
             lost: false,
             unused_pieces: 0,
         },
         Team {
             name: "Yellow",
             id: 1,
-            // color: Srgba::new(0., 0., 0., 1.),
-            // color: Srgba::new(0.93, 0.78, 0.31, 1.),
             lost: false,
             unused_pieces: 0,
         },
