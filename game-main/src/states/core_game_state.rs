@@ -1,14 +1,13 @@
 use std::{cell::RefCell, rc::Rc};
 
 use game_events::{
-    core_game::CoreGameSubstate,
-    event_broker::EventBroker, game_controller::GameController,
+    core_game::CoreGameSubstate, event_broker::EventBroker, game_controller::GameController,
 };
 use game_model::game::Game;
 
 use game_render::{constants::cell_hovered, BoardRender, CustomRenderContext};
 
-use crate::{constants::ONLINE, GameState,multiplayer_connector::{MultiplayerConector}};
+use crate::{constants::ONLINE, multiplayer_connector::MultiplayerConector, GameState};
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
 
@@ -64,11 +63,8 @@ impl GameState for CoreGameState {
 
         match self.render_context.game_state {
             CoreGameSubstate::Wait => {
-                if can_control_player(
-                    &(*self.game).borrow(),
-                    &mut self.own_player_team_id,
-                    ONLINE,
-                ) {
+                if can_control_player(&(*self.game).borrow(), &mut self.own_player_team_id, ONLINE)
+                {
                     self.render_context.game_state = CoreGameSubstate::Place;
                 }
             }
@@ -86,9 +82,7 @@ impl GameState for CoreGameState {
         check_if_somebody_won(&(*self.game).borrow(), &mut self.render_context);
 
         if false {
-            self.board_render = Rc::new(RefCell::new(BoardRender::new(
-                &(*self.game).borrow(),
-            )));
+            self.board_render = Rc::new(RefCell::new(BoardRender::new(&(*self.game).borrow())));
         }
 
         (*self.board_render).borrow_mut().update();
@@ -99,11 +93,7 @@ impl GameState for CoreGameState {
     fn render(&self, canvas: &Canvas2D) {
         let board_render = (*self.board_render).borrow();
         let game = (*self.game).borrow();
-        board_render.render(
-            &(*self.game).borrow().board,
-            &self.render_context,
-            canvas,
-        );
+        board_render.render(&(*self.game).borrow().board, &self.render_context, canvas);
 
         for (i, text) in description(&self.render_context, &game).iter().enumerate() {
             draw_text(
@@ -212,10 +202,11 @@ fn handle_player_input(
     } else if is_mouse_button_pressed(MouseButton::Left) {
         let builder_option = None;
         let game: &mut Game = &mut (**game).borrow_mut();
-        let next_game_state = render_context
+        let next_game_state =
+            render_context
                 .game_state
                 .on_click(&cell_hovered(canvas), game, event_broker);
-                //.on_click(&cell_hovered(canvas), game, &mut builder_option);
+        //.on_click(&cell_hovered(canvas), game, &mut builder_option);
 
         info!("{:?} -> {:?}", render_context.game_state, next_game_state);
         render_context.game_state = next_game_state;
@@ -226,41 +217,38 @@ fn handle_player_input(
     }
 }
 
-
-
-
-
-
-
-
 #[cfg(test)]
 mod tests {
 
-    use game_model::{ piece::PieceKind};
+    use crate::test_utils::*;
     use game_events::core_game::CoreGameSubstate;
-    use crate::{test_utils::*};
+    use game_model::piece::PieceKind;
 
     #[test]
     fn test_place_single_piece_multiplayer() {
         let (mut test_game1, mut test_game2) = create_multiplayer_game();
-        
+
         // Make Move
         let game_state1 = CoreGameSubstate::Place.on_click(
-            &(0,0).into(), 
-            &mut (*test_game1.game.borrow_mut()), 
-            &mut test_game1.event_broker);
-        
+            &(0, 0).into(),
+            &mut (*test_game1.game.borrow_mut()),
+            &mut test_game1.event_broker,
+        );
+
         // Recieve move in Game 2
         test_game2.recieve_multiplayer_events();
 
         // Assertions Game 1
-        assert_eq!(game_state1, CoreGameSubstate::Place);     
+        assert_eq!(game_state1, CoreGameSubstate::Place);
 
         let game = &mut (*test_game1.game.borrow_mut());
         assert!(game.board.placed_pieces(0).len() == 1);
         assert!(game.board.placed_pieces(1).is_empty());
 
-        let placed_piece = game.board.get_piece_at(&(0,0).into()).expect("Placed piece not found on board");
+        let placed_piece = game
+            .board
+            .get_piece_at(&(0, 0).into())
+            .expect("Placed piece not found on board");
         assert!(placed_piece.piece_kind == PieceKind::Simple);
 
         // Assertions Game 2
@@ -268,9 +256,10 @@ mod tests {
         assert!(game.board.placed_pieces(0).len() == 1);
         assert!(game.board.placed_pieces(1).is_empty());
 
-        let placed_piece = game.board.get_piece_at(&(0,0).into()).expect("Placed piece not found on board");
+        let placed_piece = game
+            .board
+            .get_piece_at(&(0, 0).into())
+            .expect("Placed piece not found on board");
         assert!(placed_piece.piece_kind == PieceKind::Simple);
     }
-
-    
 }

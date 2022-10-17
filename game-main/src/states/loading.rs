@@ -1,8 +1,8 @@
 use crate::{
     egui::{Align, Color32, FontData, TextEdit},
-    matchbox::{MatchboxClient},
-    BoardRender, CoreGameState, GameState, ONLINE, 
+    matchbox::MatchboxClient,
     multiplayer_connector::{MultiplayerConector, MultiplayerEventConsumer},
+    BoardRender, CoreGameState, GameState, ONLINE,
 };
 use egui_macroquad::{
     egui,
@@ -11,7 +11,6 @@ use egui_macroquad::{
 use game_events::{
     actions::compound_events::GameAction, board_event_consumer::BoardEventConsumer,
     core_game::CoreGameSubstate, event_broker::EventBroker,
-    
 };
 use game_model::{board::*, game::*, piece::*};
 use game_render::{
@@ -69,9 +68,7 @@ impl LoadingState {
             Rc::clone(&game),
         )));
 
-        let board_render = Rc::new(RefCell::new(BoardRender::new(
-            &(*game).borrow(),
-        )));
+        let board_render = Rc::new(RefCell::new(BoardRender::new(&(*game).borrow())));
         event_broker.subscribe(Box::new(RenderEventConsumer::new(&board_render)));
 
         info!(
@@ -180,8 +177,7 @@ impl GameState for LoadingState {
                         set_up_pieces(num_teams, &mut (*core_game_state.game).borrow_mut());
                 }
 
-                let multiplayer_events =
-                    Option::Some(Rc::new(RefCell::new(matchbox_client)));
+                let multiplayer_events = Option::Some(Rc::new(RefCell::new(matchbox_client)));
                 core_game_state
                     .event_broker
                     .subscribe(Box::new(MultiplayerEventConsumer {

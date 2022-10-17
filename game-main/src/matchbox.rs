@@ -1,14 +1,13 @@
-use game_events::game_events::{GameEventObject};
+use crate::multiplayer_connector::{MultiplayerClient, MultiplayerConector};
+use game_events::game_events::GameEventObject;
 use macroquad::prelude::*;
 use matchbox_socket::{RtcIceServerConfig, WebRtcSocket, WebRtcSocketConfig};
 use nanoserde::{DeBin, SerBin};
-use std::{future::Future, pin::Pin, borrow::Borrow};
-use crate::{multiplayer_connector::{MultiplayerClient, MultiplayerConector},};
+use std::{borrow::Borrow, future::Future, pin::Pin};
 use urlencoding::encode;
 
 #[cfg(target_family = "wasm")]
 use wasm_bindgen::prelude::*;
-
 
 #[cfg(target_family = "wasm")]
 #[wasm_bindgen]
@@ -56,22 +55,22 @@ impl MultiplayerClient for MatchboxClient {
     }
 
     fn recieved_events(&mut self) -> Vec<GameEventObject> {
-        self.client.receive()
+        self.client
+            .receive()
             .into_iter()
             .map(|(_, g)| DeBin::deserialize_bin(g.borrow()).unwrap()) // TODO: Proper error
             .collect()
     }
 
-    fn send(&mut self, game_object: GameEventObject, opponent_id: String ) {
-        self.client.send(game_object.serialize_bin().into_boxed_slice(), opponent_id)
+    fn send(&mut self, game_object: GameEventObject, opponent_id: String) {
+        self.client
+            .send(game_object.serialize_bin().into_boxed_slice(), opponent_id)
     }
 }
 
 impl MatchboxClient {
     pub fn new(client: WebRtcSocket, message_loop: Pin<Box<dyn Future<Output = ()>>>) -> Self {
-        let client = MatchboxClient {
-            client,
-        };
+        let client = MatchboxClient { client };
 
         //client.executor.spawn(message_loop).detach();
         #[cfg(target_family = "wasm")]
@@ -84,5 +83,4 @@ impl MatchboxClient {
         let client = connect(room_id);
         MultiplayerConector::new(client.client.id().clone(), Box::new(client))
     }
-      
 }

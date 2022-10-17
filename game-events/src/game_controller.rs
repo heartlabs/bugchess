@@ -256,8 +256,6 @@ fn merge_patterns(board: &Board, merge_builder: &mut MergeBuilder) {
             }
         }
     }
-
-    
 }
 
 fn flush_and_merge(game: &mut Game, event_builder: Box<dyn CompoundEventBuilder>) -> GameAction {

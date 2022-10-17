@@ -6,7 +6,7 @@ pub trait MultiplayerClient {
     fn is_ready(&self) -> bool;
     fn accept_new_connections(&mut self) -> Vec<String>;
     fn recieved_events(&mut self) -> Vec<GameEventObject>;
-    fn send(&mut self, game_object: GameEventObject, opponent_id: String );
+    fn send(&mut self, game_object: GameEventObject, opponent_id: String);
 }
 
 pub struct MultiplayerConector {
@@ -19,8 +19,7 @@ pub struct MultiplayerConector {
 
 impl MultiplayerConector {
     pub fn new(own_player_id: String, client: Box<dyn MultiplayerClient>) -> Self {
-        let connector = MultiplayerConector
-     {
+        let connector = MultiplayerConector {
             sent_events: HashSet::new(),
             recieved_events: HashSet::new(),
             client,
@@ -72,7 +71,7 @@ impl MultiplayerConector {
 }
 
 pub struct MultiplayerEventConsumer {
-    pub client: Rc<RefCell<MultiplayerConector>>
+    pub client: Rc<RefCell<MultiplayerConector>>,
 }
 
 impl EventConsumer for MultiplayerEventConsumer {

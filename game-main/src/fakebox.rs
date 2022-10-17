@@ -1,14 +1,12 @@
-use game_events::game_events::{GameEventObject};
-use std::{cell::RefCell, collections::{VecDeque}, rc::Rc};
+use game_events::game_events::GameEventObject;
+use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
 use crate::multiplayer_connector::MultiplayerClient;
-
 
 pub struct FakeboxClient {
     id: String,
     incoming_messages: VecDeque<GameEventObject>,
     opponent_client: Option<Rc<RefCell<FakeboxClient>>>,
-
 }
 
 impl FakeboxClient {
@@ -17,7 +15,6 @@ impl FakeboxClient {
             id: "One".to_string(),
             incoming_messages: VecDeque::new(),
             opponent_client: None,
-
         };
         let client1 = Rc::new(RefCell::new(client1));
 
@@ -25,7 +22,6 @@ impl FakeboxClient {
             id: "Two".to_string(),
             incoming_messages: VecDeque::new(),
             opponent_client: Some(client1.clone()),
-
         };
         let client2 = Rc::new(RefCell::new(client2));
 
@@ -47,7 +43,7 @@ impl MultiplayerClient for Rc<RefCell<FakeboxClient>> {
         (*self).borrow_mut().recieved_events()
     }
 
-    fn send(&mut self, game_object: GameEventObject, opponent_id: String ) {
+    fn send(&mut self, game_object: GameEventObject, opponent_id: String) {
         (*self).borrow_mut().send(game_object, opponent_id)
     }
 }
@@ -69,9 +65,14 @@ impl MultiplayerClient for FakeboxClient {
         self.incoming_messages.drain(..).collect()
     }
 
-    fn send(&mut self, game_object: GameEventObject, _opponent_id: String ) {
-        let opponent_client = self.opponent_client.as_ref().expect("Can't send: No opponent's client");
-        (*opponent_client).borrow_mut().incoming_messages.push_front(game_object);
+    fn send(&mut self, game_object: GameEventObject, _opponent_id: String) {
+        let opponent_client = self
+            .opponent_client
+            .as_ref()
+            .expect("Can't send: No opponent's client");
+        (*opponent_client)
+            .borrow_mut()
+            .incoming_messages
+            .push_front(game_object);
     }
 }
-

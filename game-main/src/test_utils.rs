@@ -1,16 +1,23 @@
-use std::{cell::RefCell, rc::Rc, collections::VecDeque};
+use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
-use game_events::{event_broker::EventBroker, board_event_consumer::BoardEventConsumer, game_events::{GameEventObject, EventConsumer}};
+use game_events::{
+    board_event_consumer::BoardEventConsumer,
+    event_broker::EventBroker,
+    game_events::{EventConsumer, GameEventObject},
+};
 use game_model::game::{Game, Team};
-use game_render::{BoardRender, render_events::RenderEventConsumer};
+use game_render::{render_events::RenderEventConsumer, BoardRender};
 
-use crate::{fakebox::FakeboxClient, multiplayer_connector::{MultiplayerConector, MultiplayerEventConsumer}};
+use crate::{
+    fakebox::FakeboxClient,
+    multiplayer_connector::{MultiplayerConector, MultiplayerEventConsumer},
+};
 
 pub struct TestGame {
-    pub logs: Rc<RefCell<VecDeque<GameEventObject>>>, 
-    pub game: Rc<RefCell<Game>>, 
-    pub event_broker: EventBroker, 
-    multiplayer_connector: Option<Rc<RefCell<MultiplayerConector>>>
+    pub logs: Rc<RefCell<VecDeque<GameEventObject>>>,
+    pub game: Rc<RefCell<Game>>,
+    pub event_broker: EventBroker,
+    multiplayer_connector: Option<Rc<RefCell<MultiplayerConector>>>,
 }
 
 impl TestGame {
@@ -18,7 +25,8 @@ impl TestGame {
         let recieved_events = (*self.multiplayer_connector.as_ref().unwrap())
             .borrow_mut()
             .try_recieve();
-        recieved_events.iter()
+        recieved_events
+            .iter()
             .for_each(|e| self.event_broker.handle_remote_event(&e));
     }
 }
@@ -38,30 +46,45 @@ pub fn create_multiplayer_game() -> (TestGame, TestGame) {
     (test_game1, test_game2)
 }
 
-
-fn make_multiplayer(sender_id1: &str, multiplayer_client1: Rc<RefCell<FakeboxClient>>, test_game: &mut TestGame) {
-    let mut multiplayer_connector = MultiplayerConector::new(sender_id1.to_string(), Box::new(multiplayer_client1));
+fn make_multiplayer(
+    sender_id1: &str,
+    multiplayer_client1: Rc<RefCell<FakeboxClient>>,
+    test_game: &mut TestGame,
+) {
+    let mut multiplayer_connector =
+        MultiplayerConector::new(sender_id1.to_string(), Box::new(multiplayer_client1));
     multiplayer_connector.matchmaking();
     let multiplayer_connector = Rc::new(RefCell::new(multiplayer_connector));
-    let multiplayer_event_consumer = MultiplayerEventConsumer {client: multiplayer_connector.clone()};
-    test_game.event_broker.subscribe(Box::new(multiplayer_event_consumer));
+    let multiplayer_event_consumer = MultiplayerEventConsumer {
+        client: multiplayer_connector.clone(),
+    };
+    test_game
+        .event_broker
+        .subscribe(Box::new(multiplayer_event_consumer));
     test_game.multiplayer_connector = Some(multiplayer_connector);
 }
 
 pub fn create_singleplayer_game(sender_id1: &str) -> TestGame {
     let mut event_broker = EventBroker::new(sender_id1.to_string());
     let logs: Rc<RefCell<VecDeque<GameEventObject>>> = Rc::new(RefCell::new(VecDeque::new()));
-    event_broker.subscribe(Box::new(EventLogger { events: logs.clone() }));
+    event_broker.subscribe(Box::new(EventLogger {
+        events: logs.clone(),
+    }));
     let game = Rc::new(RefCell::new(create_game_object()));
-    event_broker.subscribe(Box::new(BoardEventConsumer::new(sender_id1.to_string(), game.clone())));
+    event_broker.subscribe(Box::new(BoardEventConsumer::new(
+        sender_id1.to_string(),
+        game.clone(),
+    )));
     let board_render = BoardRender::new(&(*game.borrow()));
-    event_broker.subscribe(Box::new(RenderEventConsumer::new(&Rc::new(RefCell::new(board_render)))));
-    
+    event_broker.subscribe(Box::new(RenderEventConsumer::new(&Rc::new(RefCell::new(
+        board_render,
+    )))));
+
     TestGame {
-        event_broker, 
-        logs, 
-        game, 
-        multiplayer_connector: None
+        event_broker,
+        logs,
+        game,
+        multiplayer_connector: None,
     }
 }
 
@@ -80,11 +103,11 @@ pub fn create_game_object() -> Game {
             unused_pieces: 2,
         },
     ];
-    Game::new(teams, 8, 8)     
+    Game::new(teams, 8, 8)
 }
 
 pub struct EventLogger {
-    pub events: Rc<RefCell<VecDeque<GameEventObject>>>
+    pub events: Rc<RefCell<VecDeque<GameEventObject>>>,
 }
 
 impl EventConsumer for EventLogger {
