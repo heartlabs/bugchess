@@ -8,7 +8,7 @@ use game_model::game::Game;
 
 use game_render::{constants::cell_hovered, BoardRender, CustomRenderContext};
 
-use crate::{constants::ONLINE, matchbox::MatchboxClient, GameState,multiplayer_connector::{MultiplayerClient, MultiplayerConector}};
+use crate::{constants::ONLINE, GameState,multiplayer_connector::{MultiplayerConector}};
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
 
@@ -210,7 +210,7 @@ fn handle_player_input(
         // BoardEventConsumer::flush_unsafe(game.as_ref().borrow_mut().borrow_mut(), &event_option);
         event_broker.handle_new_event(&event_option);
     } else if is_mouse_button_pressed(MouseButton::Left) {
-        let mut builder_option = None;
+        let builder_option = None;
         let game: &mut Game = &mut (**game).borrow_mut();
         let next_game_state = render_context
                 .game_state

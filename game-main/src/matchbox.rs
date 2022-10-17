@@ -1,8 +1,8 @@
-use game_events::game_events::{EventConsumer, GameEventObject};
+use game_events::game_events::{GameEventObject};
 use macroquad::prelude::*;
 use matchbox_socket::{RtcIceServerConfig, WebRtcSocket, WebRtcSocketConfig};
 use nanoserde::{DeBin, SerBin};
-use std::{cell::RefCell, collections::HashSet, future::Future, pin::Pin, rc::Rc, borrow::Borrow};
+use std::{future::Future, pin::Pin, borrow::Borrow};
 use crate::{multiplayer_connector::{MultiplayerClient, MultiplayerConector},};
 use urlencoding::encode;
 

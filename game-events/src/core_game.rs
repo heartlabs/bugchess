@@ -2,7 +2,6 @@
 use game_model::{board::Point2, game::Game, piece::Power};
 
 use crate::{
-    actions::compound_events::GameAction,
     game_controller::{GameController, MoveError}, event_broker::EventBroker,
 };
 
@@ -107,7 +106,7 @@ mod tests {
 
     use game_model::{game::{Game, Team}, piece::PieceKind};
 
-    use crate::{event_broker::{EventBroker}, game_events::{GameEventObject, EventConsumer}, actions::compound_events::GameAction, board_event_consumer::BoardEventConsumer};
+    use crate::{event_broker::{EventBroker}, game_events::{GameEventObject, EventConsumer}, actions::compound_events::GameAction};
     use super::CoreGameSubstate;
 
     #[test]
