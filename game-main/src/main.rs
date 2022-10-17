@@ -1,8 +1,8 @@
 mod constants;
 mod matchbox;
 mod states;
- mod multiplayer_connector;
- mod fakebox;
+mod multiplayer_connector;
+mod fakebox;
 mod test_utils;
 
 use crate::{

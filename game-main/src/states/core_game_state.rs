@@ -235,45 +235,17 @@ fn handle_player_input(
 
 #[cfg(test)]
 mod tests {
-    use std::{collections::VecDeque, cell::RefCell, rc::Rc};
 
-    use game_model::{game::{Game, Team}, piece::PieceKind};
-    use game_render::{render_events::RenderEventConsumer, BoardRender};
-
-    use game_events::{event_broker::{EventBroker}, game_events::{GameEventObject, EventConsumer}, actions::compound_events::GameAction, board_event_consumer::BoardEventConsumer};
-    use crate::{multiplayer_connector::{MultiplayerConector, MultiplayerEventConsumer}, fakebox::FakeboxClient, test_utils::*};
-    use super::CoreGameSubstate;
-
-    #[test]
-    fn test_place_single_piece() {
-        let mut game = create_game_object();
-        let sender_id = "1".to_string();
-        let mut event_broker = EventBroker::new(sender_id);
-        let event_log: Rc<RefCell<VecDeque<GameEventObject>>> = Rc::new(RefCell::new(VecDeque::new()));
-        event_broker.subscribe(Box::new(EventLogger { events: event_log.clone() }));
-
-        let game_state = CoreGameSubstate::Place;
-        game_state.on_click(&(0,0).into(), &mut game, &mut event_broker);
-
-        let log: &VecDeque<GameEventObject> = &(*event_log).borrow();
-        assert!(log.len() == 1, "Logged events: {:?}", log);
-
-        if let GameAction::Place(p) = &log[0].event {
-            assert!(p.piece().piece_kind == PieceKind::Simple);
-            assert!(p.at() == &(0,0).into());
-            assert!(p.team_id() == &0);
-        } else {
-            panic!("Expected place event but was {:?}", log[0].event)
-        }        
-    }
+    use game_model::{ piece::PieceKind};
+    use game_events::core_game::CoreGameSubstate;
+    use crate::{test_utils::*};
 
     #[test]
     fn test_place_single_piece_multiplayer() {
         let (mut test_game1, mut test_game2) = create_multiplayer_game();
         
         // Make Move
-        let game_state1 = CoreGameSubstate::Place;
-        game_state1.on_click(
+        let game_state1 = CoreGameSubstate::Place.on_click(
             &(0,0).into(), 
             &mut (*test_game1.game.borrow_mut()), 
             &mut test_game1.event_broker);
@@ -282,16 +254,7 @@ mod tests {
         test_game2.recieve_multiplayer_events();
 
         // Assertions Game 1
-        let log: &VecDeque<GameEventObject> = &(*test_game1.logs).borrow();
-        assert!(log.len() == 1, "Logged events: {:?}", log);
-
-        if let GameAction::Place(p) = &log[0].event {
-            assert!(p.piece().piece_kind == PieceKind::Simple);
-            assert!(p.at() == &(0,0).into());
-            assert!(p.team_id() == &0);
-        } else {
-            panic!("Expected place event but was {:?}", log[0].event)
-        }
+        assert_eq!(game_state1, CoreGameSubstate::Place);     
 
         let game = &mut (*test_game1.game.borrow_mut());
         assert!(game.board.placed_pieces(0).len() == 1);
@@ -301,17 +264,6 @@ mod tests {
         assert!(placed_piece.piece_kind == PieceKind::Simple);
 
         // Assertions Game 2
-        let log: &VecDeque<GameEventObject> = &(*test_game2.logs).borrow();
-        assert!(log.len() == 1, "Logged events: {:?}", log);
-
-        if let GameAction::Place(p) = &log[0].event {
-            assert!(p.piece().piece_kind == PieceKind::Simple);
-            assert!(p.at() == &(0,0).into());
-            assert!(p.team_id() == &0);
-        } else {
-            panic!("Expected place event but was {:?}", log[0].event)
-        }
-
         let game = &(*test_game2.game).borrow();
         assert!(game.board.placed_pieces(0).len() == 1);
         assert!(game.board.placed_pieces(1).is_empty());

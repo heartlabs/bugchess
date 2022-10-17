@@ -6,7 +6,7 @@ use crate::{
     game_controller::{GameController, MoveError}, event_broker::EventBroker,
 };
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum CoreGameSubstate {
     Place,
     Move(Point2),
@@ -97,5 +97,68 @@ impl CoreGameSubstate {
         }
 
         CoreGameSubstate::Place
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use std::{collections::VecDeque, cell::RefCell, rc::Rc};
+
+    use game_model::{game::{Game, Team}, piece::PieceKind};
+
+    use crate::{event_broker::{EventBroker}, game_events::{GameEventObject, EventConsumer}, actions::compound_events::GameAction, board_event_consumer::BoardEventConsumer};
+    use super::CoreGameSubstate;
+
+    #[test]
+    fn test_place_single_piece() {
+        let mut game = create_game_object();
+        let sender_id = "1".to_string();
+        let mut event_broker = EventBroker::new(sender_id);
+        let event_log: Rc<RefCell<VecDeque<GameEventObject>>> = Rc::new(RefCell::new(VecDeque::new()));
+        event_broker.subscribe(Box::new(EventLogger { events: event_log.clone() }));
+
+        let game_state = CoreGameSubstate::Place;
+        game_state.on_click(&(0,0).into(), &mut game, &mut event_broker);
+
+        let log: &VecDeque<GameEventObject> = &(*event_log).borrow();
+        assert!(log.len() == 1, "Logged events: {:?}", log);
+
+        if let GameAction::Place(p) = &log[0].event {
+            assert!(p.piece().piece_kind == PieceKind::Simple);
+            assert!(p.at() == &(0,0).into());
+            assert!(p.team_id() == &0);
+        } else {
+            panic!("Expected place event but was {:?}", log[0].event)
+        }        
+    }
+
+
+    pub fn create_game_object() -> Game {
+        let teams = vec![
+            Team {
+                name: "Red",
+                id: 0,
+                lost: false,
+                unused_pieces: 2,
+            },
+            Team {
+                name: "Yellow",
+                id: 1,
+                lost: false,
+                unused_pieces: 2,
+            },
+        ];
+        Game::new(teams, 8, 8)     
+    }
+
+    pub struct EventLogger {
+        pub events: Rc<RefCell<VecDeque<GameEventObject>>>
+    }
+
+    impl EventConsumer for EventLogger {
+        fn handle_event(&mut self, event: &GameEventObject) {
+            (*self.events).borrow_mut().push_back(event.clone());
+        }
     }
 }
