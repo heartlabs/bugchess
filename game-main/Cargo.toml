@@ -10,7 +10,8 @@ macroquad = "0.3.24"
 egui-macroquad = "0.12.0"
 macroquad-canvas = "0.3.0"
 urlencoding = "2.1.0"
-#nakama-rs = "*"
+nakama-rs = "*"
+url = "2.3.1"
 # matchbox_socket = { path = "../../matchbox/matchbox_socket" }
 # matchbox_socket = { git = "https://github.com/johanhelsing/matchbox" }
 matchbox_socket = { git = "https://github.com/heartlabs/matchbox", branch = "feature/upgrade-webrtc"}
@@ -20,6 +21,9 @@ nanoserde = "0.1.29"
 futures = "0.3.15"
 instant = { version = "0.1.12", features = ["wasm-bindgen"] }
 uuid = {version = "1.0.0", features = ["v4"]}
+tokio-tungstenite = "0.17.2"
+tokio = "1.21.2"
+async-trait = "0.1.58"
 
 game-model = {path = "../game-model"}
 game-events = {path = "../game-events"}

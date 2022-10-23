@@ -12,14 +12,14 @@ pub struct FakeboxClient {
 impl FakeboxClient {
     pub fn new_client_pair() -> (Rc<RefCell<Self>>, Rc<RefCell<Self>>) {
         let client1 = FakeboxClient {
-            id: "One".to_string(),
+            id: "1".to_string(),
             incoming_messages: VecDeque::new(),
             opponent_client: None,
         };
         let client1 = Rc::new(RefCell::new(client1));
 
         let client2 = FakeboxClient {
-            id: "Two".to_string(),
+            id: "2".to_string(),
             incoming_messages: VecDeque::new(),
             opponent_client: Some(client1.clone()),
         };
@@ -45,6 +45,10 @@ impl MultiplayerClient for Rc<RefCell<FakeboxClient>> {
 
     fn send(&mut self, game_object: GameEventObject, opponent_id: String) {
         (*self).borrow_mut().send(game_object, opponent_id)
+    }
+
+    fn own_player_id(&self) -> Option<String> {
+        (*self).borrow().own_player_id()
     }
 }
 
@@ -73,6 +77,10 @@ impl MultiplayerClient for FakeboxClient {
         (*opponent_client)
             .borrow_mut()
             .incoming_messages
-            .push_front(game_object);
+            .push_back(game_object);
+    }
+
+    fn own_player_id(&self) -> Option<String> {
+        Some(self.id.clone())
     }
 }

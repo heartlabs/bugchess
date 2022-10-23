@@ -220,9 +220,39 @@ fn handle_player_input(
 #[cfg(test)]
 mod tests {
 
-    use crate::test_utils::*;
+    use crate::{test_utils::*, states::GameState};
     use game_events::core_game::CoreGameSubstate;
-    use game_model::piece::PieceKind;
+    use game_model::{piece::PieceKind, game::Game};
+
+    #[test]
+    fn test_merge_piece_multiplayer() {
+        let (mut test_game1, mut test_game2) = create_multiplayer_game();
+
+        // Make Move
+        let game_state1 = CoreGameSubstate::Place;
+        let game_state1 = click_at_pos((1, 1), &mut test_game1, game_state1);
+        let game_state1 = click_at_pos((1, 2), &mut test_game1, game_state1);
+        let game_state1 = click_at_pos((1, 3), &mut test_game1, game_state1);
+
+        // Recieve move in Game 2
+        test_game2.recieve_multiplayer_events();
+
+        // Assertions Game 1
+        assert_eq!(game_state1, CoreGameSubstate::Place);
+
+        let game = &mut (*test_game1.game.borrow_mut());
+        assert_eq!(game.board.placed_pieces(0).len(), 1);
+        assert!(game.board.placed_pieces(1).is_empty());
+
+        assert_piece_at(game, (1, 2), PieceKind::VerticalBar);
+
+        // Assertions Game 2
+        let game = &(*test_game2.game).borrow();
+        assert_eq!(game.board.placed_pieces(0).len(), 1);
+        assert!(game.board.placed_pieces(1).is_empty());
+
+        assert_piece_at(game, (1, 2), PieceKind::VerticalBar);
+    }
 
     #[test]
     fn test_place_single_piece_multiplayer() {
@@ -245,21 +275,29 @@ mod tests {
         assert!(game.board.placed_pieces(0).len() == 1);
         assert!(game.board.placed_pieces(1).is_empty());
 
-        let placed_piece = game
-            .board
-            .get_piece_at(&(0, 0).into())
-            .expect("Placed piece not found on board");
-        assert!(placed_piece.piece_kind == PieceKind::Simple);
+        assert_piece_at(&game, (0,0), PieceKind::Simple);
 
         // Assertions Game 2
         let game = &(*test_game2.game).borrow();
         assert!(game.board.placed_pieces(0).len() == 1);
         assert!(game.board.placed_pieces(1).is_empty());
 
+        assert_piece_at(&game, (0,0), PieceKind::Simple);
+    }
+
+    fn assert_piece_at(game: &Game, piece_pos: (u8, u8), piece_kind: PieceKind) {
         let placed_piece = game
             .board
-            .get_piece_at(&(0, 0).into())
+            .get_piece_at(&piece_pos.into())
             .expect("Placed piece not found on board");
-        assert!(placed_piece.piece_kind == PieceKind::Simple);
+        assert_eq!(placed_piece.piece_kind, piece_kind);
+    }
+
+    fn click_at_pos(pos: (u8, u8), test_game1: &mut TestGame, game_state: CoreGameSubstate) -> CoreGameSubstate {
+        game_state.on_click(
+            &pos.into(),
+            &mut (*test_game1.game.borrow_mut()),
+            &mut test_game1.event_broker,
+        )
     }
 }

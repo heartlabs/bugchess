@@ -66,6 +66,10 @@ impl MultiplayerClient for MatchboxClient {
         self.client
             .send(game_object.serialize_bin().into_boxed_slice(), opponent_id)
     }
+
+    fn own_player_id(&self) -> Option<String> {
+        Some(self.client.id().clone())
+    }
 }
 
 impl MatchboxClient {
@@ -81,6 +85,6 @@ impl MatchboxClient {
 
     pub fn new_connector(room_id: &str) -> MultiplayerConector {
         let client = connect(room_id);
-        MultiplayerConector::new(client.client.id().clone(), Box::new(client))
+        MultiplayerConector::new(Box::new(client))
     }
 }

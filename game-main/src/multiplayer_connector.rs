@@ -7,23 +7,24 @@ pub trait MultiplayerClient {
     fn accept_new_connections(&mut self) -> Vec<String>;
     fn recieved_events(&mut self) -> Vec<GameEventObject>;
     fn send(&mut self, game_object: GameEventObject, opponent_id: String);
+    fn own_player_id(&self) -> Option<String>;
 }
 
 pub struct MultiplayerConector {
     sent_events: HashSet<String>,
     pub recieved_events: HashSet<String>,
     client: Box<dyn MultiplayerClient>,
-    own_player_id: String,
+    own_player_id: Option<String>,
     pub(crate) opponent_id: Option<String>,
 }
 
 impl MultiplayerConector {
-    pub fn new(own_player_id: String, client: Box<dyn MultiplayerClient>) -> Self {
+    pub fn new(client: Box<dyn MultiplayerClient>) -> Self {
         let connector = MultiplayerConector {
             sent_events: HashSet::new(),
             recieved_events: HashSet::new(),
             client,
-            own_player_id,
+            own_player_id: None,
             opponent_id: None,
         };
 
@@ -43,11 +44,13 @@ impl MultiplayerConector {
 
     pub fn get_own_player_index(&self) -> Option<usize> {
         if let Some(opponent_id) = self.opponent_id.as_ref() {
-            if *opponent_id < self.own_player_id {
-                return Some(1);
-            }
+            if let Some(own_player_id) = &self.own_player_id {
+                if opponent_id < own_player_id {
+                    return Some(1);
+                }
 
-            return Some(0);
+                return Some(0);
+            }
         }
 
         return None;

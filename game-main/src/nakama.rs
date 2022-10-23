@@ -1,6 +1,27 @@
 
-/*
-pub fn join_match(client: &mut ApiClient) {
+use game_events::{game_events::{GameEventObject}};
+use macroquad::{prelude::{info, error}, rand::rand};
+use nakama_rs::{api_client::{ApiClient, Event}, matchmaker::{Matchmaker, QueryItemBuilder}, rt_api::Presence};
+use nanoserde::DeBin;
+
+use url::Url;
+#[cfg(target_family = "wasm")]
+use wasm_bindgen::prelude::*;
+
+use crate::multiplayer_connector::{MultiplayerClient, MultiplayerConector};
+
+#[cfg(target_family = "wasm")]
+#[wasm_bindgen]
+extern "C" {
+    fn getNakamaUrl() -> String;
+}
+
+#[cfg(not(target_family = "wasm"))]
+fn getNakamaUrl() -> String {
+    "".to_string()
+}
+
+fn join_match(client: &mut ApiClient) {
     if let Some(error) = client.error().clone() {
         panic!("{}", error)
     } else {
@@ -10,7 +31,7 @@ pub fn join_match(client: &mut ApiClient) {
     }
 }
 
-pub fn add_matchmaker(client: &mut ApiClient) {
+fn add_matchmaker(client: &mut ApiClient) {
     let mut matchmaker = Matchmaker::new();
 
     matchmaker
@@ -29,27 +50,21 @@ pub fn add_matchmaker(client: &mut ApiClient) {
 
 pub fn start_registration() -> ApiClient {
 //let mut server = String::from("127.0.0.1");
+    
     let mut server = String::from("34.65.62.178");
     let mut protocol = String::from("http");
     let mut port = 7350;
 
-    let config: Box<dyn MyObject> = get_configuration();
-    if let Some(s) = config
-        .get_field("nakama")
-        .and_then(|n| n.get_field("server"))
+    if let Ok(s) = Url::parse(getNakamaUrl().as_str())
     {
-        s.to_string(&mut server);
-    }
-    if let Some(s) = config
-        .get_field("nakama")
-        .and_then(|n| n.get_field("protocol"))
-    {
-        s.to_string(&mut protocol);
-    }
-    if let Some(s) = config.get_field("nakama").and_then(|n| n.get_field("port")) {
-        let mut port_str: String = String::new();
-        s.to_string(&mut port_str);
-        port = port_str.parse().unwrap();
+        server = s.host_str()
+            .map(|s| s.to_string())
+            .unwrap_or(server);
+    
+        protocol = s.scheme().to_string();
+
+        port = s.port().map(|p|p.into()).unwrap_or(port);
+
     }
 
     info!("Got {}, {}, {}", protocol, server, port);
@@ -69,7 +84,6 @@ pub fn start_registration() -> ApiClient {
 }
 
 pub struct NakamaClient {
-    sent_events: HashSet<String>,
     client: ApiClient,
     players: Vec<Presence>,
 }
@@ -77,38 +91,35 @@ pub struct NakamaClient {
 impl NakamaClient {
     pub fn new(client: ApiClient) -> Self {
         NakamaClient {
-            sent_events: HashSet::new(),
             client,
             players: vec![],
         }
     }
+}
 
-    pub fn get_own_player_index(&self) -> Option<usize> {
-        if self.players.len() != 2 {
-            return None;
-        }
-
-        let sort_ascending = self.client.matchmaker_token.as_ref().unwrap().as_bytes()[0] % 2 == 0;
-
-        let mut sorted = self.players.clone();
-        sorted.sort_by_key(|p| p.user_id.clone());
-
-        if sort_ascending {
-            sorted.reverse();
-        }
-
-        self.client.username().and_then(|u| {
-            for (i, p) in sorted.iter().enumerate() {
-                if *u == p.username {
-                    return Option::Some(i);
-                }
-            }
-            Option::None
-        })
+// doesn't actually work and difficult to debug
+impl MultiplayerClient for NakamaClient {
+    fn is_ready(&self) -> bool {
+        !self.client.in_progress() && self.client.authenticated()
     }
 
-    pub fn try_recieve(&mut self, event_broker: &mut EventBroker) {
+    // doesn't actually work and difficult to debug
+    fn accept_new_connections(&mut self) -> Vec<String> {
+        info!("{:?}, {:?}, {:?}, {:?}", self.client.username(), self.client.in_progress(), self.client.session_id, self.client.error());
         self.client.tick();
+        info!("after tick: {:?}, {:?}, {:?}, {:?}", self.client.username(), self.client.in_progress(), self.client.session_id, self.client.error());
+        if self.is_ready() && self.client.matchmaker_token.is_none()  && self.players.is_empty() {
+            add_matchmaker(&mut self.client);
+            join_match(&mut self.client);
+        }
+        self.players.iter()
+            .map(|p| p.user_id.clone())
+            .collect()
+    }
+
+    fn recieved_events(&mut self) -> Vec<GameEventObject> {
+        self.client.tick();
+        let mut events = vec![];
         while let Some(event) = self.client.try_recv() {
             match event {
                 Event::Presence { joins, leaves } => {
@@ -130,31 +141,21 @@ impl NakamaClient {
                 }
                 Event::MatchData { data, .. } => {
                     let event_object: GameEventObject = DeBin::deserialize_bin(&data).unwrap();
-                    if self.register_event(&event_object) {
-                        event_broker.handle_remote_event(&event_object);
-                    }
+                    events.push(event_object);
                 }
             }
         }
+
+        events
     }
 
-    fn register_event(&mut self, event_object: &GameEventObject) -> bool {
-        self.sent_events.insert(event_object.id.clone())
+    fn send(&mut self, game_object: GameEventObject, opponent_id: String) {
+        self
+            .client
+            .socket_send(GameEventObject::OPCODE, &game_object);
+    }
+
+    fn own_player_id(&self) -> Option<String> {
+        self.client.session_id.clone()
     }
 }
-
-pub struct NakamaEventConsumer {
-    pub(crate) nakama_client: Rc<RefCell<Box<NakamaClient>>>,
-}
-
-impl EventConsumer for NakamaEventConsumer {
-    fn handle_event(&mut self, event: &GameEventObject) {
-        let mut nakama_client = (*self.nakama_client).borrow_mut();
-        if nakama_client.register_event(event) {
-            nakama_client
-                .client
-                .socket_send(GameEventObject::OPCODE, event);
-        }
-    }
-}
-*/

@@ -6,9 +6,6 @@ Next Steps:
         * Open vs Closed mit ID
         * HTML/CSS statt egui
     * Tests
-    * Refactoring
-        * einige files zu groß
-        * render_events zu viel boilerplate & konfiguration
     * Bugfix: Neuverbindung zum Selben Spiel verhindern bzw Spielstand zu neuem client syncen
     * Fehlende Animationen
         * "Sterben"
@@ -72,11 +69,6 @@ Event Consumers
 Event Producers
 1) Board (produces atoms)
 2) Matchbox/Nakama (produces moves)
-
-==
-
-EventBroker: Recieves and Broadcasts Moves
-EventComposer: Recieves Atoms, passes them over to the board and commits them to a Move in the end
 
 ==
 

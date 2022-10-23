@@ -52,7 +52,7 @@ fn make_multiplayer(
     test_game: &mut TestGame,
 ) {
     let mut multiplayer_connector =
-        MultiplayerConector::new(sender_id1.to_string(), Box::new(multiplayer_client1));
+        MultiplayerConector::new(Box::new(multiplayer_client1));
     multiplayer_connector.matchmaking();
     let multiplayer_connector = Rc::new(RefCell::new(multiplayer_connector));
     let multiplayer_event_consumer = MultiplayerEventConsumer {
@@ -94,13 +94,13 @@ pub fn create_game_object() -> Game {
             name: "Red",
             id: 0,
             lost: false,
-            unused_pieces: 2,
+            unused_pieces: 3,
         },
         Team {
             name: "Yellow",
             id: 1,
             lost: false,
-            unused_pieces: 2,
+            unused_pieces: 3,
         },
     ];
     Game::new(teams, 8, 8)

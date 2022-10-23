@@ -108,6 +108,9 @@
             //return "stun:stun.johanhelsing.studio:3478"
             return "stun:stun.l.google.com:19302"
         }
+        window.getNakamaUrl = () => {
+            return "http://localhost:7350"
+        }
         import init, { set_wasm } from "./megachess.js";
         async function run() {
             let wbg = await init();
