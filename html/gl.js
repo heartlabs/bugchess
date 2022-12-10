@@ -8,7 +8,7 @@
 
 "use strict";
 
-const version = "0.3.12";
+const version = "0.3.14";
 
 const canvas = document.querySelector("#glcanvas");
 const gl = canvas.getContext("webgl");
@@ -434,11 +434,11 @@ function into_sapp_mousebutton(btn) {
 function into_sapp_keycode(key_code) {
     switch (key_code) {
         case "Space": return 32;
-        case "Quote": return 39;
+        case "Quote": return 222;
         case "Comma": return 44;
         case "Minus": return 45;
         case "Period": return 46;
-        case "Slash": return 47;
+        case "Slash": return 189;
         case "Digit0": return 48;
         case "Digit1": return 49;
         case "Digit2": return 50;
@@ -1262,20 +1262,23 @@ var importObject = {
             FS.unique_id += 1;
             var xhr = new XMLHttpRequest();
             xhr.open('GET', url, true);
-            xhr.responseType = 'arraybuffer';
-            xhr.onload = function (e) {
-                if (this.status == 200) {
-                    var uInt8Array = new Uint8Array(this.response);
+            xhr.responseType = 'arraybuffer'; 
 
-                    FS.loaded_files[file_id] = uInt8Array;
-                    wasm_exports.file_loaded(file_id);
-                }
-            }
-            xhr.onerror = function (e) {
-                FS.loaded_files[file_id] = null;
-                wasm_exports.file_loaded(file_id);
+            xhr.onreadystatechange = function() {
+	        // looks like readyState === 4 will be fired on either successful or unsuccessful load:
+		// https://stackoverflow.com/a/19247992
+                if (this.readyState === 4) {
+                    if(this.status === 200) {  
+                        var uInt8Array = new Uint8Array(this.response);
+    
+                        FS.loaded_files[file_id] = uInt8Array;
+                        wasm_exports.file_loaded(file_id);
+                    } else {
+                        FS.loaded_files[file_id] = null;
+                        wasm_exports.file_loaded(file_id);
+                    }
+                } 
             };
-
             xhr.send();
 
             return file_id;

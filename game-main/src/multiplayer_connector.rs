@@ -1,5 +1,7 @@
 use game_events::game_events::{EventConsumer, GameEventObject};
 
+use macroquad::prelude::{info, debug};
+
 use std::{cell::RefCell, collections::HashSet, rc::Rc};
 
 pub trait MultiplayerClient {
@@ -14,7 +16,6 @@ pub struct MultiplayerConector {
     sent_events: HashSet<String>,
     pub recieved_events: HashSet<String>,
     client: Box<dyn MultiplayerClient>,
-    own_player_id: Option<String>,
     pub(crate) opponent_id: Option<String>,
 }
 
@@ -24,7 +25,6 @@ impl MultiplayerConector {
             sent_events: HashSet::new(),
             recieved_events: HashSet::new(),
             client,
-            own_player_id: None,
             opponent_id: None,
         };
 
@@ -32,19 +32,19 @@ impl MultiplayerConector {
     }
 
     pub fn is_ready(&self) -> bool {
-        self.client.is_ready()
+        self.client.is_ready() && self.client.own_player_id().is_some() && self.opponent_id.is_some()
     }
 
     pub fn matchmaking(&mut self) {
         for peer in self.client.accept_new_connections() {
-            println!("Found a peer {:?}", peer);
+            info!("Found a peer {:?}", peer);
             self.opponent_id = Some(peer);
         }
     }
 
     pub fn get_own_player_index(&self) -> Option<usize> {
         if let Some(opponent_id) = self.opponent_id.as_ref() {
-            if let Some(own_player_id) = &self.own_player_id {
+            if let Some(own_player_id) = &self.client.own_player_id() {
                 if opponent_id < own_player_id {
                     return Some(1);
                 }
@@ -61,6 +61,7 @@ impl MultiplayerConector {
         for event_object in self.client.recieved_events() {
             if self.register_event(&event_object) {
                 self.recieved_events.insert(event_object.id.clone());
+                debug!("Received event: {:?}", &event_object);
                 events.push(event_object);
             }
         }
@@ -83,6 +84,7 @@ impl EventConsumer for MultiplayerEventConsumer {
         let opponent_id = client.opponent_id.as_ref().unwrap().clone();
         if client.register_event(event) {
             client.client.send(event.clone(), opponent_id);
+            debug!("Sent event: {:?}", event);
         }
     }
 }

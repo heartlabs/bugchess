@@ -28,7 +28,6 @@ impl RenderEventConsumer {
 
     pub(crate) fn handle_event_internal(&self, t: &GameAction) {
         let mut board_render = (*self.board_render).borrow_mut();
-        info!("Handling Render Events: {:?}", t);
         match t {
             GameAction::Attack(attack_event) => {
                 let mut animations: Vec<Animation> = vec![];
@@ -217,8 +216,6 @@ impl RenderEventConsumer {
                 .next_animations
                 .extend(Self::handle_merge_events(merge_event));
         }
-
-        info!("MERGE ANIMATIONS\n{:?}", animations);
 
         animations
     }

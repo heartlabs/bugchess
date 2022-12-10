@@ -1,4 +1,3 @@
-
 use game_events::{game_events::{GameEventObject}};
 use macroquad::{prelude::{info, error}, rand::rand};
 use nakama_rs::{api_client::{ApiClient, Event}, matchmaker::{Matchmaker, QueryItemBuilder}, rt_api::Presence};

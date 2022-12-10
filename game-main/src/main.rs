@@ -1,6 +1,6 @@
 mod constants;
 mod matchbox;
-mod nakama;
+//mod nakama;
 //mod custom_client;
 mod multiplayer_connector;
 mod states;
