@@ -55,7 +55,7 @@ impl MultiplayerClient for MatchboxClient {
         self.client
             .receive()
             .into_iter()
-            .map(|(_, g)| DeBin::deserialize_bin(g.borrow()).unwrap()) // TODO: Proper error
+            .map(|(_, g)| DeBin::deserialize_bin(&g).unwrap()) // TODO: Proper error
             .collect()
     }
 

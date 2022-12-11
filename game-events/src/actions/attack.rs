@@ -92,6 +92,10 @@ impl CompoundEventBuilder for AttackBuilder {
     }
 
     fn build(self) -> GameAction {
+        if self.event.removed_pieces.is_empty() {
+            panic!("Can't build an AttackCompoundEvent without any removed pieces: {:?}", self.event);
+        }
+
         GameAction::Attack(self.event)
     }
 

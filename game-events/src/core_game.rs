@@ -1,5 +1,5 @@
 // TODO: That doesnt belong in the events crate - maybe put it in its own crate?
-use game_model::{board::Point2, game::Game, piece::Power};
+use game_model::{board::Point2, game::Game, piece::{Power, Piece}};
 
 use crate::{
     event_broker::EventBroker,
@@ -19,25 +19,27 @@ impl CoreGameSubstate {
     pub fn on_click(
         &self,
         target_point: &Point2,
-        game: &mut Game, // TODO: Operate on a clone of Game instead and re-perform events on actual game outside?
+        mut game_clone: Game,
         event_broker: &mut EventBroker,
-        //event_option: &mut Option<GameAction>,
     ) -> CoreGameSubstate {
-        let board = &game.board;
+                
+        let board = &game_clone.board;
         if !board.has_cell(target_point) {
             return CoreGameSubstate::Place;
         }
 
+//        std::mem::drop(game_ref);
+
         match self {
             CoreGameSubstate::Place => {
-                match GameController::place_piece(game, target_point) {
+                match GameController::place_piece(&mut game_clone, target_point) {
                     Ok(event) => {
                         //std::mem::drop(game);
                         event_broker.handle_new_event(&event);
                     }
                     Err(MoveError::PieceAlreadyPresent(target_piece)) => {
-                        if target_piece.team_id == game.current_team_index {
-                            if target_piece.can_move() {
+                        if target_piece.team_id == game_clone.current_team_index {
+                            if target_piece.can_move() || can_blast(&target_piece) {
                                 return CoreGameSubstate::Move(*target_point);
                             } else if target_piece.can_use_special() {
                                 return CoreGameSubstate::Activate(*target_point);
@@ -59,9 +61,9 @@ impl CoreGameSubstate {
                             return match activatable.kind {
                                 Power::Blast => {
                                     if let Ok(game_action) =
-                                        GameController::blast(game, target_point)
+                                        GameController::blast(&mut game_clone, target_point)
                                     {
-                                        std::mem::drop(game);
+                                        std::mem::drop(game_clone);
                                         event_broker.handle_new_event(&game_action);
                                     }
 
@@ -71,21 +73,21 @@ impl CoreGameSubstate {
                             };
                         }
                     }
-                    if target_piece.team_id == game.current_team_index && target_piece.can_move() {
+                    if target_piece.team_id == game_clone.current_team_index && target_piece.can_move() {
                         return CoreGameSubstate::Move(*target_point);
                     }
                 }
 
-                if let Ok(game_action) = GameController::move_piece(game, itself, target_point) {
-                    std::mem::drop(game);
+                if let Ok(game_action) = GameController::move_piece(&mut game_clone, itself, target_point) {
+                    std::mem::drop(game_clone);
                     event_broker.handle_new_event(&game_action);
                 }
             }
             CoreGameSubstate::Activate(active_piece_pos) => {
                 if let Ok(game_action) =
-                    GameController::targeted_shoot(game, active_piece_pos, target_point)
+                    GameController::targeted_shoot(&mut game_clone, active_piece_pos, target_point)
                 {
-                    std::mem::drop(game);
+                    std::mem::drop(game_clone);
                     event_broker.handle_new_event(&game_action);
                 }
             }
@@ -97,6 +99,14 @@ impl CoreGameSubstate {
 
         CoreGameSubstate::Place
     }
+}
+
+fn can_blast(piece: &Piece) -> bool {
+    if let Some(activatable) = piece.activatable {
+        return piece.can_use_special() && activatable.kind == Power::Blast; 
+    }
+    
+    false
 }
 
 #[cfg(test)]
@@ -117,7 +127,7 @@ mod tests {
 
     #[test]
     fn test_place_single_piece() {
-        let mut game = create_game_object();
+        let game = create_game_object();
         let sender_id = "1".to_string();
         let mut event_broker = EventBroker::new(sender_id);
         let event_log: Rc<RefCell<VecDeque<GameEventObject>>> =
@@ -127,7 +137,7 @@ mod tests {
         }));
 
         let game_state = CoreGameSubstate::Place;
-        game_state.on_click(&(0, 0).into(), &mut game, &mut event_broker);
+        game_state.on_click(&(0, 0).into(), game, &mut event_broker);
 
         let log: &VecDeque<GameEventObject> = &(*event_log).borrow();
         assert!(log.len() == 1, "Logged events: {:?}", log);

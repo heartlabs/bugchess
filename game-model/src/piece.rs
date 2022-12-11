@@ -10,7 +10,24 @@ pub enum EffectKind {
 impl Move {
     pub fn new(direction: Direction, steps: u8) -> Move {
         Move {
-            range: Range::new(direction, steps),
+            range: Range {
+                direction,
+                context: RangeContext::Moving,
+                steps,
+                jumps: false,
+                include_self: false,
+            },
+        }
+    }
+    pub fn new_unlimited(direction: Direction) -> Move {
+        Move {
+            range: Range {
+                direction,
+                context: RangeContext::Moving,
+                steps: 255,
+                jumps: false,
+                include_self: false,
+            },
         }
     }
 }
@@ -31,7 +48,7 @@ pub struct TurnInto {
     pub kind: PieceKind,
 }
 
-#[derive(Debug, Copy, Clone, SerBin, DeBin)]
+#[derive(Debug, Copy, Clone, SerBin, DeBin, PartialEq)]
 pub enum Power {
     Blast,
     TargetedShoot,
@@ -81,21 +98,21 @@ impl Piece {
         piece.piece_kind = turn_into;
         match turn_into {
             PieceKind::HorizontalBar => {
-                piece.movement = Some(Move::new(Direction::Horizontal, 255));
+                piece.movement = Some(Move::new_unlimited(Direction::Horizontal));
                 piece.activatable = Some(ActivatablePower {
-                    range: Range::new_unlimited(Direction::Horizontal),
+                    range: Range::new_unlimited(Direction::Horizontal, RangeContext::Moving),
                     kind: Power::Blast,
                 });
             }
             PieceKind::VerticalBar => {
-                piece.movement = Some(Move::new(Direction::Vertical, 255));
+                piece.movement = Some(Move::new_unlimited(Direction::Vertical));
                 piece.activatable = Some(ActivatablePower {
-                    range: Range::new_unlimited(Direction::Vertical),
+                    range: Range::new_unlimited(Direction::Vertical, RangeContext::Moving),
                     kind: Power::Blast,
                 });
             }
             PieceKind::Cross => {
-                piece.movement = Some(Move::new(Direction::Straight, 255));
+                piece.movement = Some(Move::new_unlimited(Direction::Straight));
                 piece.shield = true;
             }
             PieceKind::Simple => {
@@ -103,10 +120,16 @@ impl Piece {
                 piece.pierce = false;
             }
             PieceKind::Queen => {
-                piece.movement = Some(Move::new(Direction::Star, 255));
+                piece.movement = Some(Move::new_unlimited(Direction::Star));
                 piece.exhaustion = Exhaustion::new_exhausted(ExhaustionStrategy::Both);
                 piece.activatable = Some(ActivatablePower {
-                    range: Range::new(Direction::Star, 1),
+                    range: Range {
+                        direction: Direction::Star,
+                        context: RangeContext::Special,
+                        steps: 1,
+                        jumps: false,
+                        include_self: false,
+                    },
                     kind: Power::Blast,
                 });
             }
@@ -116,6 +139,7 @@ impl Piece {
                     kind: EffectKind::Protection,
                     range: Range {
                         direction: Direction::Star,
+                        context: RangeContext::Area,
                         steps: 1,
                         jumps: true,
                         include_self: true,
@@ -124,7 +148,13 @@ impl Piece {
             }
             PieceKind::Sniper => {
                 piece.activatable = Some(ActivatablePower {
-                    range: Range::anywhere(),
+                    range: Range {
+                        direction: Direction::Anywhere,
+                        context: RangeContext::Special,
+                        steps: 0,
+                        jumps: false,
+                        include_self: false,
+                    },
                     kind: Power::TargetedShoot,
                 });
             }

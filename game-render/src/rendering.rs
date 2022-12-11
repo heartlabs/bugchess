@@ -186,56 +186,57 @@ impl BoardRender {
     }
 
     fn render_highlights(board: &Board, render_context: &CustomRenderContext, canvas: &Canvas2D) {
-        let mut selected_point_option = Option::None;
         let hovered_point = cell_hovered(canvas);
         if let Some(hovered_piece) = board.get_piece_at(&hovered_point) {
-            let range_context = match render_context.game_state {
-                CoreGameSubstate::Place => RangeContext::Moving(*hovered_piece),
-                CoreGameSubstate::Move(selected_point) => {
-                    selected_point_option = Option::Some(selected_point);
-                    RangeContext::Moving(*hovered_piece)
-                }
-                CoreGameSubstate::Activate(selected_point) => {
-                    selected_point_option = Option::Some(selected_point);
-                    RangeContext::Special(*hovered_piece)
-                }
-                CoreGameSubstate::Won(_) => RangeContext::Moving(*hovered_piece),
-                CoreGameSubstate::Wait => RangeContext::Moving(*hovered_piece),
-            };
+            
+            let mut highlights = vec![];
+    
+            if let Some(movement) = hovered_piece.movement {
+                highlights.push(movement.range);
+            }
 
-            if let Some(m) = hovered_piece.movement.as_ref() {
-                let range = m.range;
+            if let Some(activatable) = hovered_piece.activatable {
+                highlights.push(activatable.range);
+            }
+
+            for range in highlights {
                 Self::highlight_range(
                     board,
                     &hovered_point,
-                    &range_context,
                     &range,
                     Color::from_rgba(90, 220, 90, 100),
                 )
             }
         }
 
-        if let Some(selected_point) = selected_point_option {
+        if let CoreGameSubstate::Move(selected_point) | CoreGameSubstate::Activate(selected_point) = render_context.game_state {
             if let Some(selected_piece) = board.get_piece_at(&selected_point) {
-                let range_context = match render_context.game_state {
-                    CoreGameSubstate::Place => RangeContext::Moving(*selected_piece),
-                    CoreGameSubstate::Move(_) => RangeContext::Moving(*selected_piece),
-                    CoreGameSubstate::Activate(_) => RangeContext::Special(*selected_piece),
-                    CoreGameSubstate::Won(_) => RangeContext::Moving(*selected_piece),
-                    CoreGameSubstate::Wait => RangeContext::Moving(*selected_piece),
+                let range_contexts = match render_context.game_state {
+                    CoreGameSubstate::Move(_) => {
+                        let mut highlights = vec![];
+    
+                        if let Some(movement) = selected_piece.movement {
+                            if selected_piece.can_move() {
+                                highlights.push(movement.range);
+                            }
+                        }
+
+                        if let Some(activatable) = selected_piece.activatable {
+                            if selected_piece.can_use_special() {
+                                highlights.push(activatable.range);
+                            }
+                        }
+
+                        highlights
+                    },
+                    CoreGameSubstate::Activate(_) => vec![selected_piece.activatable.unwrap().range],
+                    _ => panic!("Unexpected game state")
                 };
-                let range_option: Option<Range> = match render_context.game_state {
-                    CoreGameSubstate::Place => Option::None,
-                    CoreGameSubstate::Move(_) => selected_piece.movement.map(|m| m.range),
-                    CoreGameSubstate::Activate(_) => selected_piece.activatable.map(|m| m.range),
-                    CoreGameSubstate::Won(_) => selected_piece.movement.map(|m| m.range),
-                    CoreGameSubstate::Wait => Option::None,
-                };
-                if let Some(range) = range_option {
+                
+                for range in range_contexts {
                     Self::highlight_range(
                         board,
                         &selected_point,
-                        &range_context,
                         &range,
                         Color::from_rgba(0, 150, 0, 150),
                     )
@@ -278,12 +279,11 @@ impl BoardRender {
     fn highlight_range(
         board: &Board,
         source_point: &Point2,
-        range_context: &RangeContext,
         range: &Range,
         color: Color,
     ) {
         for point in range
-            .reachable_points(source_point, board, range_context)
+            .reachable_points(source_point, board)
             .iter()
         {
             let (x_pos, y_pos) = cell_coords(&point);

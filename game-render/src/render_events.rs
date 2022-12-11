@@ -12,7 +12,6 @@ use crate::{
     animation::{Animation, PlacePieceAnimation},
     BoardRender,
 };
-use macroquad::miniquad::info;
 use std::{cell::RefCell, rc::Rc};
 
 pub struct RenderEventConsumer {

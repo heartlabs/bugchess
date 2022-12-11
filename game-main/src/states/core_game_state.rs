@@ -195,17 +195,18 @@ fn handle_player_input(
         || is_key_pressed(KeyCode::KpEnter)
         || render_context.button_next.clicked(canvas)
     {
-        let event_option = GameController::next_turn(&mut (**game).borrow_mut());
+        let event_option = GameController::next_turn(&(**game).borrow());
+        
         render_context.game_state = CoreGameSubstate::Wait;
         // BoardEventConsumer::flush_unsafe(game.as_ref().borrow_mut().borrow_mut(), &event_option);
         event_broker.handle_new_event(&event_option);
     } else if is_mouse_button_pressed(MouseButton::Left) {
         let builder_option = None;
-        let game: &mut Game = &mut (**game).borrow_mut();
+        let game_clone = (**game).borrow().clone();
         let next_game_state =
             render_context
                 .game_state
-                .on_click(&cell_hovered(canvas), game, event_broker);
+                .on_click(&cell_hovered(canvas), game_clone, event_broker);
         //.on_click(&cell_hovered(canvas), game, &mut builder_option);
 
         info!("{:?} -> {:?}", render_context.game_state, next_game_state);
@@ -220,7 +221,7 @@ fn handle_player_input(
 #[cfg(test)]
 mod tests {
 
-    use crate::{test_utils::*, states::GameState};
+    use crate::{test_utils::*};
     use game_events::core_game::CoreGameSubstate;
     use game_model::{piece::PieceKind, game::Game};
 
@@ -259,9 +260,10 @@ mod tests {
         let (mut test_game1, mut test_game2) = create_multiplayer_game();
 
         // Make Move
+        let game_clone = (*test_game1.game.borrow()).clone();
         let game_state1 = CoreGameSubstate::Place.on_click(
             &(0, 0).into(),
-            &mut (*test_game1.game.borrow_mut()),
+            game_clone,
             &mut test_game1.event_broker,
         );
 
@@ -271,7 +273,7 @@ mod tests {
         // Assertions Game 1
         assert_eq!(game_state1, CoreGameSubstate::Place);
 
-        let game = &mut (*test_game1.game.borrow_mut());
+        let game = & (*test_game1.game.borrow());
         assert!(game.board.placed_pieces(0).len() == 1);
         assert!(game.board.placed_pieces(1).is_empty());
 
@@ -294,9 +296,10 @@ mod tests {
     }
 
     fn click_at_pos(pos: (u8, u8), test_game1: &mut TestGame, game_state: CoreGameSubstate) -> CoreGameSubstate {
+        let game_clone = (*test_game1.game.borrow()).clone();
         game_state.on_click(
             &pos.into(),
-            &mut (*test_game1.game.borrow_mut()),
+            game_clone,
             &mut test_game1.event_broker,
         )
     }

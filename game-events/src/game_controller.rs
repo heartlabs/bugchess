@@ -4,7 +4,6 @@ use game_model::{
     board::{Board, Pattern, Point2},
     game::Game,
     piece::{Piece, PieceKind},
-    ranges::RangeContext,
 };
 
 use crate::{
@@ -49,7 +48,7 @@ impl GameController {
         MoveResult::Ok(flush_and_merge(game, Box::new(place_event)))
     }
 
-    pub fn move_piece(game: &mut Game, from: &Point2, target_point: &Point2) -> MoveResult {
+    pub fn move_piece(game: &mut Game, from: &Point2, target_point: &Point2) -> MoveResult {        
         let selected_piece = game
             .board
             .get_piece_at(from)
@@ -60,13 +59,13 @@ impl GameController {
             .as_ref()
             .ok_or(MoveError::NotSupportedByPiece)?;
 
-        if *from == *target_point {
+        if !selected_piece.can_move() || *from == *target_point {
             return MoveResult::Err(MoveError::IllegalMove);
         }
 
         if !m
             .range
-            .reachable_points(&from, &game.board, &RangeContext::Moving(*selected_piece))
+            .reachable_points(&from, &game.board)
             .contains(target_point)
         {
             return MoveResult::Err(MoveError::NotSupportedByPiece);
@@ -99,11 +98,15 @@ impl GameController {
             .ok_or(MoveError::NotSupportedByPiece)?;
 
         let mut attack_event = AttackBuilder::new(attacking_piece, *piece_pos);
-        for point in activatable.range.reachable_points(
+        let reachable_points = activatable.range.reachable_points(
             piece_pos,
-            &game.board,
-            &RangeContext::Special(*attacking_piece),
-        ) {
+            &game.board);
+
+        if reachable_points.is_empty() {
+            return MoveResult::Err(MoveError::IllegalMove)
+        }
+
+        for point in reachable_points {
             if let Some(piece) = game.board.get_piece_at(&point) {
                 attack_event.remove_piece(point, *piece);
                 remove_effects_if_present(&mut attack_event, &game.board, piece, &point);
@@ -143,7 +146,7 @@ impl GameController {
         return Ok(flush_and_merge(game, Box::new(attack_event)));
     }
 
-    pub fn next_turn(game: &mut Game) -> GameAction {
+    pub fn next_turn(game: &Game) -> GameAction {
         let mut finish_turn = GameAction::finish_turn();
         {
             let current_team_index = game.current_team_index;
@@ -165,11 +168,7 @@ impl GameController {
                 }
             });
         }
-        let mut finish_turn_action = finish_turn.build();
-
-        BoardEventConsumer::flush_unsafe(game, &mut finish_turn_action);
-
-        finish_turn_action
+        finish_turn.build()
     }
 }
 
@@ -182,7 +181,7 @@ fn push_effects_if_present(
     if let Some(effect) = new_piece.effect {
         effect
             .range
-            .reachable_points(pos, &board, &RangeContext::Area)
+            .reachable_points(pos, &board)
             .iter()
             .for_each(|&point| {
                 effect_builder.add_effect(point);
@@ -199,7 +198,7 @@ fn remove_effects_if_present(
     if let Some(effect) = piece.effect {
         effect
             .range
-            .reachable_points(pos, &board, &RangeContext::Area)
+            .reachable_points(pos, &board)
             .iter()
             .for_each(|&point| {
                 effect_builder.remove_effect(point);

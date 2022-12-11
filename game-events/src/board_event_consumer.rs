@@ -4,7 +4,7 @@ use crate::{
     game_events::{EventConsumer, GameEventObject},
 };
 use game_model::game::Game;
-use miniquad::warn;
+use miniquad::{warn, debug};
 use std::{cell::RefCell, rc::Rc};
 
 pub struct BoardEventConsumer {
@@ -14,14 +14,9 @@ pub struct BoardEventConsumer {
 
 impl EventConsumer for BoardEventConsumer {
     fn handle_event(&mut self, event_object: &GameEventObject) {
-        if !matches!(event_object.event, GameAction::Undo(_))
-            && event_object.sender == self.own_sender_id
-        {
-            return;
-        }
 
         let event = &event_object.event;
-        println!("Handling event {:?}", event);
+        debug!("Handling event {:?}", event);
 
         event
             .get_compound_event()

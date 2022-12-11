@@ -6,6 +6,7 @@ use crate::{board::*, piece::*};
 #[derive(Debug, Copy, Clone, SerBin, DeBin)]
 pub struct Range {
     pub direction: Direction,
+    pub context: RangeContext,
     pub steps: u8,
     pub jumps: bool,
     pub include_self: bool,
@@ -74,17 +75,20 @@ impl Direction {
     }
 }
 
+#[derive(Debug, PartialEq, Copy, Clone, SerBin, DeBin)]
 pub enum RangeContext {
-    Moving(Piece),
-    Special(Piece),
+    Moving,
+    Special,
     Area,
 }
 
 impl RangeContext {
+
+
     pub fn should_proceed(&self, point: &Point2, board: &Board) -> bool {
         match self {
-            RangeContext::Moving(_) => board.get_piece_at(point).is_none(),
-            RangeContext::Special(_) => {
+            RangeContext::Moving => board.get_piece_at(point).is_none(),
+            RangeContext::Special => {
                 board.get_piece_at(point).is_none()
                     && !board.has_effect_at(&EffectKind::Protection, point)
             }
@@ -92,16 +96,16 @@ impl RangeContext {
         }
     }
 
-    pub fn should_include(&self, point: &Point2, board: &Board) -> bool {
+    pub fn should_include(&self, piece: &Piece, point: &Point2, board: &Board) -> bool {
         match self {
-            RangeContext::Moving(piece) => {
+            RangeContext::Moving => {
                 if let Some(target_piece) = board.get_piece_at(point) {
                     return (!target_piece.shield || piece.pierce)
                         && target_piece.team_id != piece.team_id;
                 }
                 true
             }
-            RangeContext::Special(piece) => {
+            RangeContext::Special => {
                 if let Some(target_piece) = board.get_piece_at(point) {
                     return target_piece.team_id != piece.team_id
                         && !board.has_effect_at(&EffectKind::Protection, point);
@@ -115,38 +119,26 @@ impl RangeContext {
 }
 
 impl Range {
-    pub fn new_unlimited(direction: Direction) -> Range {
+
+    pub fn new_unlimited(direction: Direction, context: RangeContext) -> Range {
         Range {
             direction,
+            context,
             steps: 255,
             jumps: false,
             include_self: false,
         }
     }
 
-    pub fn new(direction: Direction, steps: u8) -> Range {
+    pub fn new_moving(direction: Direction, steps: u8) -> Range {
         Range {
             direction,
+            context: RangeContext::Moving,
             steps,
             jumps: false,
             include_self: false,
         }
     }
-
-    pub fn anywhere() -> Range {
-        Range {
-            direction: Direction::Anywhere,
-            steps: 255,
-            jumps: true,
-            include_self: false,
-        }
-    }
-
-    /*    pub fn reaches(&self, from: &Point2, to: &Point2) -> bool {
-        self.direction.reaches(from.x, from.y, to.x, to.y)
-            && (from.y as i16 - to.y as i16).abs() as u8 <= self.steps
-            && (from.x as i16 - to.x as i16).abs() as u8 <= self.steps
-    }*/
 
     pub fn paths(
         &self,
@@ -186,18 +178,19 @@ impl Range {
     pub fn reachable_points(
         &self,
         from_point: &Point2,
-        board: &Board,
-        range_context: &RangeContext,
-    ) -> HashSet<Point2> {
+        board: &Board) -> HashSet<Point2> {
+        
+        let piece = board.get_piece_at(from_point).unwrap();
+        
         let mut cells = HashSet::new();
         for direction in self.paths(from_point.x, from_point.y) {
             for (x_i16, y_i16) in direction {
                 let point = Point2::new(x_i16 as u8, y_i16 as u8);
                 if board.has_cell(&point) {
-                    if range_context.should_include(&point, board) {
+                    if self.context.should_include(piece, &point, board) {
                         cells.insert(point);
                     }
-                    if !self.jumps && !range_context.should_proceed(&point, board) {
+                    if !self.jumps && !self.context.should_proceed(&point, board) {
                         break;
                     }
                 } else {

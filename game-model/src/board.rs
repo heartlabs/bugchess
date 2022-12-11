@@ -8,6 +8,7 @@ pub struct Cell {
     pub effects: Vec<EffectKind>,
 }
 
+#[derive(Clone)]
 pub struct Board {
     pub(crate) cells: Vec<Vec<Cell>>,
     pub w: u8,

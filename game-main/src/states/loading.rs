@@ -174,7 +174,7 @@ impl GameState for LoadingState {
                 } else {
                     let num_teams = 2;
                     start_events =
-                        set_up_pieces(num_teams, &mut (*core_game_state.game).borrow_mut());
+                        set_up_pieces(num_teams, &(*core_game_state.game).borrow());
                 }
 
                 let multiplayer_events = Option::Some(Rc::new(RefCell::new(matchbox_client)));
@@ -223,8 +223,8 @@ impl GameState for LoadingState {
                 } else {
                     let core_game_state = self.core_game_state.as_mut().unwrap();
                     let num_teams = 2;
-                    for start_event in
-                        &set_up_pieces(num_teams, &mut (*core_game_state.game).borrow_mut())
+                    let set_up_actions = set_up_pieces(num_teams, &(*core_game_state.game).borrow());
+                    for start_event in &set_up_actions
                     {
                         core_game_state.event_broker.handle_new_event(start_event);
                     }
@@ -251,7 +251,7 @@ impl GameState for LoadingState {
     }
 }
 
-fn set_up_pieces(team_count: usize, game: &mut Game) -> Vec<GameAction> {
+fn set_up_pieces(team_count: usize, game_ref: &Game) -> Vec<GameAction> {
     let start_pieces = 6;
 
     let mut events = vec![];
@@ -269,7 +269,7 @@ fn set_up_pieces(team_count: usize, game: &mut Game) -> Vec<GameAction> {
         }
 
         let compound_event = finish_turn.build();
-        BoardEventConsumer::flush_unsafe(game, &compound_event);
+        BoardEventConsumer::flush_unsafe(&mut game_ref.clone(), &compound_event);
         events.push(compound_event);
     }
 

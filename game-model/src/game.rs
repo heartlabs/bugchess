@@ -1,5 +1,6 @@
 use crate::board::Board;
 
+#[derive(Clone)]
 pub struct Game {
     pub board: Board,
     pub teams: Vec<Team>,
