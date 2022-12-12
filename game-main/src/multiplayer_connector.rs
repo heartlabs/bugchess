@@ -1,6 +1,9 @@
-use game_events::{game_events::{EventConsumer, GameEventObject}, actions::compound_events::GameAction};
+use game_events::{
+    actions::compound_events::GameAction,
+    game_events::{EventConsumer, GameEventObject},
+};
 
-use macroquad::prelude::{info, debug};
+use macroquad::prelude::{debug, info};
 
 use std::{cell::RefCell, collections::HashSet, rc::Rc};
 
@@ -32,7 +35,9 @@ impl MultiplayerConector {
     }
 
     pub fn is_ready(&self) -> bool {
-        self.client.is_ready() && self.client.own_player_id().is_some() && self.opponent_id.is_some()
+        self.client.is_ready()
+            && self.client.own_player_id().is_some()
+            && self.opponent_id.is_some()
     }
 
     pub fn matchmaking(&mut self) {
@@ -93,7 +98,10 @@ impl EventConsumer for MultiplayerEventConsumer {
     }
 
     fn handle_event(&mut self, event: &GameAction) {
-        let sender = (*self.client).borrow().get_own_player_id().expect("Own player ID unknown");
+        let sender = (*self.client)
+            .borrow()
+            .get_own_player_id()
+            .expect("Own player ID unknown");
         self.handle_remote_event(&GameEventObject::new(event.clone(), &sender))
     }
 }

@@ -1,5 +1,9 @@
 // TODO: That doesnt belong in the events crate - maybe put it in its own crate?
-use game_model::{board::Point2, game::Game, piece::{Power, Piece}};
+use game_model::{
+    board::Point2,
+    game::Game,
+    piece::{Piece, Power},
+};
 
 use crate::{
     event_broker::EventBroker,
@@ -22,13 +26,12 @@ impl CoreGameSubstate {
         mut game_clone: Game,
         event_broker: &mut EventBroker,
     ) -> CoreGameSubstate {
-                
         let board = &game_clone.board;
         if !board.has_cell(target_point) {
             return CoreGameSubstate::Place;
         }
 
-//        std::mem::drop(game_ref);
+        //        std::mem::drop(game_ref);
 
         match self {
             CoreGameSubstate::Place => {
@@ -73,12 +76,16 @@ impl CoreGameSubstate {
                             };
                         }
                     }
-                    if target_piece.team_id == game_clone.current_team_index && target_piece.can_move() {
+                    if target_piece.team_id == game_clone.current_team_index
+                        && target_piece.can_move()
+                    {
                         return CoreGameSubstate::Move(*target_point);
                     }
                 }
 
-                if let Ok(game_action) = GameController::move_piece(&mut game_clone, itself, target_point) {
+                if let Ok(game_action) =
+                    GameController::move_piece(&mut game_clone, itself, target_point)
+                {
                     std::mem::drop(game_clone);
                     event_broker.handle_new_event(&game_action);
                 }
@@ -103,9 +110,9 @@ impl CoreGameSubstate {
 
 fn can_blast(piece: &Piece) -> bool {
     if let Some(activatable) = piece.activatable {
-        return piece.can_use_special() && activatable.kind == Power::Blast; 
+        return piece.can_use_special() && activatable.kind == Power::Blast;
     }
-    
+
     false
 }
 
@@ -120,9 +127,7 @@ mod tests {
 
     use super::CoreGameSubstate;
     use crate::{
-        actions::compound_events::GameAction,
-        event_broker::EventBroker,
-        game_events::{EventConsumer},
+        actions::compound_events::GameAction, event_broker::EventBroker, game_events::EventConsumer,
     };
 
     #[test]
@@ -130,8 +135,7 @@ mod tests {
         let game = create_game_object();
         let sender_id = "1".to_string();
         let mut event_broker = EventBroker::new(sender_id);
-        let event_log: Rc<RefCell<VecDeque<GameAction>>> =
-            Rc::new(RefCell::new(VecDeque::new()));
+        let event_log: Rc<RefCell<VecDeque<GameAction>>> = Rc::new(RefCell::new(VecDeque::new()));
         event_broker.subscribe(Box::new(EventLogger {
             events: event_log.clone(),
         }));

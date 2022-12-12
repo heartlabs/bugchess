@@ -48,7 +48,7 @@ impl GameController {
         MoveResult::Ok(flush_and_merge(game, Box::new(place_event)))
     }
 
-    pub fn move_piece(game: &mut Game, from: &Point2, target_point: &Point2) -> MoveResult {        
+    pub fn move_piece(game: &mut Game, from: &Point2, target_point: &Point2) -> MoveResult {
         let selected_piece = game
             .board
             .get_piece_at(from)
@@ -98,12 +98,10 @@ impl GameController {
             .ok_or(MoveError::NotSupportedByPiece)?;
 
         let mut attack_event = AttackBuilder::new(attacking_piece, *piece_pos);
-        let reachable_points = activatable.range.reachable_points(
-            piece_pos,
-            &game.board);
+        let reachable_points = activatable.range.reachable_points(piece_pos, &game.board);
 
         if reachable_points.is_empty() {
-            return MoveResult::Err(MoveError::IllegalMove)
+            return MoveResult::Err(MoveError::IllegalMove);
         }
 
         for point in reachable_points {

@@ -77,9 +77,11 @@ impl RenderEventConsumer {
 
                 if let Some(_) = move_event.captured_piece() {
                     let mut remove_animation = Animation::new_remove(*move_event.to());
-                    
+
                     for pos in move_event.removed_effects() {
-                        remove_animation.next_animations.push(Animation::new_remove_effect(EffectKind::Protection, *pos));
+                        remove_animation
+                            .next_animations
+                            .push(Animation::new_remove_effect(EffectKind::Protection, *pos));
                     }
 
                     animations.push(remove_animation);

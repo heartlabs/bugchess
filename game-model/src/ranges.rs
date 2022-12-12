@@ -83,8 +83,6 @@ pub enum RangeContext {
 }
 
 impl RangeContext {
-
-
     pub fn should_proceed(&self, point: &Point2, board: &Board) -> bool {
         match self {
             RangeContext::Moving => board.get_piece_at(point).is_none(),
@@ -119,7 +117,6 @@ impl RangeContext {
 }
 
 impl Range {
-
     pub fn new_unlimited(direction: Direction, context: RangeContext) -> Range {
         Range {
             direction,
@@ -174,24 +171,20 @@ impl Range {
 
         Box::new(vec.into_iter())
     }
-    
-    pub fn reachable_points(
-        &self,
-        from_point: &Point2,
-        board: &Board) -> HashSet<Point2> {
 
-        let piece = board.get_piece_at(from_point).expect(format!("No piece at {:?}", from_point).as_str());
+    pub fn reachable_points(&self, from_point: &Point2, board: &Board) -> HashSet<Point2> {
+        let piece = board
+            .get_piece_at(from_point)
+            .expect(format!("No piece at {:?}", from_point).as_str());
 
         self.reachable_points_for_piece(from_point, piece, board)
-
     }
     pub fn reachable_points_for_piece(
         &self,
         from_point: &Point2,
         piece: &Piece,
-        board: &Board) -> HashSet<Point2> {
-        
-        
+        board: &Board,
+    ) -> HashSet<Point2> {
         let mut cells = HashSet::new();
         for direction in self.paths(from_point.x, from_point.y) {
             for (x_i16, y_i16) in direction {

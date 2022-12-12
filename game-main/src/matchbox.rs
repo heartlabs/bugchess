@@ -26,7 +26,10 @@ fn connect(room_id: &str) -> MatchboxClient {
         room_url: format!("wss://heartlabs.tech:3537/{}?next=2", encode(room_id)),
         ice_server: RtcIceServerConfig {
             //urls: vec![getStunUrl()],
-            urls: vec!["stun:heartlabs.tech:3478".to_string(), "turn:heartlabs.tech:3478".to_string()],
+            urls: vec![
+                "stun:heartlabs.tech:3478".to_string(),
+                "turn:heartlabs.tech:3478".to_string(),
+            ],
             username: Some("testuser".to_string()),
             credential: Some("fyUTdD7dQjeSauYv".to_string()), // does it make sense to hide this better?
         },

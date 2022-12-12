@@ -188,9 +188,8 @@ impl BoardRender {
     fn render_highlights(board: &Board, render_context: &CustomRenderContext, canvas: &Canvas2D) {
         let hovered_point = cell_hovered(canvas);
         if let Some(hovered_piece) = board.get_piece_at(&hovered_point) {
-            
             let mut highlights = vec![];
-    
+
             if let Some(movement) = hovered_piece.movement {
                 highlights.push(movement.range);
             }
@@ -209,12 +208,14 @@ impl BoardRender {
             }
         }
 
-        if let CoreGameSubstate::Move(selected_point) | CoreGameSubstate::Activate(selected_point) = render_context.game_state {
+        if let CoreGameSubstate::Move(selected_point) | CoreGameSubstate::Activate(selected_point) =
+            render_context.game_state
+        {
             if let Some(selected_piece) = board.get_piece_at(&selected_point) {
                 let range_contexts = match render_context.game_state {
                     CoreGameSubstate::Move(_) => {
                         let mut highlights = vec![];
-    
+
                         if let Some(movement) = selected_piece.movement {
                             if selected_piece.can_move() {
                                 highlights.push(movement.range);
@@ -228,11 +229,13 @@ impl BoardRender {
                         }
 
                         highlights
-                    },
-                    CoreGameSubstate::Activate(_) => vec![selected_piece.activatable.unwrap().range],
-                    _ => panic!("Unexpected game state")
+                    }
+                    CoreGameSubstate::Activate(_) => {
+                        vec![selected_piece.activatable.unwrap().range]
+                    }
+                    _ => panic!("Unexpected game state"),
                 };
-                
+
                 for range in range_contexts {
                     Self::highlight_range(
                         board,
@@ -276,16 +279,8 @@ impl BoardRender {
         });
     }
 
-    fn highlight_range(
-        board: &Board,
-        source_point: &Point2,
-        range: &Range,
-        color: Color,
-    ) {
-        for point in range
-            .reachable_points(source_point, board)
-            .iter()
-        {
+    fn highlight_range(board: &Board, source_point: &Point2, range: &Range, color: Color) {
+        for point in range.reachable_points(source_point, board).iter() {
             let (x_pos, y_pos) = cell_coords(&point);
 
             let mut used_color = color;

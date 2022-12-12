@@ -1,9 +1,12 @@
 use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
 use game_events::{
+    actions::compound_events::GameAction,
     board_event_consumer::BoardEventConsumer,
+    core_game::CoreGameSubstate,
     event_broker::EventBroker,
-    game_events::{EventConsumer, GameEventObject}, actions::compound_events::GameAction, core_game::CoreGameSubstate, game_controller::GameController,
+    game_controller::GameController,
+    game_events::{EventConsumer, GameEventObject},
 };
 use game_model::game::{Game, Team};
 use game_render::{render_events::RenderEventConsumer, BoardRender};
@@ -30,13 +33,13 @@ impl TestGame {
             .for_each(|e| self.event_broker.handle_remote_event(&e));
     }
 
-    pub fn click_at_pos(&mut self, pos: (u8, u8), game_state: CoreGameSubstate) -> CoreGameSubstate {
+    pub fn click_at_pos(
+        &mut self,
+        pos: (u8, u8),
+        game_state: CoreGameSubstate,
+    ) -> CoreGameSubstate {
         let game_clone = (*self.game.borrow()).clone();
-        game_state.on_click(
-            &pos.into(),
-            game_clone,
-            &mut self.event_broker,
-        )
+        game_state.on_click(&pos.into(), game_clone, &mut self.event_broker)
     }
 
     pub fn next_turn(&mut self) -> CoreGameSubstate {
@@ -67,8 +70,7 @@ fn make_multiplayer(
     multiplayer_client1: Rc<RefCell<FakeboxClient>>,
     test_game: &mut TestGame,
 ) {
-    let mut multiplayer_connector =
-        MultiplayerConector::new(Box::new(multiplayer_client1));
+    let mut multiplayer_connector = MultiplayerConector::new(Box::new(multiplayer_client1));
     multiplayer_connector.matchmaking();
     let multiplayer_connector = Rc::new(RefCell::new(multiplayer_connector));
     let multiplayer_event_consumer = MultiplayerEventConsumer {
