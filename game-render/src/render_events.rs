@@ -76,10 +76,22 @@ impl RenderEventConsumer {
                 let mut animations = vec![];
 
                 if let Some(_) = move_event.captured_piece() {
-                    animations.push(Animation::new_remove(*move_event.to()));
+                    let mut remove_animation = Animation::new_remove(*move_event.to());
+                    
+                    for pos in move_event.removed_effects() {
+                        remove_animation.next_animations.push(Animation::new_remove_effect(EffectKind::Protection, *pos));
+                    }
+
+                    animations.push(remove_animation);
                 }
 
                 let mut move_animation = Animation::new_move(*move_event.from(), *move_event.to());
+
+                for pos in move_event.added_effects() {
+                    move_animation
+                        .next_animations
+                        .push(Animation::new_add_effect(EffectKind::Protection, *pos));
+                }
 
                 move_animation
                     .next_animations
@@ -235,7 +247,7 @@ fn attack_animation(piece_kind: &PieceKind, pos: Point2, target: Point2) -> Anim
 }
 
 impl EventConsumer for RenderEventConsumer {
-    fn handle_event(&mut self, event: &GameEventObject) {
-        self.handle_event_internal(&event.event);
+    fn handle_event(&mut self, event: &GameAction) {
+        self.handle_event_internal(&event);
     }
 }

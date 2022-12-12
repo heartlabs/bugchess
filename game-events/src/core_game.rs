@@ -122,7 +122,7 @@ mod tests {
     use crate::{
         actions::compound_events::GameAction,
         event_broker::EventBroker,
-        game_events::{EventConsumer, GameEventObject},
+        game_events::{EventConsumer},
     };
 
     #[test]
@@ -130,7 +130,7 @@ mod tests {
         let game = create_game_object();
         let sender_id = "1".to_string();
         let mut event_broker = EventBroker::new(sender_id);
-        let event_log: Rc<RefCell<VecDeque<GameEventObject>>> =
+        let event_log: Rc<RefCell<VecDeque<GameAction>>> =
             Rc::new(RefCell::new(VecDeque::new()));
         event_broker.subscribe(Box::new(EventLogger {
             events: event_log.clone(),
@@ -139,15 +139,15 @@ mod tests {
         let game_state = CoreGameSubstate::Place;
         game_state.on_click(&(0, 0).into(), game, &mut event_broker);
 
-        let log: &VecDeque<GameEventObject> = &(*event_log).borrow();
+        let log: &VecDeque<GameAction> = &(*event_log).borrow();
         assert!(log.len() == 1, "Logged events: {:?}", log);
 
-        if let GameAction::Place(p) = &log[0].event {
+        if let GameAction::Place(p) = &log[0] {
             assert!(p.piece().piece_kind == PieceKind::Simple);
             assert!(p.at() == &(0, 0).into());
             assert!(p.team_id() == &0);
         } else {
-            panic!("Expected place event but was {:?}", log[0].event)
+            panic!("Expected place event but was {:?}", log[0])
         }
     }
 
@@ -170,11 +170,11 @@ mod tests {
     }
 
     pub struct EventLogger {
-        pub events: Rc<RefCell<VecDeque<GameEventObject>>>,
+        pub events: Rc<RefCell<VecDeque<GameAction>>>,
     }
 
     impl EventConsumer for EventLogger {
-        fn handle_event(&mut self, event: &GameEventObject) {
+        fn handle_event(&mut self, event: &GameAction) {
             (*self.events).borrow_mut().push_back(event.clone());
         }
     }

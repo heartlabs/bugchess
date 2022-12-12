@@ -26,5 +26,9 @@ impl GameEventObject {
 }
 
 pub trait EventConsumer {
-    fn handle_event(&mut self, event: &GameEventObject);
+    fn handle_event(&mut self, event: &GameAction);
+
+    fn handle_remote_event(&mut self, event: &GameEventObject) {
+        self.handle_event(&event.event)
+    }
 }

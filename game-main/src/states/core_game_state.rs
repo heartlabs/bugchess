@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use game_events::{
-    core_game::CoreGameSubstate, event_broker::EventBroker, game_controller::GameController,
+    core_game::CoreGameSubstate, event_broker::EventBroker, game_controller::GameController, game_events::EventConsumer,
 };
 use game_model::game::Game;
 
@@ -196,10 +196,10 @@ fn handle_player_input(
         || render_context.button_next.clicked(canvas)
     {
         let event_option = GameController::next_turn(&(**game).borrow());
+        event_broker.handle_new_event(&event_option);
         
         render_context.game_state = CoreGameSubstate::Wait;
         // BoardEventConsumer::flush_unsafe(game.as_ref().borrow_mut().borrow_mut(), &event_option);
-        event_broker.handle_new_event(&event_option);
     } else if is_mouse_button_pressed(MouseButton::Left) {
         let builder_option = None;
         let game_clone = (**game).borrow().clone();
@@ -223,7 +223,7 @@ mod tests {
 
     use crate::{test_utils::*};
     use game_events::core_game::CoreGameSubstate;
-    use game_model::{piece::PieceKind, game::Game};
+    use game_model::{piece::{PieceKind, EffectKind::Protection}, game::Game};
 
     #[test]
     fn test_merge_piece_multiplayer() {
@@ -231,9 +231,9 @@ mod tests {
 
         // Make Move
         let game_state1 = CoreGameSubstate::Place;
-        let game_state1 = click_at_pos((1, 1), &mut test_game1, game_state1);
-        let game_state1 = click_at_pos((1, 2), &mut test_game1, game_state1);
-        let game_state1 = click_at_pos((1, 3), &mut test_game1, game_state1);
+        let game_state1 = test_game1.click_at_pos((1, 1), game_state1);
+        let game_state1 = test_game1.click_at_pos((1, 2), game_state1);
+        let game_state1 = test_game1.click_at_pos((1, 3), game_state1);
 
         // Recieve move in Game 2
         test_game2.recieve_multiplayer_events();
@@ -287,6 +287,73 @@ mod tests {
         assert_piece_at(&game, (0,0), PieceKind::Simple);
     }
 
+    #[test]
+    fn test_remove_effects() {
+        let (mut test_game1, mut test_game2) = create_multiplayer_game();
+        
+        // skip a turn each to have enough unused pieces
+        test_game1.next_turn();
+        test_game2.recieve_multiplayer_events();
+        test_game2.next_turn();
+        test_game1.recieve_multiplayer_events();
+
+        // Make Move
+        let game_state1 = CoreGameSubstate::Place;
+        let game_state1 = test_game1.click_at_pos((1, 0), game_state1);
+        let game_state1 = test_game1.click_at_pos((0, 1), game_state1);
+        let game_state1 = test_game1.click_at_pos((2, 1), game_state1);
+        let game_state1 = test_game1.click_at_pos((1, 2), game_state1);
+
+        test_game1.next_turn();
+
+        // Recieve move in Game 2
+        test_game2.recieve_multiplayer_events();
+
+        // Assertions Game 1
+        assert_eq!(game_state1, CoreGameSubstate::Place);
+
+        {
+            let game = &(*test_game1.game.borrow());
+            assert_eq!(game.board.placed_pieces(0).len(), 1);
+            assert!(game.board.placed_pieces(1).is_empty());
+
+            assert_piece_at(game, (1, 1), PieceKind::Castle);
+            assert_protection_at(game, (0,0));
+            assert_protection_at(game, (0,1));
+            assert_protection_at(game, (0,2));
+            assert_protection_at(game, (1,0));
+            assert_protection_at(game, (1,1));
+            assert_protection_at(game, (1,2));
+            assert_protection_at(game, (2,0));
+            assert_protection_at(game, (2,1));
+            assert_protection_at(game, (2,2));
+        }
+
+        // Prepare attack of castle
+        test_game2.click_at_pos((4,0), CoreGameSubstate::Place);
+        test_game2.click_at_pos((4,1), CoreGameSubstate::Place);
+        test_game2.click_at_pos((3,1), CoreGameSubstate::Place);
+        test_game2.click_at_pos((5,1), CoreGameSubstate::Place);
+        test_game2.click_at_pos((4,2), CoreGameSubstate::Place);
+
+        test_game2.next_turn();
+        test_game1.recieve_multiplayer_events();
+        test_game2.next_turn();
+
+        // attack castle
+        let game_state2 = test_game2.click_at_pos((4,1), CoreGameSubstate::Place);
+        test_game2.click_at_pos((1,1), game_state2);
+
+        let game = &(*test_game2.game.borrow());
+        assert_eq!(game.board.placed_pieces(1).len(), 1);
+        assert!(game.board.placed_pieces(0).is_empty());
+
+        game.board.for_each_cell(|c| assert!(c.effects.is_empty()));
+    }
+
+    fn assert_protection_at(game: &Game, pos: (u8, u8)) {
+        assert!(game.board.has_effect_at(&Protection, &pos.into()));
+    }
     fn assert_piece_at(game: &Game, piece_pos: (u8, u8), piece_kind: PieceKind) {
         let placed_piece = game
             .board
@@ -295,12 +362,4 @@ mod tests {
         assert_eq!(placed_piece.piece_kind, piece_kind);
     }
 
-    fn click_at_pos(pos: (u8, u8), test_game1: &mut TestGame, game_state: CoreGameSubstate) -> CoreGameSubstate {
-        let game_clone = (*test_game1.game.borrow()).clone();
-        game_state.on_click(
-            &pos.into(),
-            game_clone,
-            &mut test_game1.event_broker,
-        )
-    }
 }

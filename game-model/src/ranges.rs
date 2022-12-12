@@ -174,13 +174,23 @@ impl Range {
 
         Box::new(vec.into_iter())
     }
-
+    
     pub fn reachable_points(
         &self,
         from_point: &Point2,
         board: &Board) -> HashSet<Point2> {
+
+        let piece = board.get_piece_at(from_point).expect(format!("No piece at {:?}", from_point).as_str());
+
+        self.reachable_points_for_piece(from_point, piece, board)
+
+    }
+    pub fn reachable_points_for_piece(
+        &self,
+        from_point: &Point2,
+        piece: &Piece,
+        board: &Board) -> HashSet<Point2> {
         
-        let piece = board.get_piece_at(from_point).unwrap();
         
         let mut cells = HashSet::new();
         for direction in self.paths(from_point.x, from_point.y) {

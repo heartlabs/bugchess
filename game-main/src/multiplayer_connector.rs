@@ -1,4 +1,4 @@
-use game_events::game_events::{EventConsumer, GameEventObject};
+use game_events::{game_events::{EventConsumer, GameEventObject}, actions::compound_events::GameAction};
 
 use macroquad::prelude::{info, debug};
 
@@ -56,6 +56,10 @@ impl MultiplayerConector {
         return None;
     }
 
+    pub fn get_own_player_id(&self) -> Option<String> {
+        self.client.own_player_id()
+    }
+
     pub fn try_recieve(&mut self) -> Vec<GameEventObject> {
         let mut events = vec![];
         for event_object in self.client.recieved_events() {
@@ -79,12 +83,17 @@ pub struct MultiplayerEventConsumer {
 }
 
 impl EventConsumer for MultiplayerEventConsumer {
-    fn handle_event(&mut self, event: &GameEventObject) {
+    fn handle_remote_event(&mut self, event: &GameEventObject) {
         let mut client = (*self.client).borrow_mut();
         let opponent_id = client.opponent_id.as_ref().unwrap().clone();
         if client.register_event(event) {
             client.client.send(event.clone(), opponent_id);
             debug!("Sent event: {:?}", event);
         }
+    }
+
+    fn handle_event(&mut self, event: &GameAction) {
+        let sender = (*self.client).borrow().get_own_player_id().expect("Own player ID unknown");
+        self.handle_remote_event(&GameEventObject::new(event.clone(), &sender))
     }
 }

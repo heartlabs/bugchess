@@ -23,6 +23,8 @@ jobs:
     - name: Setup wasm-bindgen
       run: cargo install -f wasm-bindgen-cli
     - uses: actions/checkout@v2
+    - name: Test
+      run: cargo test --workspace
     - name: Build
       run: chmod a+x ./build.sh && ./build.sh
 #    - name: Compress

@@ -10,7 +10,7 @@ use egui_macroquad::{
 };
 use game_events::{
     actions::compound_events::GameAction, board_event_consumer::BoardEventConsumer,
-    core_game::CoreGameSubstate, event_broker::EventBroker,
+    core_game::CoreGameSubstate, event_broker::EventBroker, game_events::EventConsumer,
 };
 use game_model::{board::*, game::*, piece::*};
 use game_render::{
@@ -217,7 +217,7 @@ impl GameState for LoadingState {
                         };
                         events
                             .iter()
-                            .for_each(|e| core_game_state.event_broker.handle_remote_event(e));
+                            .for_each(|e| core_game_state.event_broker.handle_remote_event(&e));
                         return None;
                     }
                 } else {

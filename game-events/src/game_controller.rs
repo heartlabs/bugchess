@@ -181,7 +181,7 @@ fn push_effects_if_present(
     if let Some(effect) = new_piece.effect {
         effect
             .range
-            .reachable_points(pos, &board)
+            .reachable_points_for_piece(pos, new_piece, &board)
             .iter()
             .for_each(|&point| {
                 effect_builder.add_effect(point);

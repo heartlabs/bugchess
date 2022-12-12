@@ -30,19 +30,13 @@ impl EventBroker {
         }
 
         if let Some(event) = self.past_events.pop() {
-            let event_object = GameEventObject::new(event.anti_event(), &self.sender_id);
-            self.handle_event(&event_object);
+            self.handle_event(&event.anti_event());
         }
     }
 
     pub fn handle_new_event(&mut self, event: &GameAction) {
         self.past_events.push(event.clone());
 
-        let event_object = GameEventObject::new(event.clone(), &self.sender_id);
-        self.handle_event(&event_object);
-    }
-
-    pub fn handle_remote_event(&mut self, event: &GameEventObject) {
         self.handle_event(&event);
     }
 
@@ -52,12 +46,22 @@ impl EventBroker {
 }
 
 impl EventConsumer for EventBroker {
-    fn handle_event(&mut self, event: &GameEventObject) {
+    fn handle_event(&mut self, event: &GameAction) {
         self.subscribers
             .iter_mut()
             .for_each(|s| (*s).handle_event(event));
 
-        if let GameAction::FinishTurn(_) = event.event {
+        if let GameAction::FinishTurn(_) = event {
+            self.start_of_turn = self.past_events.len();
+        }
+    }
+
+    fn handle_remote_event(&mut self, event_object: &GameEventObject) {
+        self.subscribers
+            .iter_mut()
+            .for_each(|s| (*s).handle_remote_event(event_object));
+
+        if let GameAction::FinishTurn(_) = event_object.event {
             self.start_of_turn = self.past_events.len();
         }
     }

@@ -13,9 +13,8 @@ pub struct BoardEventConsumer {
 }
 
 impl EventConsumer for BoardEventConsumer {
-    fn handle_event(&mut self, event_object: &GameEventObject) {
+    fn handle_event(&mut self, event: &GameAction) {
 
-        let event = &event_object.event;
         debug!("Handling event {:?}", event);
 
         event
