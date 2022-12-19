@@ -1,4 +1,7 @@
+use std::fmt::Display;
+
 use crate::piece::*;
+use colored::Colorize;
 use nanoserde::{DeBin, SerBin};
 
 #[derive(Clone)]
@@ -369,17 +372,53 @@ impl Pattern {
     }
 }
 
-impl Into<(u8, u8)> for Point2 {
-    fn into(self) -> (u8, u8) {
-        (self.x, self.y)
+impl From<(u8, u8)> for Point2 {
+    fn from((x, y): (u8, u8)) -> Self{
+        Point2 {
+            x,
+            y
+        }
     }
 }
 
-impl Into<Point2> for (u8, u8) {
-    fn into(self) -> Point2 {
-        Point2 {
-            x: self.0,
-            y: self.1,
+impl From<Point2> for (u8, u8) {
+    fn from(point: Point2) -> (u8, u8) {
+        (point.x, point.y)
+    }
+}
+
+impl Display for Point2 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}, {})", self.x, self.y)
+    }
+}
+
+impl Display for Board {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for y in 0..self.h as usize{
+            for x in 0..self.w as usize{
+                write!(f, "{}",self.cells[x][y])?;
+            }
+            write!(f, "\n")?;
         }
+        Ok(())
+    }
+}
+
+impl Display for Cell {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let cell = if let Some(piece) = self.piece {
+            format!("{}", piece)
+        } else {
+            ".".to_string()
+        };
+
+        let cell = if !self.effects.is_empty() {
+            cell.on_bright_magenta()
+        } else {
+            cell.normal()
+        };
+
+        write!(f, "{}", cell)
     }
 }

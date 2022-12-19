@@ -125,9 +125,9 @@ mod tests {
         piece::PieceKind,
     };
 
-    use super::CoreGameSubstate;
-    use crate::{
-        actions::compound_events::GameAction, event_broker::EventBroker, game_events::EventConsumer,
+    use super::{CoreGameSubstate, EventBroker};
+    use game_events::{
+        actions::compound_events::GameAction, game_events::EventConsumer,
     };
 
     #[test]

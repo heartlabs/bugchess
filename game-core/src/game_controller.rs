@@ -6,7 +6,7 @@ use game_model::{
     piece::{Piece, PieceKind},
 };
 
-use crate::{
+use game_events::{
     actions::{
         attack::AttackBuilder,
         compound_events::{CompoundEventBuilder, FlushResult, GameAction},

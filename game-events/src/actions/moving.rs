@@ -33,7 +33,7 @@ pub struct MoveBuilder {
 }
 
 impl MoveBuilder {
-    pub(crate) fn new(from: Point2, to: Point2, moved_piece: Piece) -> Self {
+    pub fn new(from: Point2, to: Point2, moved_piece: Piece) -> Self {
         let mut exhaustion_afterwards = moved_piece.exhaustion.clone();
         exhaustion_afterwards.on_move();
 

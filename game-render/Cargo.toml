@@ -11,3 +11,4 @@ macroquad-canvas = "0.3.0"
 instant = "0.1.12"
 game-model = {path = "../game-model"}
 game-events = {path = "../game-events"}
+game-core = {path = "../game-core"}

@@ -28,6 +28,7 @@ futures-util = "0.3.25"
 game-model = {path = "../game-model"}
 game-events = {path = "../game-events"}
 game-render = {path = "../game-render"}
+game-core = {path = "../game-core"}
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 sapp-jsutils = "0.1.5"

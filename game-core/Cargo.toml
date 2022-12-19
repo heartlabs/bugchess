@@ -1,10 +1,11 @@
 [package]
-name = "game-model"
+name = "game-core"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-nanoserde = "0.1.32"
-colored = "2.0.0"
+game-model = {path = "../game-model"}
+game-events = {path = "../game-events"}
+miniquad = "0.3.13" # only used for logging

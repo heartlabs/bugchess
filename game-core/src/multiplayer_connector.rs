@@ -1,11 +1,11 @@
 use game_events::{
     actions::compound_events::GameAction,
-    game_events::{EventConsumer, GameEventObject},
+    game_events::{GameEventObject, Event},
 };
 
-use macroquad::prelude::{debug, info};
+use miniquad::{debug, info};
 
-use std::{cell::RefCell, collections::HashSet, rc::Rc};
+use std::{collections::HashSet};
 
 pub trait MultiplayerClient {
     fn is_ready(&self) -> bool;
@@ -81,27 +81,19 @@ impl MultiplayerConector {
     fn register_event(&mut self, event_object: &GameEventObject) -> bool {
         self.sent_events.insert(event_object.id.clone())
     }
-}
 
-pub struct MultiplayerEventConsumer {
-    pub client: Rc<RefCell<MultiplayerConector>>,
-}
+    pub fn handle_event(&mut self, game_action: &GameAction) {
+        let sender = self
+            .get_own_player_id()
+            .expect("Own player ID unknown");
+        
+        let event = &GameEventObject::new(Event::GameAction(game_action.clone()), &sender);
 
-impl EventConsumer for MultiplayerEventConsumer {
-    fn handle_remote_event(&mut self, event: &GameEventObject) {
-        let mut client = (*self.client).borrow_mut();
-        let opponent_id = client.opponent_id.as_ref().unwrap().clone();
-        if client.register_event(event) {
-            client.client.send(event.clone(), opponent_id);
+        let opponent_id = self.opponent_id.as_ref().unwrap().clone();
+        if self.register_event(event) {
+            self.client.send(event.clone(), opponent_id);
             debug!("Sent event: {:?}", event);
         }
     }
-
-    fn handle_event(&mut self, event: &GameAction) {
-        let sender = (*self.client)
-            .borrow()
-            .get_own_player_id()
-            .expect("Own player ID unknown");
-        self.handle_remote_event(&GameEventObject::new(event.clone(), &sender))
-    }
 }
+

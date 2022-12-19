@@ -1,6 +1,7 @@
 use crate::ranges::*;
+use colored::Colorize;
 use nanoserde::{DeBin, SerBin};
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 
 #[derive(Debug, Copy, Clone, PartialEq, SerBin, DeBin)]
 pub enum EffectKind {
@@ -224,7 +225,7 @@ impl Exhaustion {
     }
 
     pub fn is_done(&self) -> bool {
-        return !self.can_move() && !self.can_attack();
+        !self.can_move() && !self.can_attack()
     }
 
     pub fn on_move(&mut self) {
@@ -238,5 +239,27 @@ impl Exhaustion {
     pub fn reset(&mut self) {
         self.moved = false;
         self.used_special = false;
+    }
+}
+
+impl Display for Piece {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let kind = match self.piece_kind {
+            PieceKind::Simple => "o",
+            PieceKind::HorizontalBar => "-",
+            PieceKind::VerticalBar => "|",
+            PieceKind::Cross => "+",
+            PieceKind::Queen => "*",
+            PieceKind::Castle => "W",
+            PieceKind::Sniper => "x",
+        };
+
+        let kind = match self.team_id {
+            0 => kind.red(),
+            1 => kind.yellow(),
+            _ => kind.normal()
+        };
+
+        write!(f, "{}", kind)
     }
 }

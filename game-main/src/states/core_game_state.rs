@@ -1,14 +1,13 @@
 use std::{cell::RefCell, rc::Rc};
 
-use game_events::{
-    core_game::CoreGameSubstate, event_broker::EventBroker, game_controller::GameController,
-    game_events::EventConsumer,
+use game_core::{
+    core_game::CoreGameSubstate, event_broker::EventBroker, game_controller::GameController,multiplayer_connector::MultiplayerConector, 
 };
 use game_model::game::Game;
 
 use game_render::{constants::cell_hovered, BoardRender, CustomRenderContext};
 
-use crate::{constants::ONLINE, multiplayer_connector::MultiplayerConector, GameState};
+use crate::{constants::ONLINE, GameState};
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
 
@@ -223,7 +222,7 @@ fn handle_player_input(
 mod tests {
 
     use crate::test_utils::*;
-    use game_events::core_game::CoreGameSubstate;
+    use game_core::core_game::CoreGameSubstate;
     use game_model::{
         game::Game,
         piece::{EffectKind::Protection, PieceKind},
@@ -318,6 +317,7 @@ mod tests {
 
         {
             let game = &(*test_game1.game.borrow());
+            println!("Board:\n{}", game.board);
             assert_eq!(game.board.placed_pieces(0).len(), 1);
             assert!(game.board.placed_pieces(1).is_empty());
 

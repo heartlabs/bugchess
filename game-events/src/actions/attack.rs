@@ -33,7 +33,7 @@ pub struct AttackBuilder {
 }
 
 impl AttackBuilder {
-    pub(crate) fn new(piece: &Piece, piece_pos: Point2) -> Self {
+    pub fn new(piece: &Piece, piece_pos: Point2) -> Self {
         let mut exhaustion_afterwards = piece.exhaustion.clone();
         exhaustion_afterwards.on_attack();
         AttackBuilder {

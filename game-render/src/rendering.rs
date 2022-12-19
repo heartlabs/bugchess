@@ -1,5 +1,5 @@
 use crate::{animation::*, constants::*, ui::Button};
-use game_events::core_game::CoreGameSubstate;
+use game_core::core_game::CoreGameSubstate;
 use game_model::{board::*, game::*, piece::*, ranges::*};
 use instant::{Duration, Instant};
 use macroquad::prelude::*;

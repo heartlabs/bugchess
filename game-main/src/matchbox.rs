@@ -1,9 +1,9 @@
-use crate::multiplayer_connector::{MultiplayerClient, MultiplayerConector};
+use game_core::multiplayer_connector::{MultiplayerClient, MultiplayerConector};
 use game_events::game_events::GameEventObject;
 use macroquad::prelude::*;
 use matchbox_socket::{RtcIceServerConfig, WebRtcSocket, WebRtcSocketConfig};
 use nanoserde::{DeBin, SerBin};
-use std::{borrow::Borrow, future::Future, pin::Pin};
+use std::{future::Future, pin::Pin};
 use urlencoding::encode;
 
 #[cfg(target_family = "wasm")]
