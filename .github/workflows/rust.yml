@@ -15,7 +15,7 @@ jobs:
     environment: heartlabs.tech
     steps:
     - name: Install prerequisites
-      run: sudo apt-get -y install libasound2-dev libgl1-mesa-dev xorg-dev binaryen wabt
+      run: sudo apt-get update --fix-missing && sudo apt-get -y install libasound2-dev libgl1-mesa-dev xorg-dev binaryen wabt
     - name: Setup Rust environment
       uses: raftario/setup-rust-action@v1.0.0
       with:
