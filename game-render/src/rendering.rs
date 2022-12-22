@@ -12,6 +12,7 @@ pub struct CustomRenderContext {
     pub game_state: CoreGameSubstate,
     pub button_next: Button,
     pub button_undo: Button,
+    pub instant_animation: bool,
 }
 
 impl CustomRenderContext {
@@ -28,6 +29,7 @@ impl CustomRenderContext {
             game_state: CoreGameSubstate::Place,
             button_next: Button::new(10., "End Turn".to_string()),
             button_undo: Button::new(120., "Undo".to_string()),
+            instant_animation: true,
         }
     }
 }
@@ -122,22 +124,8 @@ impl BoardRender {
         self.placed_pieces.insert(*point, piece_render);
     }
 
-    pub fn update(&mut self) {
-        let mut new_animations = vec![];
-        self.current_animations
-            .iter_mut()
-            .filter(|a| a.finished_at <= Instant::now())
-            .for_each(|a| {
-                new_animations.append(&mut a.next_animations);
-            });
-
-        let anim_count = self.current_animations.len();
-        self.current_animations
-            .retain(|a| a.finished_at > Instant::now());
-
-        if anim_count != self.current_animations.len() || !new_animations.is_empty() {
-            //     info!("animation count {} -> {}; {} new", anim_count, self.animations.len(), new_animations.len());
-        }
+    pub fn update(&mut self, render_context: &mut CustomRenderContext,) {
+        let mut new_animations = self.get_ready_animations(render_context.instant_animation);
 
         for animation in new_animations.iter_mut() {
             animation.start(self);
@@ -154,6 +142,30 @@ impl BoardRender {
                 self.current_animations = animations;
             }
         }
+
+        if self.current_animations.is_empty() {
+            render_context.instant_animation = false;
+        }
+    }
+
+    fn get_ready_animations(&mut self, instant_animation: bool) -> Vec<Animation> {
+        if instant_animation {
+            return self.current_animations
+                .drain(..)
+                .flat_map(|a| a.next_animations.into_iter())
+                .collect()
+        }
+
+        let mut new_animations = vec![];
+        self.current_animations
+            .iter_mut()
+            .filter(|a| a.finished_at <= Instant::now())
+            .for_each(|a| {
+                new_animations.append(&mut a.next_animations);
+            });
+        self.current_animations
+            .retain(|a| a.finished_at > Instant::now());
+        new_animations
     }
 
     pub fn render(&self, board: &Board, render_context: &CustomRenderContext, canvas: &Canvas2D) {
