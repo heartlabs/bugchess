@@ -96,12 +96,12 @@ impl CompoundEvent for PlaceCompoundEvent {
 
 impl Display for PlaceCompoundEvent {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Placing {} at {}", self.piece(), self.at() )?;
+        write!(f, "Placing {} at {}", self.piece(), self.at())?;
 
         if let Some(merge) = &self.merge_events {
             if !merge.placed_pieces().is_empty() {
                 write!(f, " with {}", merge)?;
-            }        
+            }
         }
 
         Ok(())

@@ -122,7 +122,9 @@ impl Display for MergeCompoundEvent {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Merging to ")?;
 
-        self.placed_pieces.iter().for_each(|(point,piece)| {_ = write!(f, "{} at {}; ", piece, point);});
+        self.placed_pieces.iter().for_each(|(point, piece)| {
+            _ = write!(f, "{} at {}; ", piece, point);
+        });
 
         Ok(())
     }

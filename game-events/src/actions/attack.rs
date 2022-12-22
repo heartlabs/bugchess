@@ -123,8 +123,8 @@ impl EffectBuilder for AttackBuilder {
 
 impl Display for AttackCompoundEvent {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let targets : Vec<&Point2 >= self.removed_pieces().iter().map(|(p,_)| p).collect();
-        write!(f, "{} Attacks {:?}", self.attacking_piece_pos(), targets )?;
+        let targets: Vec<&Point2> = self.removed_pieces().iter().map(|(p, _)| p).collect();
+        write!(f, "{} Attacks {:?}", self.attacking_piece_pos(), targets)?;
 
         if let Some(merge) = &self.merge_events {
             if !merge.placed_pieces().is_empty() {

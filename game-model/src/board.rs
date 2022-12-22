@@ -373,11 +373,8 @@ impl Pattern {
 }
 
 impl From<(u8, u8)> for Point2 {
-    fn from((x, y): (u8, u8)) -> Self{
-        Point2 {
-            x,
-            y
-        }
+    fn from((x, y): (u8, u8)) -> Self {
+        Point2 { x, y }
     }
 }
 
@@ -395,9 +392,9 @@ impl Display for Point2 {
 
 impl Display for Board {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for y in 0..self.h as usize{
-            for x in 0..self.w as usize{
-                write!(f, "{}",self.cells[x][y])?;
+        for y in 0..self.h as usize {
+            for x in 0..self.w as usize {
+                write!(f, "{}", self.cells[x][y])?;
             }
             write!(f, "\n")?;
         }

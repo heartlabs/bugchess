@@ -126,9 +126,7 @@ mod tests {
     };
 
     use super::{CoreGameSubstate, EventBroker};
-    use game_events::{
-        actions::compound_events::GameAction, game_events::EventConsumer,
-    };
+    use game_events::{actions::compound_events::GameAction, game_events::EventConsumer};
 
     #[test]
     fn test_place_single_piece() {

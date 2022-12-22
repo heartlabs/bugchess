@@ -1,20 +1,15 @@
 use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
-use game_events::{
-    actions::compound_events::GameAction,
-    board_event_consumer::BoardEventConsumer,
-    game_events::{EventConsumer},
-};
 use game_core::{
-    core_game::CoreGameSubstate,
-    event_broker::EventBroker,
-    game_controller::GameController,
-    multiplayer_connector::{MultiplayerConector},
-    fakebox::FakeboxClient,
+    core_game::CoreGameSubstate, event_broker::EventBroker, fakebox::FakeboxClient,
+    game_controller::GameController, multiplayer_connector::MultiplayerConector,
+};
+use game_events::{
+    actions::compound_events::GameAction, board_event_consumer::BoardEventConsumer,
+    game_events::EventConsumer,
 };
 use game_model::game::{Game, Team};
 use game_render::{render_events::RenderEventConsumer, BoardRender};
-
 
 pub struct TestGame {
     pub logs: Rc<RefCell<VecDeque<GameAction>>>,
@@ -29,9 +24,8 @@ impl TestGame {
             .borrow_mut()
             .try_recieve();
 
-
         println!("RECEIVED {} EVENTS", recieved_events.len());
-        
+
         recieved_events
             .iter()
             .for_each(|e| self.event_broker.handle_remote_event(&e));
@@ -78,9 +72,7 @@ fn make_multiplayer(
     multiplayer_connector.matchmaking();
     let multiplayer_connector = Rc::new(RefCell::new(multiplayer_connector));
 
-    test_game
-        .event_broker
-        .multiplayer_connector = Some(multiplayer_connector.clone());
+    test_game.event_broker.multiplayer_connector = Some(multiplayer_connector.clone());
     test_game.multiplayer_connector = Some(multiplayer_connector);
 }
 

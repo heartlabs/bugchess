@@ -3,17 +3,18 @@ use crate::{
     matchbox::MatchboxClient,
     BoardRender, CoreGameState, GameState, ONLINE,
 };
-use game_core::{
-    multiplayer_connector::{MultiplayerConector},
-    core_game::CoreGameSubstate, event_broker::EventBroker, 
-
-};
 use egui_macroquad::{
     egui,
     egui::{FontDefinitions, FontFamily, FontTweak, Layout, Visuals},
 };
+use game_core::{
+    core_game::CoreGameSubstate, event_broker::EventBroker,
+    multiplayer_connector::MultiplayerConector,
+};
 use game_events::{
-    actions::compound_events::GameAction, board_event_consumer::BoardEventConsumer, game_events::{Event, PlayerAction},
+    actions::compound_events::GameAction,
+    board_event_consumer::BoardEventConsumer,
+    game_events::{Event, PlayerAction},
 };
 use game_model::{board::*, game::*, piece::*};
 use game_render::{
@@ -174,9 +175,8 @@ impl GameState for LoadingState {
                 matchbox_client.signal_connect();
 
                 let multiplayer_events = Option::Some(Rc::new(RefCell::new(matchbox_client)));
-                core_game_state
-                    .event_broker
-                    .multiplayer_connector = Some(Rc::clone(multiplayer_events.as_ref().unwrap()));
+                core_game_state.event_broker.multiplayer_connector =
+                    Some(Rc::clone(multiplayer_events.as_ref().unwrap()));
 
                 core_game_state.matchbox_events = multiplayer_events;
 
@@ -193,22 +193,28 @@ impl GameState for LoadingState {
                             .unwrap()
                             .as_ref()
                             .borrow_mut();
-                        (client.try_recieve(), client.get_own_player_index().unwrap(), client.get_own_player_id().unwrap())
+                        (
+                            client.try_recieve(),
+                            client.get_own_player_index().unwrap(),
+                            client.get_own_player_id().unwrap(),
+                        )
                     };
 
-                    let opponent_index = events.iter()
-                        .filter_map(|e| 
-                            match &e.event {
-                                Event::PlayerAction(PlayerAction::Connect(_, c)) => Some((c, c == &1)),
-                                Event::PlayerAction(PlayerAction::NewGame((p1, p2))) => {
-                                    if p1 == &own_player_id {Some((&1, false))} else {Some((&0, false))}
+                    let opponent_index = events
+                        .iter()
+                        .filter_map(|e| match &e.event {
+                            Event::PlayerAction(PlayerAction::Connect(_, c)) => Some((c, c == &1)),
+                            Event::PlayerAction(PlayerAction::NewGame((p1, p2))) => {
+                                if p1 == &own_player_id {
+                                    Some((&1, false))
+                                } else {
+                                    Some((&0, false))
                                 }
-                                _ => None
                             }
-                        )
+                            _ => None,
+                        })
                         .next();
 
-                 
                     if let Some((opponent_index, initiator)) = opponent_index {
                         {
                             debug!("opponent_index {}, initiator {}", opponent_index, initiator);
@@ -219,11 +225,12 @@ impl GameState for LoadingState {
                                 .as_ref()
                                 .borrow_mut();
 
-                            if opponent_index == &1 { // The opponent says he is second - so we must be first
+                            if opponent_index == &1 {
+                                // The opponent says he is second - so we must be first
                                 client.override_own_player_index = Some(0); // we will always be this index - so lock it
                             } else {
                                 client.override_own_player_index = Some(1);
-                            } 
+                            }
 
                             if initiator {
                                 client.signal_new_game();
@@ -237,19 +244,18 @@ impl GameState for LoadingState {
                             for start_event in &set_up_actions {
                                 core_game_state.event_broker.handle_new_event(start_event);
                             }
-
                         } else {
                             core_game_state.set_sub_state(CoreGameSubstate::Wait);
                         }
 
-                        events.iter()
+                        events
+                            .iter()
                             .filter(|e| matches!(e.event, Event::GameAction(_)))
                             .for_each(|e| core_game_state.event_broker.handle_remote_event(e));
                     } else {
                         debug!("waiting for opponent message");
                         return None;
                     }
-  
                 } else {
                     let core_game_state = self.core_game_state.as_mut().unwrap();
                     let num_teams = 2;

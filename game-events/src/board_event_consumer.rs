@@ -1,7 +1,7 @@
 use crate::{
     actions::compound_events::{CompoundEventBuilder, FlushResult, GameAction},
     atomic_events::AtomicEvent::{self, *},
-    game_events::{EventConsumer},
+    game_events::EventConsumer,
 };
 use game_model::game::Game;
 use miniquad::{debug, warn};

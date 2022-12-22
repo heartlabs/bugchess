@@ -130,7 +130,7 @@ impl Display for MoveCompoundEvent {
         if let Some(merge) = &self.merge_events {
             if !merge.placed_pieces().is_empty() {
                 write!(f, " with {}", merge)?;
-            }        
+            }
         }
 
         Ok(())

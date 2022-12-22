@@ -145,8 +145,7 @@ impl Range {
         if self.direction == Direction::Anywhere {
             // TODO: This only works if jump=true and steps=max
             let row_iter = (0..255_i16).map(move |x| {
-                Box::new((0..255_i16).map(move |y| (x, y)))
-                    as Box<dyn Iterator<Item = (i16, i16)>>
+                Box::new((0..255_i16).map(move |y| (x, y))) as Box<dyn Iterator<Item = (i16, i16)>>
             });
             return Box::new(row_iter);
         }

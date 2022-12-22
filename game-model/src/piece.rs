@@ -257,7 +257,7 @@ impl Display for Piece {
         let kind = match self.team_id {
             0 => kind.red(),
             1 => kind.yellow(),
-            _ => kind.normal()
+            _ => kind.normal(),
         };
 
         write!(f, "{}", kind)

@@ -15,8 +15,8 @@ pub enum Event {
 
 #[derive(Debug, Clone, SerBin, DeBin)]
 pub enum PlayerAction {
-    Connect(String, usize), // player name, index
-    NewGame((String, String)) // client ids of players in order
+    Connect(String, usize),    // player name, index
+    NewGame((String, String)), // client ids of players in order
 }
 
 #[derive(Debug, Clone, SerBin, DeBin)]
@@ -44,11 +44,17 @@ pub trait EventConsumer {
 
 impl Display for GameEventObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        
         match &self.event {
-            Event::GameAction(game_action) => write!(f, "GameEventObject {} with GameAction {}", self.id, game_action ),
-            Event::PlayerAction(player_action) => write!(f, "GameEventObject {} with PlayerAction {:?}", self.id, player_action ),
+            Event::GameAction(game_action) => write!(
+                f,
+                "GameEventObject {} with GameAction {}",
+                self.id, game_action
+            ),
+            Event::PlayerAction(player_action) => write!(
+                f,
+                "GameEventObject {} with PlayerAction {:?}",
+                self.id, player_action
+            ),
         }
-        
     }
 }

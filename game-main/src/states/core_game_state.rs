@@ -1,7 +1,8 @@
 use std::{cell::RefCell, rc::Rc};
 
 use game_core::{
-    core_game::CoreGameSubstate, event_broker::EventBroker, game_controller::GameController,multiplayer_connector::MultiplayerConector, 
+    core_game::CoreGameSubstate, event_broker::EventBroker, game_controller::GameController,
+    multiplayer_connector::MultiplayerConector,
 };
 use game_model::game::Game;
 

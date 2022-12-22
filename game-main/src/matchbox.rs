@@ -36,7 +36,7 @@ fn connect(room_id: &str) -> MatchboxClient {
         data_channel: RtcDataChannelConfig {
             ordered: true,
             max_retransmits: 10,
-        }
+        },
     });
 
     info!("my id is {:?}", socket.id());
@@ -73,7 +73,7 @@ impl MultiplayerClient for MatchboxClient {
     }
 
     fn send(&mut self, game_object: &GameEventObject, opponent_id: &str) {
-        debug!("Sending {} to {}",game_object, opponent_id);
+        debug!("Sending {} to {}", game_object, opponent_id);
         self.client
             .send(game_object.serialize_bin().into_boxed_slice(), opponent_id)
     }

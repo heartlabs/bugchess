@@ -1,12 +1,12 @@
 use game_events::{
     actions::compound_events::GameAction,
-    game_events::{GameEventObject, Event, PlayerAction},
+    game_events::{Event, GameEventObject, PlayerAction},
 };
 
 use indexmap::IndexMap;
 use miniquad::{debug, info};
 
-use std::{collections::{HashMap}};
+use std::collections::HashMap;
 
 pub trait MultiplayerClient {
     fn is_ready(&self) -> bool;
@@ -76,7 +76,8 @@ impl MultiplayerConector {
             if self.register_event(&event_object) {
                 debug!("Received event: {}", &event_object);
 
-                if let Event::PlayerAction(PlayerAction::Connect(name, index)) = &event_object.event {
+                if let Event::PlayerAction(PlayerAction::Connect(name, index)) = &event_object.event
+                {
                     debug!("Player {} connected with supposed index {}.", name, index);
 
                     self.opponent_id = Some(name.clone());
@@ -100,10 +101,8 @@ impl MultiplayerConector {
     }
 
     pub fn handle_event(&mut self, game_action: &GameAction) {
-        let sender = self
-            .get_own_player_id()
-            .expect("Own player ID unknown");
-        
+        let sender = self.get_own_player_id().expect("Own player ID unknown");
+
         let event = &GameEventObject::new(Event::GameAction(game_action.clone()), &sender);
 
         self.send(event);
@@ -118,13 +117,11 @@ impl MultiplayerConector {
 
     pub fn signal_connect(&mut self) {
         let game_object = &GameEventObject::new(
-            Event::PlayerAction(
-                PlayerAction::Connect(
-                    self.get_own_player_id().unwrap().to_string(),
-                    self.get_own_player_index().unwrap()
-                )
-            ), 
-            &self.get_own_player_id().unwrap()
+            Event::PlayerAction(PlayerAction::Connect(
+                self.get_own_player_id().unwrap().to_string(),
+                self.get_own_player_index().unwrap(),
+            )),
+            &self.get_own_player_id().unwrap(),
         );
 
         self.send(game_object);
@@ -135,21 +132,22 @@ impl MultiplayerConector {
         let opponent_id = self.opponent_id.as_ref().unwrap().clone();
         let game_object = &GameEventObject::new(
             Event::PlayerAction(
-                PlayerAction::NewGame((own_player_id.clone(), opponent_id)) // you can only signal a new game if you are the first
+                PlayerAction::NewGame((own_player_id.clone(), opponent_id)), // you can only signal a new game if you are the first
             ),
-            &own_player_id
+            &own_player_id,
         );
 
         self.send(game_object);
     }
 
     pub fn resend_game_events(&mut self) {
-        let registered_events: Vec<GameEventObject> = self.registered_events.values()
+        let registered_events: Vec<GameEventObject> = self
+            .registered_events
+            .values()
             .map(|e| e.clone())
             .filter(|e| matches!(e.event, Event::GameAction(_)))
-            .collect(); 
+            .collect();
 
         registered_events.iter().for_each(|e| self.send(e));
     }
 }
-

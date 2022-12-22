@@ -43,6 +43,6 @@ impl CompoundEvent for UndoCompoundEvent {
 
 impl Display for UndoCompoundEvent {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Undo {}", self.undone )
+        write!(f, "Undo {}", self.undone)
     }
 }
