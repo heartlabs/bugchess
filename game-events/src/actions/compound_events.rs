@@ -11,7 +11,7 @@ use crate::{
 };
 use game_model::{board::Point2, piece::Piece};
 use nanoserde::{DeBin, SerBin};
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 
 pub trait CompoundEventBuilder {
     fn build_with_merge_event(self: Box<Self>, merge_event: MergeCompoundEvent) -> GameAction;
@@ -37,6 +37,18 @@ pub enum GameAction {
     Move(MoveCompoundEvent),
     Undo(UndoCompoundEvent),
     FinishTurn(FinishTurnCompoundEvent),
+}
+
+impl Display for GameAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            GameAction::Attack(a) => Display::fmt(&a, f),
+            GameAction::Place(a) => Display::fmt(&a, f),
+            GameAction::Move(a) => Display::fmt(&a, f),
+            GameAction::Undo(a) => Display::fmt(&a, f),
+            GameAction::FinishTurn(a) => Display::fmt(&a, f),
+        }
+    }
 }
 
 impl GameAction {

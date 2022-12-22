@@ -13,8 +13,8 @@ urlencoding = "2.1.0"
 # nakama-rs = "*"
 url = "2.3.1"
 # matchbox_socket = { path = "../../matchbox/matchbox_socket" }
-matchbox_socket = { git = "https://github.com/johanhelsing/matchbox" }
-# matchbox_socket = { git = "https://github.com/heartlabs/matchbox", branch = "feature/upgrade-webrtc"}
+# matchbox_socket = { git = "https://github.com/johanhelsing/matchbox" }
+matchbox_socket = { git = "https://github.com/heartlabs/matchbox", branch = "feature/congig-datachannel"}
 # matchbox_socket = "0.4.0"
 async-executor = "1.4.1"
 nanoserde = "0.1.29"

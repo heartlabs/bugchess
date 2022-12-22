@@ -113,11 +113,14 @@ impl GameState for CoreGameState {
 
 fn check_if_somebody_won(game: &Game, render_context: &mut CustomRenderContext) {
     let board = &game.board;
-    if board.placed_pieces(0).is_empty() || game.num_unused_pieces_of(1) >= 20 {
+    let team_1_won = board.placed_pieces(0).is_empty() || game.num_unused_pieces_of(1) >= 20;
+    let team_0_won = board.placed_pieces(1).is_empty() || game.num_unused_pieces_of(0) >= 20;
+
+    if team_1_won && !team_0_won {
         info!("Team 1 won");
         render_context.game_state = CoreGameSubstate::Won(1);
     }
-    if board.placed_pieces(1).is_empty() || game.num_unused_pieces_of(0) >= 20 {
+    if team_0_won && !team_1_won {
         info!("Team 0 won");
         render_context.game_state = CoreGameSubstate::Won(0);
     }

@@ -13,7 +13,7 @@ use crate::{
     states::{core_game_state::CoreGameState, loading::LoadingState, GameState},
 };
 use game_render::BoardRender;
-use macroquad::prelude::*;
+use macroquad::{prelude::*, rand::srand};
 use macroquad_canvas::Canvas2D;
 
 use egui_macroquad::egui;
@@ -33,6 +33,7 @@ async fn main() {
     let canvas = Canvas2D::new(WINDOW_WIDTH as f32, WINDOW_HEIGHT as f32);
 
     loop {
+        srand((macroquad::time::get_time() * 100_000_000f64) as u64);
         set_camera(&canvas.camera);
         clear_background(BLACK);
 

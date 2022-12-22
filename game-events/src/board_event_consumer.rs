@@ -14,7 +14,7 @@ pub struct BoardEventConsumer {
 
 impl EventConsumer for BoardEventConsumer {
     fn handle_event(&mut self, event: &GameAction) {
-        debug!("Handling event {:?}", event);
+        debug!("Handling event {}", event);
 
         event
             .get_compound_event()

@@ -1,10 +1,11 @@
+use game_model::game::Team;
 use nanoserde::{DeBin, SerBin};
 
 use quad_rand::rand;
 
 use crate::actions::compound_events::GameAction;
 
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 
 #[derive(Debug, Clone, SerBin, DeBin)]
 pub enum Event {
@@ -14,8 +15,8 @@ pub enum Event {
 
 #[derive(Debug, Clone, SerBin, DeBin)]
 pub enum PlayerAction {
-    Connect(String), // player name
-    SendGame(Vec<GameAction>)
+    Connect(String, usize), // player name, index
+    NewGame((String, String)) // client ids of players in order
 }
 
 #[derive(Debug, Clone, SerBin, DeBin)]
@@ -39,4 +40,15 @@ impl GameEventObject {
 
 pub trait EventConsumer {
     fn handle_event(&mut self, event: &GameAction);
+}
+
+impl Display for GameEventObject {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        
+        match &self.event {
+            Event::GameAction(game_action) => write!(f, "GameEventObject {} with GameAction {}", self.id, game_action ),
+            Event::PlayerAction(player_action) => write!(f, "GameEventObject {} with PlayerAction {:?}", self.id, player_action ),
+        }
+        
+    }
 }

@@ -1107,7 +1107,7 @@ version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6a62391ecb864cf12ed06b2af4eda2e609b97657950d6a8f06841b17726ab253"
 dependencies = [
- "hashbrown",
+ "hashbrown 0.11.2",
  "ttf-parser 0.15.2",
 ]
 
@@ -1255,6 +1255,7 @@ version = "0.1.0"
 dependencies = [
  "game-events",
  "game-model",
+ "indexmap",
  "miniquad",
 ]
 
@@ -1382,6 +1383,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "hashbrown"
+version = "0.12.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8a9ee70c43aaf417c914396645a0fa852624801b24ebb7ae78fe8272889ac888"
+
+[[package]]
 name = "hermit-abi"
 version = "0.1.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1485,6 +1492,16 @@ dependencies = [
  "num-rational",
  "num-traits",
  "png",
+]
+
+[[package]]
+name = "indexmap"
+version = "1.9.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1885e79c1fc4b10f0e172c475f458b7f7b93061064d98c3293e98c5ba0c8b399"
+dependencies = [
+ "autocfg",
+ "hashbrown 0.12.3",
 ]
 
 [[package]]
@@ -1650,7 +1667,7 @@ dependencies = [
 [[package]]
 name = "matchbox_socket"
 version = "0.4.0"
-source = "git+https://github.com/johanhelsing/matchbox#8915285fc836d76f7e117cee8949449940e4ecfd"
+source = "git+https://github.com/heartlabs/matchbox?branch=feature/congig-datachannel#06bdc0db1e30208cf7a44da30eafae19589e8c91"
 dependencies = [
  "async-compat",
  "async-tungstenite",

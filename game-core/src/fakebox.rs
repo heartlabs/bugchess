@@ -43,7 +43,7 @@ impl MultiplayerClient for Rc<RefCell<FakeboxClient>> {
         (*self).borrow_mut().recieved_events()
     }
 
-    fn send(&mut self, game_object: GameEventObject, opponent_id: String) {
+    fn send(&mut self, game_object: &GameEventObject, opponent_id: &str) {
         (*self).borrow_mut().send(game_object, opponent_id)
     }
 
@@ -69,7 +69,7 @@ impl MultiplayerClient for FakeboxClient {
         self.incoming_messages.drain(..).collect()
     }
 
-    fn send(&mut self, game_object: GameEventObject, _opponent_id: String) {
+    fn send(&mut self, game_object: &GameEventObject, _opponent_id: &str) {
         let opponent_client = self
             .opponent_client
             .as_ref()
@@ -77,7 +77,7 @@ impl MultiplayerClient for FakeboxClient {
         (*opponent_client)
             .borrow_mut()
             .incoming_messages
-            .push_back(game_object);
+            .push_back(game_object.clone());
     }
 
     fn own_player_id(&self) -> Option<String> {

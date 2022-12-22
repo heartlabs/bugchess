@@ -84,3 +84,22 @@ Remote events (recieved via network)
 => Render needs
 
 => Matchbox ignores
+
+=======
+
+Start game flow
+
+P1 & P2 connect
+P1 sends Connect(begin=false)
+P2 sends Connect(begin=true)
+P1 waits for P2
+P2 sends NewGame(P2, P1)
+P2 sends initial board setup events
+
+P2 disconnects
+P3 connects
+P3 sends Connect(begin=true/false)
+P3 waits for Connect or NewGame from P1
+P1 sends NewGame(P2, P1)
+P3 is now P2
+P1 sends all game events

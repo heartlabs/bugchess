@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::{
     actions::{
         compound_events::{CompoundEvent, CompoundEventBuilder, GameAction},
@@ -114,5 +116,23 @@ impl EffectBuilder for MoveBuilder {
 
     fn remove_effect(&mut self, at: Point2) {
         self.event.removed_effects.push(at);
+    }
+}
+
+impl Display for MoveCompoundEvent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let action = match self.captured_piece {
+            Some(_) => "captures",
+            None => "moves to",
+        };
+        write!(f, "{} {} {}", self.from(), action, self.to())?;
+
+        if let Some(merge) = &self.merge_events {
+            if !merge.placed_pieces().is_empty() {
+                write!(f, " with {}", merge)?;
+            }        
+        }
+
+        Ok(())
     }
 }

@@ -1,7 +1,7 @@
 use game_core::multiplayer_connector::{MultiplayerClient, MultiplayerConector};
 use game_events::game_events::GameEventObject;
 use macroquad::prelude::*;
-use matchbox_socket::{RtcIceServerConfig, WebRtcSocket, WebRtcSocketConfig};
+use matchbox_socket::{RtcDataChannelConfig, RtcIceServerConfig, WebRtcSocket, WebRtcSocketConfig};
 use nanoserde::{DeBin, SerBin};
 use std::{future::Future, pin::Pin};
 use urlencoding::encode;
@@ -33,6 +33,10 @@ fn connect(room_id: &str) -> MatchboxClient {
             username: Some("testuser".to_string()),
             credential: Some("fyUTdD7dQjeSauYv".to_string()), // does it make sense to hide this better?
         },
+        data_channel: RtcDataChannelConfig {
+            ordered: true,
+            max_retransmits: 10,
+        }
     });
 
     info!("my id is {:?}", socket.id());
@@ -55,6 +59,12 @@ impl MultiplayerClient for MatchboxClient {
     }
 
     fn recieved_events(&mut self) -> Vec<GameEventObject> {
+        let new_connections = self.accept_new_connections(); // TODO: make sure this is necessary
+
+        if !new_connections.is_empty() {
+            debug!("New player connected: {:?}", new_connections);
+        }
+
         self.client
             .receive()
             .into_iter()
@@ -62,7 +72,8 @@ impl MultiplayerClient for MatchboxClient {
             .collect()
     }
 
-    fn send(&mut self, game_object: GameEventObject, opponent_id: String) {
+    fn send(&mut self, game_object: &GameEventObject, opponent_id: &str) {
+        debug!("Sending {} to {}",game_object, opponent_id);
         self.client
             .send(game_object.serialize_bin().into_boxed_slice(), opponent_id)
     }

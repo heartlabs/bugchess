@@ -9,3 +9,4 @@ edition = "2021"
 game-model = {path = "../game-model"}
 game-events = {path = "../game-events"}
 miniquad = "0.3.13" # only used for logging
+indexmap = "1.9.2"

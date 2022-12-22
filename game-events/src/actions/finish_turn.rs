@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::{
     actions::compound_events::{CompoundEvent, GameAction},
     atomic_events::AtomicEvent,
@@ -58,5 +60,11 @@ impl FinishTurnBuilder {
             .push(AtomicEvent::ChangeExhaustion(from, to, at));
 
         self
+    }
+}
+
+impl Display for FinishTurnCompoundEvent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "FinishTurn")
     }
 }

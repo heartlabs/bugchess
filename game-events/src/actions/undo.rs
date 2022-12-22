@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::{
     actions::compound_events::{CompoundEvent, GameAction},
     atomic_events::AtomicEvent,
@@ -36,5 +38,11 @@ impl UndoBuilder {
 impl CompoundEvent for UndoCompoundEvent {
     fn get_events(&self) -> Vec<AtomicEvent> {
         self.events.clone()
+    }
+}
+
+impl Display for UndoCompoundEvent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Undo {}", self.undone )
     }
 }
