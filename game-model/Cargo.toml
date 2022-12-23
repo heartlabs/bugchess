@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 nanoserde = "0.1.32"
 colored = "2.0.0"
+indexmap = "1.9.2"

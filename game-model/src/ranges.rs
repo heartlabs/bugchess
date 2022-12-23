@@ -1,3 +1,4 @@
+use indexmap::IndexSet;
 use nanoserde::{DeBin, SerBin};
 use std::{collections::HashSet, iter::successors};
 
@@ -172,20 +173,21 @@ impl Range {
         Box::new(vec.into_iter())
     }
 
-    pub fn reachable_points(&self, from_point: &Point2, board: &Board) -> HashSet<Point2> {
+    pub fn reachable_points(&self, from_point: &Point2, board: &Board) -> IndexSet<Point2> {
         let piece = board
             .get_piece_at(from_point)
             .expect(format!("No piece at {:?}", from_point).as_str());
 
         self.reachable_points_for_piece(from_point, piece, board)
     }
+    
     pub fn reachable_points_for_piece(
         &self,
         from_point: &Point2,
         piece: &Piece,
         board: &Board,
-    ) -> HashSet<Point2> {
-        let mut cells = HashSet::new();
+    ) -> IndexSet<Point2> {
+        let mut cells = IndexSet::new();
         for direction in self.paths(from_point.x, from_point.y) {
             for (x_i16, y_i16) in direction {
                 let point = Point2::new(x_i16 as u8, y_i16 as u8);

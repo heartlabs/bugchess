@@ -315,6 +315,15 @@ impl BoardRender {
             let mut used_color = color;
 
             if let Some(_piece) = board.get_piece_at(point) {
+                draw_rectangle_lines(
+                    x_pos -2.5,
+                    y_pos -2.5,
+                    CELL_ABSOLUTE_WIDTH + 2.5,
+                    CELL_ABSOLUTE_WIDTH + 2.5,
+                    5.,
+                    Color::from_rgba(250, 130, 90, 255),
+                );
+
                 used_color = Color {
                     r: 1.,
                     ..used_color
