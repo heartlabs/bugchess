@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use game_model::{
     board::{Board, Pattern, Point2},
     game::Game,
-    piece::{Piece, PieceKind},
+    piece::{Piece, PieceKind, EffectKind},
 };
 
 use game_events::{
@@ -129,8 +129,12 @@ impl GameController {
             .get_piece_at(target_pos)
             .ok_or(MoveError::NoPiecePresent)?;
 
-        if target_piece.team_id == game.current_team_index || !active_piece.can_use_special() {
-            return MoveResult::Err(MoveError::IllegalMove);
+        if let Some(activatable) =  active_piece.activatable {
+            if !activatable.range.reachable_points_for_piece(attacking_piece_pos, active_piece, &game.board).contains(target_pos) {
+                return MoveResult::Err(MoveError::IllegalMove);
+            }
+        } else {
+            return MoveResult::Err(MoveError::NotSupportedByPiece);
         }
 
         let mut exhaustion_clone = target_piece.exhaustion.clone();

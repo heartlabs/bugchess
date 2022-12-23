@@ -143,10 +143,10 @@ impl Range {
         from_y: u8,
     ) -> Box<dyn Iterator<Item = Box<dyn Iterator<Item = (i16, i16)>>>> {
         if self.direction == Direction::Anywhere {
-            // TODO: This only works if jump=true and steps=max
-            let row_iter = (0..255_i16).map(move |x| {
-                Box::new((0..255_i16).map(move |y| (x, y))) as Box<dyn Iterator<Item = (i16, i16)>>
-            });
+            let row_iter = (0..255_i16).flat_map(move |x| {
+                    (0..255_i16)
+                        .map(move |y| Box::new(Some((x, y)).into_iter()) as Box<dyn Iterator<Item = (i16, i16)>>)
+                });
             return Box::new(row_iter);
         }
 
@@ -185,11 +185,14 @@ impl Range {
         board: &Board,
     ) -> HashSet<Point2> {
         let mut cells = HashSet::new();
+        println!("#### RP ####");
         for direction in self.paths(from_point.x, from_point.y) {
             for (x_i16, y_i16) in direction {
                 let point = Point2::new(x_i16 as u8, y_i16 as u8);
                 if board.has_cell(&point) {
+                    println!("Path point {}", point);
                     if self.context.should_include(piece, &point, board) {
+                        println!("include");
                         cells.insert(point);
                     }
                     if !self.jumps && !self.context.should_proceed(&point, board) {
