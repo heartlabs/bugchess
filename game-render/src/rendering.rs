@@ -12,7 +12,7 @@ pub struct CustomRenderContext {
     pub game_state: CoreGameSubstate,
     pub button_next: Button,
     pub button_undo: Button,
-    pub instant_animation: bool,
+    pub animation_speed_factor: f32, // smaller = faster
 }
 
 impl CustomRenderContext {
@@ -29,7 +29,7 @@ impl CustomRenderContext {
             game_state: CoreGameSubstate::Place,
             button_next: Button::new(10., "End Turn".to_string()),
             button_undo: Button::new(120., "Undo".to_string()),
-            instant_animation: true,
+            animation_speed_factor: 0.,
         }
     }
 }
@@ -124,11 +124,13 @@ impl BoardRender {
         self.placed_pieces.insert(*point, piece_render);
     }
 
-    pub fn update(&mut self, render_context: &mut CustomRenderContext,) {
-        let mut new_animations = self.get_ready_animations(render_context.instant_animation);
+    pub fn update(&mut self) {
+        let animation_speed_factor =  self.calculate_animation_speed_factor();
+
+        let mut new_animations = self.get_ready_animations();
 
         for animation in new_animations.iter_mut() {
-            animation.start(self);
+            animation.start(self, animation_speed_factor);
         }
 
         self.current_animations.append(&mut new_animations);
@@ -136,26 +138,39 @@ impl BoardRender {
         if self.current_animations.is_empty() {
             if let Some(mut animations) = self.next_animations.pop_front() {
                 for animation in animations.iter_mut() {
-                    animation.start(self);
+                    animation.start(self, animation_speed_factor);
                 }
 
                 self.current_animations = animations;
             }
         }
 
-        if self.current_animations.is_empty() {
-            render_context.instant_animation = false;
+    }
+
+    fn calculate_animation_speed_factor(&mut self) -> f32 {
+        let upcoming_animation_length = Self::calculate_animations_length(&self.current_animations) 
+            + self.next_animations.iter()
+                .map(Self::calculate_animations_length)
+                .sum();
+        if upcoming_animation_length < Duration::from_secs(1) {
+            1.
+        } else {
+            1. / upcoming_animation_length.as_secs_f32()
         }
     }
 
-    fn get_ready_animations(&mut self, instant_animation: bool) -> Vec<Animation> {
-        if instant_animation {
-            return self.current_animations
-                .drain(..)
-                .flat_map(|a| a.next_animations.into_iter())
-                .collect()
-        }
+    fn calculate_animations_length(animations: &Vec<Animation>) -> Duration {
+        animations.iter()
+            .map(Self::calculate_animation_length)
+            .max()
+            .unwrap_or(Duration::from_micros(0))
+    }
+    
+    fn calculate_animation_length(animation: &Animation) -> Duration {
+        animation.duration + Self::calculate_animations_length(&animation.next_animations)
+    }
 
+    fn get_ready_animations(&mut self) -> Vec<Animation> {
         let mut new_animations = vec![];
         self.current_animations
             .iter_mut()

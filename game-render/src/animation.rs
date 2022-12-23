@@ -205,8 +205,8 @@ impl Animation {
         }
     }
 
-    pub(crate) fn start(&mut self, board_render: &mut BoardRender) {
-        self.finished_at = Instant::now() + self.duration;
+    pub(crate) fn start(&mut self, board_render: &mut BoardRender, animation_speed_factor: f32) {
+        self.finished_at = Instant::now() + self.duration.mul_f32(animation_speed_factor);
         //info!("Starting {:?}", self.expert);
         self.expert.start(board_render);
     }

@@ -130,9 +130,15 @@ impl MultiplayerConector {
     pub fn signal_new_game(&mut self) {
         let own_player_id = self.get_own_player_id().unwrap();
         let opponent_id = self.opponent_id.as_ref().unwrap().clone();
+
+        let player_order = if self.get_own_player_index().unwrap() == 0 {
+            (own_player_id.clone(), opponent_id)
+        } else {
+            (opponent_id, own_player_id.clone())
+        };
         let game_object = &GameEventObject::new(
             Event::PlayerAction(
-                PlayerAction::NewGame((own_player_id.clone(), opponent_id)), // you can only signal a new game if you are the first
+                PlayerAction::NewGame(player_order), // you can only signal a new game if you are the first
             ),
             &own_player_id,
         );

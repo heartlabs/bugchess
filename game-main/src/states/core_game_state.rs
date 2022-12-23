@@ -86,7 +86,7 @@ impl GameState for CoreGameState {
             self.board_render = Rc::new(RefCell::new(BoardRender::new(&(*self.game).borrow())));
         }
 
-        (*self.board_render).borrow_mut().update(&mut self.render_context);
+        (*self.board_render).borrow_mut().update();
 
         Option::None
     }
