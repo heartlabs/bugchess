@@ -1,4 +1,3 @@
-use game_model::game::Team;
 use nanoserde::{DeBin, SerBin};
 
 use quad_rand::rand;
@@ -15,8 +14,10 @@ pub enum Event {
 
 #[derive(Debug, Clone, SerBin, DeBin)]
 pub enum PlayerAction {
-    Connect(String, usize),    // player name, index
-    NewGame((String, String)), // client ids of players in order
+    /// player name, index
+    Connect(String, usize),    
+    /// client ids of players in order
+    NewGame((String, String)), 
 }
 
 #[derive(Debug, Clone, SerBin, DeBin)]

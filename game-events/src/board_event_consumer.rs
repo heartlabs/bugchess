@@ -8,7 +8,6 @@ use miniquad::{debug, warn};
 use std::{cell::RefCell, rc::Rc};
 
 pub struct BoardEventConsumer {
-    pub own_sender_id: String,
     pub(crate) game: Rc<RefCell<Game>>,
 }
 
@@ -27,9 +26,8 @@ impl EventConsumer for BoardEventConsumer {
 }
 
 impl BoardEventConsumer {
-    pub fn new(own_sender_id: String, game: Rc<RefCell<Game>>) -> Self {
+    pub fn new(game: Rc<RefCell<Game>>) -> Self {
         BoardEventConsumer {
-            own_sender_id,
             game,
         }
     }

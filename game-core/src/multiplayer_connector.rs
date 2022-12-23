@@ -6,8 +6,6 @@ use game_events::{
 use indexmap::IndexMap;
 use miniquad::{debug, info};
 
-use std::collections::HashMap;
-
 pub trait MultiplayerClient {
     fn is_ready(&self) -> bool;
     fn accept_new_connections(&mut self) -> Vec<String>;

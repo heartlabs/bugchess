@@ -131,8 +131,7 @@ mod tests {
     #[test]
     fn test_place_single_piece() {
         let game = create_game_object();
-        let sender_id = "1".to_string();
-        let mut event_broker = EventBroker::new(sender_id);
+        let mut event_broker = EventBroker::new();
         let event_log: Rc<RefCell<VecDeque<GameAction>>> = Rc::new(RefCell::new(VecDeque::new()));
         event_broker.subscribe(Box::new(EventLogger {
             events: event_log.clone(),

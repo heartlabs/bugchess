@@ -51,20 +51,16 @@ impl TestGame {
 pub fn create_multiplayer_game() -> (TestGame, TestGame) {
     let (multiplayer_client1, multiplayer_client2) = FakeboxClient::new_client_pair();
 
-    let sender_id1 = "1";
-    let sender_id2 = "2";
+    let mut test_game1 = create_singleplayer_game();
+    make_multiplayer(multiplayer_client1, &mut test_game1);
 
-    let mut test_game1 = create_singleplayer_game(sender_id1);
-    make_multiplayer(sender_id1, multiplayer_client1, &mut test_game1);
-
-    let mut test_game2 = create_singleplayer_game(sender_id2);
-    make_multiplayer(sender_id2, multiplayer_client2, &mut test_game2);
+    let mut test_game2 = create_singleplayer_game();
+    make_multiplayer(multiplayer_client2, &mut test_game2);
 
     (test_game1, test_game2)
 }
 
 fn make_multiplayer(
-    sender_id1: &str,
     multiplayer_client1: Rc<RefCell<FakeboxClient>>,
     test_game: &mut TestGame,
 ) {
@@ -76,15 +72,14 @@ fn make_multiplayer(
     test_game.multiplayer_connector = Some(multiplayer_connector);
 }
 
-pub fn create_singleplayer_game(sender_id1: &str) -> TestGame {
-    let mut event_broker = EventBroker::new(sender_id1.to_string());
+pub fn create_singleplayer_game() -> TestGame {
+    let mut event_broker = EventBroker::new();
     let logs: Rc<RefCell<VecDeque<GameAction>>> = Rc::new(RefCell::new(VecDeque::new()));
     event_broker.subscribe(Box::new(EventLogger {
         events: logs.clone(),
     }));
     let game = Rc::new(RefCell::new(create_game_object()));
     event_broker.subscribe(Box::new(BoardEventConsumer::new(
-        sender_id1.to_string(),
         game.clone(),
     )));
     let board_render = BoardRender::new(&(*game.borrow()));

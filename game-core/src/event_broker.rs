@@ -8,7 +8,6 @@ use game_events::{
 use crate::multiplayer_connector::MultiplayerConector;
 
 pub struct EventBroker {
-    sender_id: String,
     start_of_turn: usize,
     past_events: Vec<GameAction>,
     pub(crate) subscribers: Vec<Box<dyn EventConsumer>>,
@@ -16,9 +15,8 @@ pub struct EventBroker {
 }
 
 impl EventBroker {
-    pub fn new(sender_id: String) -> Self {
+    pub fn new() -> Self {
         EventBroker {
-            sender_id,
             start_of_turn: 0,
             past_events: vec![],
             subscribers: vec![],
@@ -65,11 +63,6 @@ impl EventBroker {
                 client.borrow_mut().signal_new_game();
                 client.borrow_mut().resend_game_events();
                 let _ = self.multiplayer_connector.insert(client);
-            }
-            Event::PlayerAction(PlayerAction::NewGame(game_events)) => {
-                /*if self.past_events.is_empty() {
-                    game_events.iter().for_each(|event| self.handle_event_internal(event))
-                }*/
             }
             _ => {}
         }

@@ -30,7 +30,6 @@ use std::{
 use instant::Instant;
 use macroquad::{prelude::*, rand::srand};
 use macroquad_canvas::Canvas2D;
-use uuid::Uuid;
 
 pub struct LoadingState {
     core_game_state: Option<CoreGameState>,
@@ -65,10 +64,8 @@ impl LoadingState {
         let start_time = Instant::now();
 
         let game = Rc::new(RefCell::new(init_game()));
-        let own_sender_id = Uuid::new_v4().to_string();
-        let mut event_broker = EventBroker::new(own_sender_id.clone());
+        let mut event_broker = EventBroker::new();
         event_broker.subscribe(Box::new(BoardEventConsumer::new(
-            own_sender_id,
             Rc::clone(&game),
         )));
 
@@ -186,7 +183,7 @@ impl GameState for LoadingState {
                 if ONLINE {
                     let core_game_state = self.core_game_state.as_mut().unwrap();
 
-                    let (events, own_index, own_player_id) = {
+                    let (events, own_player_id) = {
                         let mut client = core_game_state
                             .matchbox_events
                             .as_ref()
@@ -195,7 +192,6 @@ impl GameState for LoadingState {
                             .borrow_mut();
                         (
                             client.try_recieve(),
-                            client.get_own_player_index().unwrap(),
                             client.get_own_player_id().unwrap(),
                         )
                     };
@@ -203,8 +199,8 @@ impl GameState for LoadingState {
                     let opponent_index = events
                         .iter()
                         .filter_map(|e| match &e.event {
-                            Event::PlayerAction(PlayerAction::Connect(_, c)) => Some((c, c == &1)),
-                            Event::PlayerAction(PlayerAction::NewGame((p1, p2))) => {
+                            Event::PlayerAction(PlayerAction::Connect(_, i)) => Some((i, i == &1)),
+                            Event::PlayerAction(PlayerAction::NewGame((p1, _p2))) => {
                                 if p1 == &own_player_id {
                                     Some((&1, false))
                                 } else {

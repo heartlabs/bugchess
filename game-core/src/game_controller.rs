@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use game_model::{
     board::{Board, Pattern, Point2},
     game::Game,
-    piece::{Piece, PieceKind, EffectKind},
+    piece::{Piece, PieceKind},
 };
 
 use game_events::{

@@ -185,14 +185,11 @@ impl Range {
         board: &Board,
     ) -> HashSet<Point2> {
         let mut cells = HashSet::new();
-        println!("#### RP ####");
         for direction in self.paths(from_point.x, from_point.y) {
             for (x_i16, y_i16) in direction {
                 let point = Point2::new(x_i16 as u8, y_i16 as u8);
                 if board.has_cell(&point) {
-                    println!("Path point {}", point);
                     if self.context.should_include(piece, &point, board) {
-                        println!("include");
                         cells.insert(point);
                     }
                     if !self.jumps && !self.context.should_proceed(&point, board) {
