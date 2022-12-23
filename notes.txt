@@ -6,7 +6,6 @@ Next Steps:
         * Open vs Closed mit ID
         * HTML/CSS statt egui
     * Tests
-    * Bugfix: Neuverbindung zum Selben Spiel verhindern bzw Spielstand zu neuem client syncen
     * Fehlende Animationen
         * "Sterben"
         * Undo?
