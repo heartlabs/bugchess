@@ -129,8 +129,12 @@ impl GameController {
             .get_piece_at(target_pos)
             .ok_or(MoveError::NoPiecePresent)?;
 
-        if let Some(activatable) =  active_piece.activatable {
-            if !activatable.range.reachable_points_for_piece(attacking_piece_pos, active_piece, &game.board).contains(target_pos) {
+        if let Some(activatable) = active_piece.activatable {
+            if !activatable
+                .range
+                .reachable_points_for_piece(attacking_piece_pos, active_piece, &game.board)
+                .contains(target_pos)
+            {
                 return MoveResult::Err(MoveError::IllegalMove);
             }
         } else {

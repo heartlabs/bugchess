@@ -15,9 +15,9 @@ pub enum Event {
 #[derive(Debug, Clone, SerBin, DeBin)]
 pub enum PlayerAction {
     /// player name, index
-    Connect(String, usize),    
+    Connect(String, usize),
     /// client ids of players in order
-    NewGame((String, String)), 
+    NewGame((String, String)),
 }
 
 #[derive(Debug, Clone, SerBin, DeBin)]

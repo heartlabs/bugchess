@@ -144,9 +144,10 @@ impl Range {
     ) -> Box<dyn Iterator<Item = Box<dyn Iterator<Item = (i16, i16)>>>> {
         if self.direction == Direction::Anywhere {
             let row_iter = (0..255_i16).flat_map(move |x| {
-                    (0..255_i16)
-                        .map(move |y| Box::new(Some((x, y)).into_iter()) as Box<dyn Iterator<Item = (i16, i16)>>)
-                });
+                (0..255_i16).map(move |y| {
+                    Box::new(Some((x, y)).into_iter()) as Box<dyn Iterator<Item = (i16, i16)>>
+                })
+            });
             return Box::new(row_iter);
         }
 

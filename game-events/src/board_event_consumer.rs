@@ -27,9 +27,7 @@ impl EventConsumer for BoardEventConsumer {
 
 impl BoardEventConsumer {
     pub fn new(game: Rc<RefCell<Game>>) -> Self {
-        BoardEventConsumer {
-            game,
-        }
+        BoardEventConsumer { game }
     }
 
     pub fn flush_unsafe(game: &mut Game, action: &GameAction) {

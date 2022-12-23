@@ -65,9 +65,7 @@ impl LoadingState {
 
         let game = Rc::new(RefCell::new(init_game()));
         let mut event_broker = EventBroker::new();
-        event_broker.subscribe(Box::new(BoardEventConsumer::new(
-            Rc::clone(&game),
-        )));
+        event_broker.subscribe(Box::new(BoardEventConsumer::new(Rc::clone(&game))));
 
         let board_render = Rc::new(RefCell::new(BoardRender::new(&(*game).borrow())));
         event_broker.subscribe(Box::new(RenderEventConsumer::new(&board_render)));
@@ -190,10 +188,7 @@ impl GameState for LoadingState {
                             .unwrap()
                             .as_ref()
                             .borrow_mut();
-                        (
-                            client.try_recieve(),
-                            client.get_own_player_id().unwrap(),
-                        )
+                        (client.try_recieve(), client.get_own_player_id().unwrap())
                     };
 
                     let opponent_index = events

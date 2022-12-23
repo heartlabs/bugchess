@@ -60,10 +60,7 @@ pub fn create_multiplayer_game() -> (TestGame, TestGame) {
     (test_game1, test_game2)
 }
 
-fn make_multiplayer(
-    multiplayer_client1: Rc<RefCell<FakeboxClient>>,
-    test_game: &mut TestGame,
-) {
+fn make_multiplayer(multiplayer_client1: Rc<RefCell<FakeboxClient>>, test_game: &mut TestGame) {
     let mut multiplayer_connector = MultiplayerConector::new(Box::new(multiplayer_client1));
     multiplayer_connector.matchmaking();
     let multiplayer_connector = Rc::new(RefCell::new(multiplayer_connector));
@@ -79,9 +76,7 @@ pub fn create_singleplayer_game() -> TestGame {
         events: logs.clone(),
     }));
     let game = Rc::new(RefCell::new(create_game_object()));
-    event_broker.subscribe(Box::new(BoardEventConsumer::new(
-        game.clone(),
-    )));
+    event_broker.subscribe(Box::new(BoardEventConsumer::new(game.clone())));
     let board_render = BoardRender::new(&(*game.borrow()));
     event_broker.subscribe(Box::new(RenderEventConsumer::new(&Rc::new(RefCell::new(
         board_render,

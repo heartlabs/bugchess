@@ -125,7 +125,7 @@ impl BoardRender {
     }
 
     pub fn update(&mut self) {
-        let animation_speed_factor =  self.calculate_animation_speed_factor();
+        let animation_speed_factor = self.calculate_animation_speed_factor();
 
         let mut new_animations = self.get_ready_animations();
 
@@ -144,12 +144,13 @@ impl BoardRender {
                 self.current_animations = animations;
             }
         }
-
     }
 
     fn calculate_animation_speed_factor(&mut self) -> f32 {
-        let upcoming_animation_length = Self::calculate_animations_length(&self.current_animations) 
-            + self.next_animations.iter()
+        let upcoming_animation_length = Self::calculate_animations_length(&self.current_animations)
+            + self
+                .next_animations
+                .iter()
                 .map(Self::calculate_animations_length)
                 .sum();
         if upcoming_animation_length < Duration::from_secs(1) {
@@ -160,12 +161,13 @@ impl BoardRender {
     }
 
     fn calculate_animations_length(animations: &Vec<Animation>) -> Duration {
-        animations.iter()
+        animations
+            .iter()
             .map(Self::calculate_animation_length)
             .max()
             .unwrap_or(Duration::from_micros(0))
     }
-    
+
     fn calculate_animation_length(animation: &Animation) -> Duration {
         animation.duration + Self::calculate_animations_length(&animation.next_animations)
     }
