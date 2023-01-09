@@ -1,7 +1,7 @@
 use crate::{
     egui::{Align, Color32, FontData, TextEdit},
     matchbox::MatchboxClient,
-    BoardRender, CoreGameState, GameState, ONLINE,
+    BoardRender, CoreGameState, GameState,
 };
 use egui_macroquad::{
     egui,
@@ -27,8 +27,7 @@ use std::{
     rc::Rc,
 };
 
-use instant::Instant;
-use macroquad::{prelude::*, rand::srand};
+use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
 
 pub struct LoadingState {
@@ -44,6 +43,8 @@ pub enum LoadingSubState {
     Matchmaking,
     JoinMatch,
     WaitForOpponent,
+    GameMode,
+    SetupGame,
 }
 
 impl Display for LoadingSubState {
@@ -53,6 +54,8 @@ impl Display for LoadingSubState {
             LoadingSubState::Matchmaking => "Matchmaking",
             LoadingSubState::JoinMatch => "Joining Match",
             LoadingSubState::WaitForOpponent => "Wait for Opponent",
+            LoadingSubState::GameMode => "Choose Game Mode",
+            LoadingSubState::SetupGame => "Set Up Game",
         };
 
         write!(f, "{}", display_name)
@@ -61,8 +64,6 @@ impl Display for LoadingSubState {
 
 impl LoadingState {
     pub fn new() -> Self {
-        let start_time = Instant::now();
-
         let game = Rc::new(RefCell::new(init_game()));
         let mut event_broker = EventBroker::new();
         event_broker.subscribe(Box::new(BoardEventConsumer::new(Rc::clone(&game))));
@@ -70,16 +71,7 @@ impl LoadingState {
         let board_render = Rc::new(RefCell::new(BoardRender::new(&(*game).borrow())));
         event_broker.subscribe(Box::new(RenderEventConsumer::new(&board_render)));
 
-        info!(
-            "{}ns to set up pieces. {}",
-            start_time.elapsed().as_nanos(),
-            (*game).borrow().teams[0].unused_pieces
-        );
-
-        srand((start_time.elapsed().as_nanos() % u64::MAX as u128) as u64);
-
-        //let pool = futures::executor::LocalPool::new();
-        //let s: Result<NakamaClient, E> = pool.spawner().spawn_local(nakama_client);
+        let room_id = "standard_room".to_string();
 
         LoadingState {
             core_game_state: Option::Some(CoreGameState::new(
@@ -87,45 +79,67 @@ impl LoadingState {
                 event_broker,
                 board_render,
                 Option::None,
+                false,
             )),
-            sub_state: if ONLINE {
-                LoadingSubState::Register
-            } else {
-                LoadingSubState::WaitForOpponent
-            },
+            sub_state: LoadingSubState::GameMode,
             client: Option::None,
-            room_id: "standard_room".to_string(),
+            room_id,
         }
+    }
+
+    fn egui_select_room(&mut self, ui: &mut egui::Ui) {
+        let mut child_ui = ui.child_ui(
+            ui.min_rect(),
+            Layout::top_down_justified(Align::Center), //.with_cross_justify(true)
+                                                       //.with_main_justify(true)
+                                                       //.with_cross_align()
+        );
+        child_ui.label("Enter Room ID");
+        child_ui.add(
+            TextEdit::singleline(&mut self.room_id)
+                .desired_width(f32::INFINITY)
+                .text_color(Color32::from_rgb(0, 200, 0)),
+        );
+        if child_ui.button("OK").clicked() {
+            self.join_room(&self.room_id.clone());
+        }
+    }
+
+    pub fn join_room(&mut self, room_id: &str) {
+        let client = MatchboxClient::new_connector(room_id);
+        self.client = Some(client);
+        self.core_game_state.as_mut().unwrap().is_multi_player = true;
+
+        self.sub_state = LoadingSubState::Matchmaking;
     }
 }
 
 impl GameState for LoadingState {
     fn update(&mut self, _canvas: &Canvas2D) -> Option<Box<dyn GameState>> {
         match &self.sub_state {
+            LoadingSubState::GameMode => {
+                egui_macroquad::ui(|egui_ctx| {
+                    egui_setup_fonts(egui_ctx);
+
+                    egui::CentralPanel::default().show(egui_ctx, |ui| {
+                        let mut child_ui =
+                            ui.child_ui(ui.min_rect(), Layout::top_down_justified(Align::Center));
+                        child_ui.label("Select game mode");
+
+                        if child_ui.button("Offline").clicked() {
+                            self.sub_state = LoadingSubState::SetupGame;
+                        }
+
+                        if child_ui.button("Online").clicked() {
+                            self.core_game_state.as_mut().unwrap().is_multi_player = true;
+                            self.sub_state = LoadingSubState::Register;
+                        }
+                    });
+                });
+            }
             LoadingSubState::Register => {
                 egui_macroquad::ui(|egui_ctx| {
-                    let mut font_definitions = FontDefinitions::default();
-                    let mut font_data = FontData::from_static(include_bytes!(
-                        "../../resources/fonts/Koulen-Regular.ttf"
-                    ));
-                    font_data.tweak = FontTweak::default();
-                    font_data.tweak.scale = 10.;
-                    font_definitions
-                        .font_data
-                        .insert("megachess".to_owned(), font_data);
-
-                    // Put my font first (highest priority):
-                    font_definitions
-                        .families
-                        .get_mut(&FontFamily::Proportional)
-                        .unwrap()
-                        .insert(0, "megachess".to_owned());
-
-                    egui_ctx.set_fonts(font_definitions);
-                    let mut visuals = Visuals::default();
-                    //visuals.override_text_color = Some(Color32::from_rgb(0,255,0));
-                    visuals.collapsing_header_frame = true;
-                    egui_ctx.set_visuals(visuals);
+                    egui_setup_fonts(egui_ctx);
 
                     egui::CentralPanel::default()
                         //.fixed_size(egui::Vec2::new(800., 600.))
@@ -134,23 +148,7 @@ impl GameState for LoadingState {
                         //.collapsible(false)
                         .show(egui_ctx, |ui| {
                             //ui.set_width(ui.max_rect().width());
-                            let mut child_ui = ui.child_ui(
-                                ui.min_rect(),
-                                Layout::top_down_justified(Align::Center), //.with_cross_justify(true)
-                                                                           //.with_main_justify(true)
-                                                                           //.with_cross_align()
-                            );
-                            child_ui.label("Enter Room ID");
-                            child_ui.add(
-                                TextEdit::singleline(&mut self.room_id)
-                                    .desired_width(f32::INFINITY)
-                                    .text_color(Color32::from_rgb(0, 200, 0)),
-                            );
-                            if child_ui.button("OK").clicked() {
-                                let client = MatchboxClient::new_connector(self.room_id.as_str());
-                                self.client = Some(client);
-                                self.sub_state = LoadingSubState::Matchmaking;
-                            }
+                            self.egui_select_room(ui);
                         });
                 });
             }
@@ -178,83 +176,84 @@ impl GameState for LoadingState {
                 self.sub_state = LoadingSubState::WaitForOpponent;
             }
             LoadingSubState::WaitForOpponent => {
-                if ONLINE {
-                    let core_game_state = self.core_game_state.as_mut().unwrap();
+                let core_game_state = self.core_game_state.as_mut().unwrap();
 
-                    let (events, own_player_id) = {
+                let (events, own_player_id) = {
+                    let mut client = core_game_state
+                        .matchbox_events
+                        .as_ref()
+                        .unwrap()
+                        .as_ref()
+                        .borrow_mut();
+                    (client.try_recieve(), client.get_own_player_id().unwrap())
+                };
+
+                let opponent_index = events
+                    .iter()
+                    .filter_map(|e| match &e.event {
+                        Event::PlayerAction(PlayerAction::Connect(_, i)) => Some((i, i == &1)),
+                        Event::PlayerAction(PlayerAction::NewGame((p1, _p2))) => {
+                            if p1 == &own_player_id {
+                                Some((&1, false))
+                            } else {
+                                Some((&0, false))
+                            }
+                        }
+                        _ => None,
+                    })
+                    .next();
+
+                if let Some((opponent_index, initiator)) = opponent_index {
+                    {
+                        debug!("opponent_index {}, initiator {}", opponent_index, initiator);
                         let mut client = core_game_state
                             .matchbox_events
                             .as_ref()
                             .unwrap()
                             .as_ref()
                             .borrow_mut();
-                        (client.try_recieve(), client.get_own_player_id().unwrap())
-                    };
 
-                    let opponent_index = events
-                        .iter()
-                        .filter_map(|e| match &e.event {
-                            Event::PlayerAction(PlayerAction::Connect(_, i)) => Some((i, i == &1)),
-                            Event::PlayerAction(PlayerAction::NewGame((p1, _p2))) => {
-                                if p1 == &own_player_id {
-                                    Some((&1, false))
-                                } else {
-                                    Some((&0, false))
-                                }
-                            }
-                            _ => None,
-                        })
-                        .next();
-
-                    if let Some((opponent_index, initiator)) = opponent_index {
-                        {
-                            debug!("opponent_index {}, initiator {}", opponent_index, initiator);
-                            let mut client = core_game_state
-                                .matchbox_events
-                                .as_ref()
-                                .unwrap()
-                                .as_ref()
-                                .borrow_mut();
-
-                            if opponent_index == &1 {
-                                // The opponent says he is second - so we must be first
-                                client.override_own_player_index = Some(0); // we will always be this index - so lock it
-                            } else {
-                                client.override_own_player_index = Some(1);
-                            }
-
-                            if initiator {
-                                client.signal_new_game();
-                            }
+                        if opponent_index == &1 {
+                            // The opponent says he is second - so we must be first
+                            client.override_own_player_index = Some(0); // we will always be this index - so lock it
+                        } else {
+                            client.override_own_player_index = Some(1);
                         }
 
                         if initiator {
-                            let num_teams = 2;
-                            let set_up_actions =
-                                set_up_pieces(num_teams, &(*core_game_state.game).borrow());
-                            for start_event in &set_up_actions {
-                                core_game_state.event_broker.handle_new_event(start_event);
-                            }
-                        } else {
-                            core_game_state.set_sub_state(CoreGameSubstate::Wait);
+                            client.signal_new_game();
                         }
+                    }
 
-                        events
-                            .iter()
-                            .filter(|e| matches!(e.event, Event::GameAction(_)))
-                            .for_each(|e| core_game_state.event_broker.handle_remote_event(e));
+                    if initiator {
+                        let num_teams = 2;
+                        let set_up_actions =
+                            set_up_pieces(num_teams, &(*core_game_state.game).borrow());
+                        for start_event in &set_up_actions {
+                            core_game_state.event_broker.handle_new_event(start_event);
+                        }
                     } else {
-                        debug!("waiting for opponent message");
-                        return None;
+                        core_game_state.set_sub_state(CoreGameSubstate::Wait);
                     }
+
+                    events
+                        .iter()
+                        .filter(|e| matches!(e.event, Event::GameAction(_)))
+                        .for_each(|e| core_game_state.event_broker.handle_remote_event(e));
                 } else {
-                    let core_game_state = self.core_game_state.as_mut().unwrap();
-                    let num_teams = 2;
-                    let set_up_actions =
-                        set_up_pieces(num_teams, &(*core_game_state.game).borrow());
-                    for start_event in &set_up_actions {
-                        core_game_state.event_broker.handle_new_event(start_event);
-                    }
+                    debug!("waiting for opponent message");
+                    return None;
+                }
+
+                return Option::Some(Box::new(self.core_game_state.take().unwrap()));
+            }
+
+            LoadingSubState::SetupGame => {
+                let core_game_state = self.core_game_state.as_mut().unwrap();
+                let num_teams = 2;
+                let set_up_actions = set_up_pieces(num_teams, &(*core_game_state.game).borrow());
+                for start_event in &set_up_actions {
+                    core_game_state.event_broker.handle_new_event(start_event);
                 }
                 return Option::Some(Box::new(self.core_game_state.take().unwrap()));
             }
@@ -274,8 +273,33 @@ impl GameState for LoadingState {
     }
 
     fn uses_egui(&self) -> bool {
-        matches!(self.sub_state, LoadingSubState::Register)
+        matches!(
+            self.sub_state,
+            LoadingSubState::Register | LoadingSubState::GameMode
+        )
     }
+}
+
+fn egui_setup_fonts(egui_ctx: &egui::Context) {
+    let mut font_definitions = FontDefinitions::default();
+    let mut font_data =
+        FontData::from_static(include_bytes!("../../resources/fonts/Koulen-Regular.ttf"));
+    font_data.tweak = FontTweak::default();
+    font_data.tweak.scale = 10.;
+    font_definitions
+        .font_data
+        .insert("megachess".to_owned(), font_data);
+    // Put my font first (highest priority):
+    font_definitions
+        .families
+        .get_mut(&FontFamily::Proportional)
+        .unwrap()
+        .insert(0, "megachess".to_owned());
+    egui_ctx.set_fonts(font_definitions);
+    let mut visuals = Visuals::default();
+    //visuals.override_text_color = Some(Color32::from_rgb(0,255,0));
+    visuals.collapsing_header_frame = true;
+    egui_ctx.set_visuals(visuals);
 }
 
 fn set_up_pieces(team_count: usize, game_ref: &Game) -> Vec<GameAction> {

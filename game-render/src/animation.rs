@@ -7,7 +7,7 @@ use game_model::{
     piece::{EffectKind, Exhaustion, PieceKind},
 };
 use instant::{Duration, Instant};
-use macroquad::{color::WHITE, logging::info, math::Rect, rand::rand};
+use macroquad::{color::WHITE, logging::info, math::Rect, prelude::BLACK, rand::rand};
 use std::{
     fmt::Debug,
     ops::{Add, Mul, Sub},
@@ -128,6 +128,16 @@ impl Animation {
             finished_at: Instant::now(),
             next_animations: vec![],
             expert: Box::new(AddUnusedAnimation { team_id }),
+        }
+    }
+
+    pub fn new_die(at: Point2) -> Self {
+        let id = rand();
+        Animation {
+            duration: Duration::from_millis(ANIMATION_SPEED),
+            finished_at: Instant::now(),
+            next_animations: vec![Animation::new(Box::new(RemoveSpriteAnimation { id }))],
+            expert: Box::new(DieAnimation { at, id }),
         }
     }
 
@@ -280,6 +290,12 @@ pub struct RemovePieceAnimation {
 }
 
 #[derive(Debug, Clone)]
+pub struct DieAnimation {
+    pub at: Point2,
+    id: u32,
+}
+
+#[derive(Debug, Clone)]
 pub struct RemoveSpriteAnimation {
     pub id: u32,
 }
@@ -323,6 +339,21 @@ impl AnimationExpert for NewPieceAnimation {
 impl AnimationExpert for RemovePieceAnimation {
     fn start(&self, board_render: &mut BoardRender) {
         board_render.placed_pieces.remove(&self.at);
+    }
+}
+
+impl AnimationExpert for DieAnimation {
+    fn start(&self, board_render: &mut BoardRender) {
+        let mut piece_render = board_render
+            .placed_pieces
+            .remove(&self.at)
+            .expect(&*format!("No piece found at {:?}", self.at));
+
+        piece_render.from = piece_render.to;
+        piece_render.scale(0., ANIMATION_SPEED);
+        piece_render.override_color = Some(BLACK);
+
+        board_render.special_sprites.insert(self.id, piece_render);
     }
 }
 

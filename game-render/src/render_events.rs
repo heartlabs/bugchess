@@ -76,7 +76,7 @@ impl RenderEventConsumer {
                 let mut animations = vec![];
 
                 if let Some(_) = move_event.captured_piece() {
-                    let mut remove_animation = Animation::new_remove(*move_event.to());
+                    let mut remove_animation = Animation::new_die(*move_event.to());
 
                     for pos in move_event.removed_effects() {
                         remove_animation
@@ -244,7 +244,7 @@ fn attack_animation(piece_kind: &PieceKind, pos: Point2, target: Point2) -> Anim
     };
     bullet_animation
         .next_animations
-        .push(Animation::new_remove(target));
+        .push(Animation::new_die(target));
     bullet_animation
 }
 

@@ -27,10 +27,10 @@ jobs:
       run: cargo test --workspace
     - name: Build
       run: chmod a+x ./build.sh && ./build.sh
-#    - name: Compress
-#      run: >
-#        cd target/wasm32-unknown-unknown/release/
-#        && wasm-opt -Os -o megachess-opt.wasm megachess.wasm
+    - name: Compress
+      run: >
+        cd target/wasm32-unknown-unknown/release/
+        && wasm-opt -Os -o megachess-opt.wasm megachess.wasm
 ##       enable for even smaller sizes:
 ##        && wasm-strip megachess-opt.wasm
 ##       && wasm-opt -Os --dce -o megachess-opt.wasm megachess-opt.wasm

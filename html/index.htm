@@ -2,11 +2,10 @@
 
 <head>
     <meta charset="utf-8">
-    <title>TITLE</title>
+    <title>Megachess</title>
     <style>
         html,
-        body
-        {
+        body {
             margin: 0px;
             padding: 0px;
             width: 100%;
@@ -33,84 +32,85 @@
 </head>
 
 <body>
-<canvas id="glcanvas" tabindex='1'></canvas>
-<section>
-    <h1>How to Play</h1>
-    <p>This is a 2-player turn-based boardgame with the goal to remove all your opponent's pieces from the board.</p>
+    <canvas id="glcanvas" tabindex='1'></canvas>
+    <section>
+        <h1>How to Play</h1>
+        <p>This is a 2-player turn-based boardgame with the goal to remove all your opponent's pieces from the board.
+        </p>
 
-    <h2>Basic Rules</h2>
-    <p>
-        You can either place a new piece on any free square on the board if you have one (look on the right) or move one of your pieces.<br>
-        You can move every one of your pieces once each turn by clicking on it and then on the square you want to move it to.<br>
-        If the square is already occupied by an opponent's piece you capture and remove it.<br>
-        If you arrange your pieces in certain patterns (see below) they merge into stronger pieces with special abilities.<br>
-        You can activate these abilities by clicking on them twice.<br>
-        If you finished your turn press the "N" key on your keyboard or the "Next" button to give the opponent control over his pieces.<br>
-        At the beginning of each turn you get 2 new pieces which you can either place immediately on the board or save them up for later.<br>
-        You also win if you manage to collect 20 unused pieces while still keeping at least one piece on the board.<br>
-        The first player with no pieces on the board loses.
-    </p>
-    <h2>Special Pieces</h2>
-    <h3>Cross ( + ) </h3>
-    <dl>
-        <dt>Pattern</dt>
+        <h2>Basic Rules</h2>
+        <p>
+            You can either place a new piece on any free square on the board if you have one (look on the right) or move
+            one of your pieces.<br>
+            You can move every one of your pieces once each turn by clicking on it and then on the square you want to
+            move it to.<br>
+            If the square is already occupied by an opponent's piece you capture and remove it.<br>
+            If you arrange your pieces in certain patterns (see below) they merge into stronger pieces with special
+            abilities.<br>
+            You can activate these abilities by clicking on them twice.<br>
+            If you finished your turn press the "N" key on your keyboard or the "Next" button to give the opponent
+            control over his pieces.<br>
+            At the beginning of each turn you get 2 new pieces which you can either place immediately on the board or
+            save them up for later.<br>
+            You also win if you manage to collect 20 unused pieces while still keeping at least one piece on the
+            board.<br>
+            The first player with no pieces on the board loses.
+        </p>
+        <h2>Special Pieces</h2>
+        <h3>Cross ( + ) </h3>
+        <dl>
+            <dt>Pattern</dt>
             <dd>a cross of five pieces - 3 vertically and 3 horizontally sharing the middle piece</dd>
-        <dt>Moves</dt>
+            <dt>Moves</dt>
             <dd>Horizontally and Vertically until the next piece or the edge of the board </dd>
-        <dt>Special Abilities</dt>
+            <dt>Special Abilities</dt>
             <dd>Shielded: Can't be destroyed by simple pieces</dd>
-    </dl>
-    <h3>Bar ( - ), ( | ) </h3>
-    <dl>
-        <dt>Pattern</dt>
+        </dl>
+        <h3>Bar ( - ), ( | ) </h3>
+        <dl>
+            <dt>Pattern</dt>
             <dd>3 pieces in a row - vertically or horizontally</dd>
-        <dt>Moves</dt>
-            <dd>Depending on whether you created a vertical or horizontal bar: Horizontally or Vertically until the next piece or the edge of the board </dd>
-        <dt>Special Abilities</dt>
+            <dt>Moves</dt>
+            <dd>Depending on whether you created a vertical or horizontal bar: Horizontally or Vertically until the next
+                piece or the edge of the board </dd>
+            <dt>Special Abilities</dt>
             <dd>Bullets: Shoots 2 bullets on each and may destroy up to two pieces at once</dd>
-    </dl>
-    <h3>Queen ( ◊ )</h3>
-    <dl>
-        <dt>Pattern</dt>
+        </dl>
+        <h3>Queen ( ◊ )</h3>
+        <dl>
+            <dt>Pattern</dt>
             <dd>a 45° rotated square of eight pieces</dd>
-        <dt>Moves</dt>
+            <dt>Moves</dt>
             <dd>Diagonally, Horizontally and Vertically until the next piece or the edge of the board </dd>
-        <dt>Special Abilities</dt>
+            <dt>Special Abilities</dt>
             <dd>Burst: Destroys any neighboring enemy piece</dd>
-    </dl>
-    <h3>Sniper ( X )</h3>
-    <dl>
-        <dt>Pattern</dt>
+        </dl>
+        <h3>Sniper ( X )</h3>
+        <dl>
+            <dt>Pattern</dt>
             <dd>an X of five pieces</dd>
-        <dt>Moves</dt>
+            <dt>Moves</dt>
             <dd>Doesn't move</dd>
-        <dt>Special Abilities</dt>
+            <dt>Special Abilities</dt>
             <dd>Sniper: Can destroy any piece on the board - one per turn</dd>
-    </dl>
-    <h3>Castle ( ◊ )</h3>
-    <dl>
-        <dt>Pattern</dt>
+        </dl>
+        <h3>Castle ( ◊ )</h3>
+        <dl>
+            <dt>Pattern</dt>
             <dd>a 45° rotated square of four pieces</dd>
-        <dt>Moves</dt>
+            <dt>Moves</dt>
             <dd>Doesn't move</dd>
-        <dt>Special Abilities</dt>
+            <dt>Special Abilities</dt>
             <dd>Shielded: Protects any neighboring piece from special abilities</dd>
-    </dl>
-</section>
+        </dl>
+    </section>
 
-<!-- Minified and statically hosted version of https://github.com/not-fl3/macroquad/blob/master/js/mq_js_bundle.js -->
-<!--<script src="https://v6p9d9t4.ssl.hwcdn.net/html/3660624-387905/mq_js_bundle.js"></script>-->
+    <!-- Minified and statically hosted version of https://github.com/not-fl3/macroquad/blob/master/js/mq_js_bundle.js -->
+    <!--<script src="https://v6p9d9t4.ssl.hwcdn.net/html/3660624-387905/mq_js_bundle.js"></script>-->
 
-<!--<script src="https://not-fl3.github.io/miniquad-samples/mq_js_bundle.js"></script>-->
-<script src="gl.js"></script>
-<script type="module">
-        window.getStunUrl = () => {
-            //return "stun:stun.johanhelsing.studio:3478"
-            return "stun:stun.l.google.com:19302"
-        }
-        window.getNakamaUrl = () => {
-            return "http://localhost:7350"
-        }
+    <!--<script src="https://not-fl3.github.io/miniquad-samples/mq_js_bundle.js"></script>-->
+    <script src="gl.js"></script>
+    <script type="module">
         import init, { set_wasm } from "./megachess.js";
         async function run() {
             let wbg = await init();
@@ -123,7 +123,7 @@
             load("./megachess_bg.wasm");
         }
         run();
-</script>
+    </script>
 
 </body>
 

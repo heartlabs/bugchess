@@ -316,8 +316,8 @@ impl BoardRender {
 
             if let Some(_piece) = board.get_piece_at(point) {
                 draw_rectangle_lines(
-                    x_pos -2.5,
-                    y_pos -2.5,
+                    x_pos - 2.5,
+                    y_pos - 2.5,
                     CELL_ABSOLUTE_WIDTH + 2.5,
                     CELL_ABSOLUTE_WIDTH + 2.5,
                     5.,

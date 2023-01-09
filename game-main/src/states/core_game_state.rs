@@ -8,7 +8,7 @@ use game_model::game::Game;
 
 use game_render::{constants::cell_hovered, BoardRender, CustomRenderContext};
 
-use crate::{constants::ONLINE, GameState};
+use crate::GameState;
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
 
@@ -19,6 +19,7 @@ pub struct CoreGameState {
     pub matchbox_events: Option<Rc<RefCell<MultiplayerConector>>>,
     render_context: CustomRenderContext,
     own_player_team_id: Option<usize>,
+    pub is_multi_player: bool,
 }
 
 impl CoreGameState {
@@ -27,6 +28,7 @@ impl CoreGameState {
         event_broker: EventBroker,
         board_render: Rc<RefCell<BoardRender>>,
         matchbox_events: Option<Rc<RefCell<MultiplayerConector>>>,
+        is_multi_player: bool,
     ) -> Self {
         CoreGameState {
             game,
@@ -35,6 +37,7 @@ impl CoreGameState {
             matchbox_events,
             render_context: CustomRenderContext::new(),
             own_player_team_id: Option::None,
+            is_multi_player,
         }
     }
 
@@ -45,7 +48,7 @@ impl CoreGameState {
 
 impl GameState for CoreGameState {
     fn update(&mut self, canvas: &Canvas2D) -> Option<Box<dyn GameState>> {
-        if ONLINE {
+        if self.is_multi_player {
             let recieved_events = (**self.matchbox_events.as_mut().unwrap())
                 .borrow_mut()
                 .try_recieve();
@@ -64,8 +67,11 @@ impl GameState for CoreGameState {
 
         match self.render_context.game_state {
             CoreGameSubstate::Wait => {
-                if can_control_player(&(*self.game).borrow(), &mut self.own_player_team_id, ONLINE)
-                {
+                if can_control_player(
+                    &(*self.game).borrow(),
+                    &self.own_player_team_id,
+                    self.is_multi_player,
+                ) {
                     self.render_context.game_state = CoreGameSubstate::Place;
                 }
             }
@@ -175,7 +181,7 @@ fn description(render_context: &CustomRenderContext, game: &Game) -> Vec<String>
     description
 }
 
-fn can_control_player(game: &Game, own_player_id: &mut Option<usize>, is_online: bool) -> bool {
+fn can_control_player(game: &Game, own_player_id: &Option<usize>, is_online: bool) -> bool {
     if !is_online {
         return true;
     }

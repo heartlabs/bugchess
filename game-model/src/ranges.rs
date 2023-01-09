@@ -180,7 +180,7 @@ impl Range {
 
         self.reachable_points_for_piece(from_point, piece, board)
     }
-    
+
     pub fn reachable_points_for_piece(
         &self,
         from_point: &Point2,

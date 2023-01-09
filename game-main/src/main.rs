@@ -28,8 +28,8 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    let mut state: Box<dyn GameState> = Box::new(LoadingState::new());
     let canvas = Canvas2D::new(WINDOW_WIDTH as f32, WINDOW_HEIGHT as f32);
+    let mut state = setup_game_state().await;
 
     loop {
         srand((macroquad::time::get_time() * 100_000_000f64) as u64);
@@ -52,4 +52,41 @@ async fn main() {
 
         next_frame().await;
     }
+}
+
+#[cfg(target_family = "wasm")]
+fn get_url_param(key: &str) -> Option<String> {
+    web_sys::window()
+        .as_ref()
+        .and_then(web_sys::Window::document)
+        .and_then(|document| document.url().ok())
+        .and_then(|url| url::Url::parse(&url).ok())
+        .and_then(|url| {
+            url.query_pairs()
+                .filter(|q| q.0 == key)
+                .map(|(_k, v)| (*v).to_string())
+                .next()
+        })
+}
+
+async fn setup_game_state() -> Box<dyn GameState> {
+    #[cfg(target_family = "wasm")]
+    let preconfigured_room_id = get_url_param("room_id");
+    #[cfg(not(target_family = "wasm"))]
+    let preconfigured_room_id: Option<String> = None;
+
+    next_frame().await;
+    next_frame().await;
+
+    let seed_time = macroquad::time::get_time();
+    let seed = (seed_time * 100_000_000f64) as u64;
+    info!("Initial seed from {} is {}", seed_time, seed);
+    srand(seed);
+
+    let mut loading_state = LoadingState::new();
+    if let Some(room_id) = preconfigured_room_id.as_ref() {
+        loading_state.join_room(room_id.as_str());
+    }
+
+    Box::new(loading_state)
 }
