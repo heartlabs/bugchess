@@ -203,7 +203,7 @@ impl RenderEventConsumer {
                 piece.team_id,
                 *merged_towards,
                 piece.piece_kind,
-                piece.exhaustion.is_done(),
+                piece.exhaustion.is_done() && piece.piece_kind != PieceKind::Castle,
             ));
         }
 

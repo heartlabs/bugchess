@@ -9,6 +9,7 @@ use std::collections::{HashMap, VecDeque};
 pub struct CustomRenderContext {
     pieces_texture: Texture2D,
     special_texture: Texture2D,
+    background_texture: Texture2D,
     pub game_state: CoreGameSubstate,
     pub button_next: Button,
     pub button_undo: Button,
@@ -19,11 +20,15 @@ impl CustomRenderContext {
     pub fn new() -> Self {
         CustomRenderContext {
             pieces_texture: Texture2D::from_file_with_format(
-                include_bytes!("../resources/sprites/pieces.png"),
+                include_bytes!("../resources/sprites/insekten4.png"),
                 None,
             ),
             special_texture: Texture2D::from_file_with_format(
                 include_bytes!("../resources/sprites/special.png"),
+                None,
+            ),
+            background_texture: Texture2D::from_file_with_format(
+                include_bytes!("../resources/sprites/chalkboard-m.png"),
                 None,
             ),
             game_state: CoreGameSubstate::Place,
@@ -52,7 +57,7 @@ impl BoardRender {
         let board = &game.board;
 
         let team_colors = vec![
-            Color::new(0.76, 0.17, 0.10, 1.),
+            Color::new(0.96, 0.27, 0.20, 1.),
             Color::new(0.90, 0.68, 0.15, 1.),
         ];
 
@@ -186,7 +191,22 @@ impl BoardRender {
     }
 
     pub fn render(&self, board: &Board, render_context: &CustomRenderContext, canvas: &Canvas2D) {
-        Self::render_cells(board, canvas);
+        //Self::render_cells(board, canvas, render_context);
+
+        draw_texture_ex(
+            render_context.background_texture,
+            SHIFT_X,
+            SHIFT_Y,
+            WHITE,
+            DrawTextureParams {
+                dest_size: Some(Vec2::new(
+                    CELL_ABSOLUTE_WIDTH * BOARD_WIDTH as f32,
+                    CELL_ABSOLUTE_WIDTH * BOARD_HEIGHT as f32,
+                )),
+                source: None,
+                ..Default::default()
+            },
+        );
 
         for (point, effects) in &self.effects {
             effects.iter().for_each(|e| e.render(point));
@@ -355,6 +375,7 @@ pub struct SpriteRender {
     pub to: AnimationPoint,
     pub override_color: Option<Color>,
     pub color: Color,
+    pub rotation: f32,
     sprite_kind: SpriteKind,
     rect_in_sprite: Rect,
 }
@@ -452,13 +473,19 @@ impl SpriteRender {
     }
 
     pub(crate) fn for_piece(point: &Point2, piece_kind: PieceKind, color: Color) -> SpriteRender {
-        SpriteRender::new_at_point(
+        let mut sprite_render = SpriteRender::new_at_point(
             point,
             PIECE_SCALE,
             color,
             SpriteKind::Piece,
             Self::piece_sprite_rect(piece_kind),
-        )
+        );
+
+        if piece_kind == PieceKind::HorizontalBar {
+            sprite_render.rotation = 1.57;
+        }
+
+        sprite_render
     }
 
     fn render_pos(sprite_width: f32, point: &Point2) -> (f32, f32) {
@@ -481,25 +508,26 @@ impl SpriteRender {
             color,
             sprite_kind,
             rect_in_sprite,
+            rotation: 0.,
         }
     }
 
     fn piece_sprite_rect(piece_kind: PieceKind) -> Rect {
         let (sprite_x, sprite_y) = match piece_kind {
             PieceKind::Simple => (0, 0),
-            PieceKind::HorizontalBar => (1, 0),
-            PieceKind::VerticalBar => (0, 1),
-            PieceKind::Cross => (1, 1),
-            PieceKind::Queen => (0, 2),
-            PieceKind::Castle => (1, 2),
-            PieceKind::Sniper => (0, 3),
+            PieceKind::HorizontalBar => (2, 1),
+            PieceKind::VerticalBar => (2, 1),
+            PieceKind::Cross => (2, 0),
+            PieceKind::Queen => (1, 1),
+            PieceKind::Castle => (0, 2),
+            PieceKind::Sniper => (0, 1),
         };
 
         Rect {
-            x: sprite_x as f32 * SPRITE_WIDTH,
-            y: sprite_y as f32 * SPRITE_WIDTH,
-            w: SPRITE_WIDTH,
-            h: SPRITE_WIDTH,
+            x: sprite_x as f32 * 295. + 250.,
+            y: sprite_y as f32 * 255. + 100.,
+            w: 295.,
+            h: 255.,
         }
     }
 
@@ -568,6 +596,7 @@ impl SpriteRender {
             DrawTextureParams {
                 dest_size: Some(Vec2::new(animation.sprite_width, animation.sprite_width)),
                 source: Some(self.rect_in_sprite),
+                rotation: self.rotation,
                 ..Default::default()
             },
         );
