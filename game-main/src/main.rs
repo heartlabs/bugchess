@@ -6,13 +6,13 @@ mod states;
 
 use crate::{
     constants::*,
-    states::{core_game_state::CoreGameState, loading::LoadingState, GameState},
+    states::{loading::LoadingState, GameState},
 };
-use game_render::BoardRender;
+
 use macroquad::{prelude::*, rand::srand};
 use macroquad_canvas::Canvas2D;
 
-use egui_macroquad::egui;
+
 
 fn window_conf() -> Conf {
     Conf {

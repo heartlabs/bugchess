@@ -17,7 +17,7 @@ use game_events::{
     board_event_consumer::BoardEventConsumer,
     game_events::{Event, PlayerAction},
 };
-use game_model::{board::*, game::*, piece::*, Point2};
+use game_model::{game::*, piece::*, Point2};
 use game_render::BoardRender;
 use game_render::{
     constants::{BOARD_HEIGHT, BOARD_WIDTH},
@@ -266,7 +266,7 @@ impl GameState for LoadingState {
 
     fn render(&self, _canvas: &Canvas2D) {
         draw_text(
-            &*format!("Loading: {}... ", self.sub_state),
+            &format!("Loading: {}... ", self.sub_state),
             10.,
             400.,
             60.,

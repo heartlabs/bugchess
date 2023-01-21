@@ -55,7 +55,7 @@ impl GameState for CoreGameState {
 
             recieved_events
                 .iter()
-                .for_each(|e| self.event_broker.handle_remote_event(&e));
+                .for_each(|e| self.event_broker.handle_remote_event(e));
 
             if self.own_player_team_id.is_none() {
                 self.own_player_team_id = (**self.matchbox_events.as_ref().unwrap())
@@ -108,7 +108,7 @@ impl GameState for CoreGameState {
                 10.,
                 670. + (i * 50) as f32,
                 50.,
-                board_render.get_team_color(game.current_team_index).clone(),
+                *board_render.get_team_color(game.current_team_index),
             );
         }
     }
