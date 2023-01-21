@@ -1,4 +1,4 @@
-use game_model::board::Point2;
+use game_model::Point2;
 use macroquad_canvas::Canvas2D;
 
 pub const CELL_SCALE: f32 = 1.1875;

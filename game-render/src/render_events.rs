@@ -4,7 +4,7 @@ use game_events::{
     game_events::*,
 };
 use game_model::{
-    board::Point2,
+    Point2,
     piece::{EffectKind, PieceKind},
 };
 

@@ -4,9 +4,6 @@ mod matchbox;
 //mod custom_client;
 mod states;
 
-#[cfg(test)]
-mod test_utils;
-
 use crate::{
     constants::*,
     states::{core_game_state::CoreGameState, loading::LoadingState, GameState},

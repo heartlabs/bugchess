@@ -7,7 +7,6 @@ Next Steps:
         * HTML/CSS statt egui
     * Tests
     * Fehlende Animationen
-        * "Sterben"
         * Undo?
 
 

@@ -1,6 +1,6 @@
 use crate::{animation::*, constants::*, ui::Button};
 use game_core::core_game::CoreGameSubstate;
-use game_model::{board::*, game::*, piece::*, ranges::*};
+use game_model::{board::*, game::*, piece::*, Point2, ranges::*};
 use instant::{Duration, Instant};
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;

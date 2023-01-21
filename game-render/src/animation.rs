@@ -3,7 +3,7 @@ use crate::{
     rendering::{BoardRender, EffectRender, SpriteKind, SpriteRender},
 };
 use game_model::{
-    board::Point2,
+    Point2,
     piece::{EffectKind, Exhaustion, PieceKind},
 };
 use instant::{Duration, Instant};

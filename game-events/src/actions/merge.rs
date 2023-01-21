@@ -9,7 +9,7 @@ use crate::{
 };
 use derive_getters::Getters;
 use game_model::{
-    board::Point2,
+    Point2,
     piece::{EffectKind, Piece},
 };
 use nanoserde::{DeBin, SerBin};

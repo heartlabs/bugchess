@@ -2,9 +2,9 @@ use indexmap::IndexSet;
 use nanoserde::{DeBin, SerBin};
 use std::{collections::HashSet, iter::successors};
 
-use crate::{board::*, piece::*};
+use crate::{board::*, piece::*, Point2};
 
-#[derive(Debug, Copy, Clone, SerBin, DeBin)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, SerBin, DeBin)]
 pub struct Range {
     pub direction: Direction,
     pub context: RangeContext,
@@ -13,7 +13,7 @@ pub struct Range {
     pub include_self: bool,
 }
 
-#[derive(Debug, PartialEq, Copy, Clone, SerBin, DeBin)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone, SerBin, DeBin)]
 pub enum Direction {
     Vertical,
     Horizontal,
@@ -76,7 +76,7 @@ impl Direction {
     }
 }
 
-#[derive(Debug, PartialEq, Copy, Clone, SerBin, DeBin)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone, SerBin, DeBin)]
 pub enum RangeContext {
     Moving,
     Special,

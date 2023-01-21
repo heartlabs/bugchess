@@ -1,16 +1,17 @@
 use crate::board::Board;
+use nanoserde::{DeBin, SerBin};
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq, DeBin, SerBin)]
 pub struct Game {
     pub board: Board,
     pub teams: Vec<Team>,
     pub current_team_index: usize,
 }
 
-#[derive(Clone, Copy)]
+#[derive(PartialEq, Eq, Clone, DeBin, SerBin)]
 pub struct Team {
     pub id: usize,
-    pub name: &'static str,
+    pub name: String,
     pub lost: bool,
     pub unused_pieces: u8,
 }
@@ -29,7 +30,7 @@ impl Game {
     }
 
     pub fn current_team(&self) -> Team {
-        self.teams[self.current_team_index]
+        self.teams[self.current_team_index].clone()
     }
 
     pub fn is_current_team(&self, team_id: usize) -> bool {

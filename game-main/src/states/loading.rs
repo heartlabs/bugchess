@@ -1,11 +1,12 @@
 use crate::{
-    egui::{Align, Color32, FontData, TextEdit},
     matchbox::MatchboxClient,
-    BoardRender, CoreGameState, GameState,
+    states::{core_game_state::CoreGameState, GameState},
 };
 use egui_macroquad::{
     egui,
-    egui::{FontDefinitions, FontFamily, FontTweak, Layout, Visuals},
+    egui::{
+        Align, Color32, FontData, FontDefinitions, FontFamily, FontTweak, Layout, TextEdit, Visuals,
+    },
 };
 use game_core::{
     core_game::CoreGameSubstate, event_broker::EventBroker,
@@ -16,7 +17,8 @@ use game_events::{
     board_event_consumer::BoardEventConsumer,
     game_events::{Event, PlayerAction},
 };
-use game_model::{board::*, game::*, piece::*};
+use game_model::{board::*, game::*, piece::*, Point2};
+use game_render::BoardRender;
 use game_render::{
     constants::{BOARD_HEIGHT, BOARD_WIDTH},
     render_events::RenderEventConsumer,
@@ -330,13 +332,13 @@ fn set_up_pieces(team_count: usize, game_ref: &Game) -> Vec<GameAction> {
 fn init_game() -> Game {
     let teams = vec![
         Team {
-            name: "Red",
+            name: "Red".to_string(),
             id: 0,
             lost: false,
             unused_pieces: 0,
         },
         Team {
-            name: "Yellow",
+            name: "Yellow".to_string(),
             id: 1,
             lost: false,
             unused_pieces: 0,

@@ -1,8 +1,5 @@
 use crate::atomic_events::AtomicEvent::*;
-use game_model::{
-    board::Point2,
-    piece::{EffectKind, Exhaustion, Piece},
-};
+use game_model::{piece::{EffectKind, Exhaustion, Piece}, Point2};
 use nanoserde::{DeBin, SerBin};
 
 #[derive(Debug, Copy, Clone, SerBin, DeBin)]

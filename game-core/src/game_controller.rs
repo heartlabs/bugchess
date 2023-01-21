@@ -1,7 +1,8 @@
 use std::collections::HashSet;
 
 use game_model::{
-    board::{Board, Pattern, Point2},
+    Point2,
+    board::{Board},
     game::Game,
     piece::{Piece, PieceKind},
 };
@@ -16,6 +17,7 @@ use game_events::{
     },
     board_event_consumer::BoardEventConsumer,
 };
+use game_model::pattern::Pattern;
 
 pub struct GameController {}
 
@@ -217,11 +219,10 @@ fn merge_patterns(board: &Board, merge_builder: &mut MergeBuilder) {
     for pattern in &Pattern::all_patterns() {
         for x in 0..board.w as usize - pattern.components[0].len() + 1 {
             for y in 0..board.h as usize - pattern.components.len() + 1 {
-                let matched = board.match_pattern(&pattern, x as u8, y as u8);
+                let matched = pattern.match_board(&board, x as u8, y as u8);
 
                 if let Some(matched_entities) = matched {
                     let any_team_id = board.get_piece_at(&matched_entities[0]).unwrap().team_id;
-                    println!("Pattern matched!");
                     if matched_entities
                         .iter()
                         .map(|point| board.get_piece_at(point).unwrap())

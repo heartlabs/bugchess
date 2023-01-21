@@ -8,13 +8,17 @@ use game_events::{
     actions::compound_events::GameAction, board_event_consumer::BoardEventConsumer,
     game_events::EventConsumer,
 };
-use game_model::game::{Game, Team};
+use game_model::{
+    game::{Game, Team},
+    piece::PieceKind,
+};
 use game_render::{render_events::RenderEventConsumer, BoardRender};
 
 pub struct TestGame {
     pub logs: Rc<RefCell<VecDeque<GameAction>>>,
     pub game: Rc<RefCell<Game>>,
     pub event_broker: EventBroker,
+    pub game_state: CoreGameSubstate,
     multiplayer_connector: Option<Rc<RefCell<MultiplayerConector>>>,
 }
 
@@ -31,20 +35,36 @@ impl TestGame {
             .for_each(|e| self.event_broker.handle_remote_event(&e));
     }
 
-    pub fn click_at_pos(
-        &mut self,
-        pos: (u8, u8),
-        game_state: CoreGameSubstate,
-    ) -> CoreGameSubstate {
+    pub fn click_at_pos(&mut self, pos: (u8, u8)) {
         let game_clone = (*self.game.borrow()).clone();
-        game_state.on_click(&pos.into(), game_clone, &mut self.event_broker)
+        self.game_state = self
+            .game_state
+            .on_click(&pos.into(), game_clone, &mut self.event_broker);
     }
 
-    pub fn next_turn(&mut self) -> CoreGameSubstate {
+    pub fn next_turn(&mut self) {
         let event_option = GameController::next_turn(&(*self.game).borrow());
         self.event_broker.handle_new_event(&event_option);
+    }
 
-        CoreGameSubstate::Wait
+    pub fn assert_has_game_state(&self, game_state: CoreGameSubstate) {
+        assert_eq!(self.game_state, game_state);
+    }
+
+    pub fn assert_num_pieces(&self, num_pieces_team_1: usize, num_pieces_team_2: usize) {
+        let game = &(*self.game.borrow());
+
+        assert_eq!(game.board.placed_pieces(0).len(), num_pieces_team_1);
+        assert_eq!(game.board.placed_pieces(1).len(), num_pieces_team_2);
+    }
+
+    pub fn assert_piece_at(&self, piece_pos: (u8, u8), piece_kind: PieceKind) {
+        let game = &(*self.game.borrow());
+        let placed_piece = game
+            .board
+            .get_piece_at(&piece_pos.into())
+            .expect("Placed piece not found on board");
+        assert_eq!(placed_piece.piece_kind, piece_kind);
     }
 }
 
@@ -86,6 +106,7 @@ pub fn create_singleplayer_game() -> TestGame {
         event_broker,
         logs,
         game,
+        game_state: CoreGameSubstate::Place,
         multiplayer_connector: None,
     }
 }

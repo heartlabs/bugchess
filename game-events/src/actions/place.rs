@@ -8,10 +8,7 @@ use crate::{
     atomic_events::AtomicEvent,
 };
 use derive_getters::Getters;
-use game_model::{
-    board::Point2,
-    piece::{EffectKind, Piece},
-};
+use game_model::{piece::{EffectKind, Piece}, Point2};
 use nanoserde::{DeBin, SerBin};
 
 use super::compound_events::FlushResult;
