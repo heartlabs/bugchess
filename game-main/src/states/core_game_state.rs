@@ -1,4 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
+use std::fs::File;
+use std::io::Write;
 
 use game_core::{
     core_game::CoreGameSubstate, event_broker::EventBroker, game_controller::GameController,
@@ -11,6 +13,7 @@ use game_render::{constants::cell_hovered, BoardRender, CustomRenderContext};
 use crate::states::GameState;
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
+use nanoserde::SerBin;
 
 pub struct CoreGameState {
     pub game: Rc<RefCell<Game>>,
@@ -20,6 +23,7 @@ pub struct CoreGameState {
     render_context: CustomRenderContext,
     own_player_team_id: Option<usize>,
     pub is_multi_player: bool,
+    pub team_names: Vec<String>,
 }
 
 impl CoreGameState {
@@ -29,6 +33,7 @@ impl CoreGameState {
         board_render: Rc<RefCell<BoardRender>>,
         matchbox_events: Option<Rc<RefCell<MultiplayerConector>>>,
         is_multi_player: bool,
+        team_names: Vec<String>,
     ) -> Self {
         CoreGameState {
             game,
@@ -38,6 +43,7 @@ impl CoreGameState {
             render_context: CustomRenderContext::new(),
             own_player_team_id: Option::None,
             is_multi_player,
+            team_names,
         }
     }
 
@@ -102,7 +108,7 @@ impl GameState for CoreGameState {
         let game = (*self.game).borrow();
         board_render.render(&(*self.game).borrow().board, &self.render_context, canvas);
 
-        for (i, text) in description(&self.render_context, &game).iter().enumerate() {
+        for (i, text) in description(&self.render_context, &game, &self.team_names).iter().enumerate() {
             draw_text(
                 text.as_str(),
                 10.,
@@ -133,7 +139,7 @@ fn check_if_somebody_won(game: &Game, render_context: &mut CustomRenderContext) 
     }
 }
 
-fn description(render_context: &CustomRenderContext, game: &Game) -> Vec<String> {
+fn description(render_context: &CustomRenderContext, game: &Game, team_names: &Vec<String>) -> Vec<String> {
     let mut description = vec![];
     let board = &game.board;
 
@@ -168,7 +174,7 @@ fn description(render_context: &CustomRenderContext, game: &Game) -> Vec<String>
         }
         CoreGameSubstate::Won(team) => {
             description.push(
-                format!("The {} team won", game.teams[team].name)
+                format!("The {} team won", team_names[team])
                     .parse()
                     .unwrap(),
             );
@@ -201,6 +207,8 @@ fn handle_player_input(
 ) {
     if is_key_pressed(KeyCode::U) || render_context.button_undo.clicked(canvas) {
         event_broker.undo();
+    } else if is_key_pressed(KeyCode::D) {
+        export_to_file(&(**game).borrow(), event_broker).expect("Could not export to file");
     } else if is_key_pressed(KeyCode::Enter)
         || is_key_pressed(KeyCode::KpEnter)
         || render_context.button_next.clicked(canvas)
@@ -226,6 +234,19 @@ fn handle_player_input(
             event_broker.handle_new_event(&game_action);
         }
     }
+}
+
+fn export_to_file(game: &Game, event_broker: &mut EventBroker) -> Result<(), std::io::Error>{
+    let filename = String::from("game-main/tests/snapshots/exported_game") + &macroquad::time::get_time().to_string() + ".txt";
+    let mut file = File::create(filename)?;
+    file.write(
+        (
+            event_broker.get_past_events().clone(),
+            game.clone()
+        ).serialize_bin().as_slice()
+    )?;
+
+    Ok(())
 }
 
 #[cfg(test)]

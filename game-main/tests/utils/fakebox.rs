@@ -1,7 +1,7 @@
 use game_events::game_events::GameEventObject;
 use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
-use crate::multiplayer_connector::MultiplayerClient;
+use game_core::multiplayer_connector::MultiplayerClient;
 
 pub struct FakeboxClient {
     id: String,
@@ -28,27 +28,6 @@ impl FakeboxClient {
         (*client1).borrow_mut().opponent_client = Some(client2.clone());
 
         (client1, client2)
-    }
-}
-impl MultiplayerClient for Rc<RefCell<FakeboxClient>> {
-    fn is_ready(&self) -> bool {
-        (*self).borrow().is_ready()
-    }
-
-    fn accept_new_connections(&mut self) -> Vec<String> {
-        (*self).borrow_mut().accept_new_connections()
-    }
-
-    fn recieved_events(&mut self) -> Vec<GameEventObject> {
-        (*self).borrow_mut().recieved_events()
-    }
-
-    fn send(&mut self, game_object: &GameEventObject, opponent_id: &str) {
-        (*self).borrow_mut().send(game_object, opponent_id)
-    }
-
-    fn own_player_id(&self) -> Option<String> {
-        (*self).borrow().own_player_id()
     }
 }
 

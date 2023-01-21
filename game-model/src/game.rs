@@ -1,17 +1,17 @@
 use crate::board::Board;
 use nanoserde::{DeBin, SerBin};
 
-#[derive(Clone, PartialEq, Eq, DeBin, SerBin)]
+#[derive(Clone, PartialEq, Eq, Debug, DeBin, SerBin)]
 pub struct Game {
     pub board: Board,
     pub teams: Vec<Team>,
     pub current_team_index: usize,
 }
 
-#[derive(PartialEq, Eq, Clone, DeBin, SerBin)]
+#[derive(PartialEq, Eq, Clone, Debug, DeBin, SerBin)]
 pub struct Team {
     pub id: usize,
-    pub name: String,
+    //pub name: String,
     pub lost: bool,
     pub unused_pieces: u8,
 }

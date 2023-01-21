@@ -1,4 +1,3 @@
-// TODO: That doesnt belong in the events crate - maybe put it in its own crate?
 use game_model::{
     game::Game,
     piece::{Piece, Power},
@@ -155,13 +154,11 @@ mod tests {
     pub fn create_game_object() -> Game {
         let teams = vec![
             Team {
-                name: "Red".to_string(),
                 id: 0,
                 lost: false,
                 unused_pieces: 2,
             },
             Team {
-                name: "Yellow".to_string(),
                 id: 1,
                 lost: false,
                 unused_pieces: 2,

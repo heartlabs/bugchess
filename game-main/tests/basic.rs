@@ -3,8 +3,8 @@ use game_model::{
     game::Game,
     piece::{EffectKind::Protection, PieceKind},
 };
-mod test_utils;
-use test_utils::*;
+mod utils;
+use utils::test_utils::*;
 
 #[test]
 fn test_merge_piece_multiplayer() {

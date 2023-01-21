@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+use std::rc::Rc;
 use game_events::{
     actions::compound_events::GameAction,
     game_events::{Event, GameEventObject, PlayerAction},
@@ -153,5 +155,27 @@ impl MultiplayerConector {
             .collect();
 
         registered_events.iter().for_each(|e| self.send(e));
+    }
+}
+
+impl <T : MultiplayerClient> MultiplayerClient for Rc<RefCell<T>> {
+    fn is_ready(&self) -> bool {
+        (*self).borrow().is_ready()
+    }
+
+    fn accept_new_connections(&mut self) -> Vec<String> {
+        (*self).borrow_mut().accept_new_connections()
+    }
+
+    fn recieved_events(&mut self) -> Vec<GameEventObject> {
+        (*self).borrow_mut().recieved_events()
+    }
+
+    fn send(&mut self, game_object: &GameEventObject, opponent_id: &str) {
+        (*self).borrow_mut().send(game_object, opponent_id)
+    }
+
+    fn own_player_id(&self) -> Option<String> {
+        (*self).borrow().own_player_id()
     }
 }

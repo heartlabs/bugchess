@@ -82,6 +82,7 @@ impl LoadingState {
                 board_render,
                 Option::None,
                 false,
+                vec!["Red".to_string(), "Yellow".to_string()]
             )),
             sub_state: LoadingSubState::GameMode,
             client: Option::None,
@@ -332,13 +333,11 @@ fn set_up_pieces(team_count: usize, game_ref: &Game) -> Vec<GameAction> {
 fn init_game() -> Game {
     let teams = vec![
         Team {
-            name: "Red".to_string(),
             id: 0,
             lost: false,
             unused_pieces: 0,
         },
         Team {
-            name: "Yellow".to_string(),
             id: 1,
             lost: false,
             unused_pieces: 0,

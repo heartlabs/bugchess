@@ -1,7 +1,8 @@
 use std::{cell::RefCell, collections::VecDeque, rc::Rc};
+use super::fakebox::FakeboxClient;
 
 use game_core::{
-    core_game::CoreGameSubstate, event_broker::EventBroker, fakebox::FakeboxClient,
+    core_game::CoreGameSubstate, event_broker::EventBroker,
     game_controller::GameController, multiplayer_connector::MultiplayerConector,
 };
 use game_events::{
@@ -12,7 +13,7 @@ use game_model::{
     game::{Game, Team},
     piece::PieceKind,
 };
-use game_render::{render_events::RenderEventConsumer, BoardRender};
+use game_render::{BoardRender, render_events::RenderEventConsumer};
 
 pub struct TestGame {
     pub logs: Rc<RefCell<VecDeque<GameAction>>>,
@@ -23,6 +24,12 @@ pub struct TestGame {
 }
 
 impl TestGame {
+    pub fn add_unused_pieces(&mut self, t1: u8, t2: u8) {
+        let teams = &mut (*self.game).borrow_mut().teams;
+        teams[0].unused_pieces += t1;
+        teams[1].unused_pieces += t2;
+    }
+
     pub fn recieve_multiplayer_events(&mut self) {
         let recieved_events = (*self.multiplayer_connector.as_ref().unwrap())
             .borrow_mut()
@@ -77,6 +84,8 @@ pub fn create_multiplayer_game() -> (TestGame, TestGame) {
     let mut test_game2 = create_singleplayer_game();
     make_multiplayer(multiplayer_client2, &mut test_game2);
 
+    test_game1.add_unused_pieces(3, 3);
+    test_game2.add_unused_pieces(3, 3);
     (test_game1, test_game2)
 }
 
@@ -114,16 +123,14 @@ pub fn create_singleplayer_game() -> TestGame {
 pub fn create_game_object() -> Game {
     let teams = vec![
         Team {
-            name: "Red".to_string(),
             id: 0,
             lost: false,
-            unused_pieces: 3,
+            unused_pieces: 0,
         },
         Team {
-            name: "Yellow".to_string(),
             id: 1,
             lost: false,
-            unused_pieces: 3,
+            unused_pieces: 0,
         },
     ];
     Game::new(teams, 8, 8)
