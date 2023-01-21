@@ -155,13 +155,13 @@ mod tests {
     pub fn create_game_object() -> Game {
         let teams = vec![
             Team {
-                name: "Red",
+                name: "Red".to_string(),
                 id: 0,
                 lost: false,
                 unused_pieces: 2,
             },
             Team {
-                name: "Yellow",
+                name: "Yellow".to_string(),
                 id: 1,
                 lost: false,
                 unused_pieces: 2,
