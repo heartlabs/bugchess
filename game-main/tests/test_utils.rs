@@ -114,13 +114,13 @@ pub fn create_singleplayer_game() -> TestGame {
 pub fn create_game_object() -> Game {
     let teams = vec![
         Team {
-            name: "Red",
+            name: "Red".to_string(),
             id: 0,
             lost: false,
             unused_pieces: 3,
         },
         Team {
-            name: "Yellow",
+            name: "Yellow".to_string(),
             id: 1,
             lost: false,
             unused_pieces: 3,
