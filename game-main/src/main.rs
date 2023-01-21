@@ -12,8 +12,6 @@ use crate::{
 use macroquad::{prelude::*, rand::srand};
 use macroquad_canvas::Canvas2D;
 
-
-
 fn window_conf() -> Conf {
     Conf {
         window_title: "Makrochess".to_owned(),

@@ -4,8 +4,8 @@ use game_events::{
     game_events::*,
 };
 use game_model::{
-    Point2,
     piece::{EffectKind, PieceKind},
+    Point2,
 };
 
 use crate::{

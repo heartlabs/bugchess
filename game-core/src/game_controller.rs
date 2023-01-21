@@ -1,10 +1,10 @@
 use std::collections::HashSet;
 
 use game_model::{
-    Point2,
-    board::{Board},
+    board::Board,
     game::Game,
     piece::{Piece, PieceKind},
+    Point2,
 };
 
 use game_events::{

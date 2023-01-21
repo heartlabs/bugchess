@@ -3,8 +3,8 @@ use crate::{
     rendering::{BoardRender, EffectRender, SpriteKind, SpriteRender},
 };
 use game_model::{
-    Point2,
     piece::{EffectKind, Exhaustion, PieceKind},
+    Point2,
 };
 use instant::{Duration, Instant};
 use macroquad::{color::WHITE, logging::info, math::Rect, prelude::BLACK, rand::rand};

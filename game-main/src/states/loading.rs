@@ -18,10 +18,10 @@ use game_events::{
     game_events::{Event, PlayerAction},
 };
 use game_model::{game::*, piece::*, Point2};
-use game_render::BoardRender;
 use game_render::{
     constants::{BOARD_HEIGHT, BOARD_WIDTH},
     render_events::RenderEventConsumer,
+    BoardRender,
 };
 use std::{
     cell::RefCell,

@@ -1,10 +1,12 @@
 use std::fmt::Display;
 
-use crate::piece::*;
+use crate::{
+    pattern::{Pattern, PatternComponent},
+    piece::*,
+    Point2,
+};
 use colored::Colorize;
 use nanoserde::{DeBin, SerBin};
-use crate::pattern::{Pattern, PatternComponent};
-use crate::Point2;
 
 #[derive(Clone, PartialEq, Eq, DeBin, SerBin)]
 pub struct Cell {

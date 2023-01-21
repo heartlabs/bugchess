@@ -32,7 +32,7 @@ impl TestGame {
 
         recieved_events
             .iter()
-            .for_each(|e| self.event_broker.handle_remote_event(&e));
+            .for_each(|e| self.event_broker.handle_remote_event(e));
     }
 
     pub fn click_at_pos(&mut self, pos: (u8, u8)) {
@@ -97,7 +97,7 @@ pub fn create_singleplayer_game() -> TestGame {
     }));
     let game = Rc::new(RefCell::new(create_game_object()));
     event_broker.subscribe(Box::new(BoardEventConsumer::new(game.clone())));
-    let board_render = BoardRender::new(&(*game.borrow()));
+    let board_render = BoardRender::new(&game.borrow());
     event_broker.subscribe(Box::new(RenderEventConsumer::new(&Rc::new(RefCell::new(
         board_render,
     )))));

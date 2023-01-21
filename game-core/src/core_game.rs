@@ -1,8 +1,8 @@
 // TODO: That doesnt belong in the events crate - maybe put it in its own crate?
 use game_model::{
-    Point2,
     game::Game,
     piece::{Piece, Power},
+    Point2,
 };
 
 use crate::{

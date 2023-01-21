@@ -5,8 +5,8 @@ use crate::{
     atomic_events::AtomicEvent,
 };
 use game_model::{
-    Point2,
     piece::{Exhaustion, Piece},
+    Point2,
 };
 use nanoserde::{DeBin, SerBin};
 

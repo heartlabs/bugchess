@@ -1,11 +1,11 @@
-use std::fmt::Display;
 use nanoserde::{DeBin, SerBin};
+use std::fmt::Display;
 
 pub mod board;
 pub mod game;
+pub mod pattern;
 pub mod piece;
 pub mod ranges;
-pub mod pattern;
 
 #[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, SerBin, DeBin)]
 pub struct Point2 {

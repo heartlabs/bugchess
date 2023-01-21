@@ -1,6 +1,4 @@
-use crate::board::{Board};
-use crate::piece::PieceKind;
-use crate::Point2;
+use crate::{board::Board, piece::PieceKind, Point2};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum PatternComponent {
@@ -168,12 +166,7 @@ impl Pattern {
         ]
     }
 
-    pub fn match_board(
-        &self,
-        board: &Board,
-        start_x: u8,
-        start_y: u8,
-    ) -> Option<Vec<Point2>> {
+    pub fn match_board(&self, board: &Board, start_x: u8, start_y: u8) -> Option<Vec<Point2>> {
         let mut matched_entities = Vec::new();
         for (pattern_y, line) in self.components.iter().enumerate() {
             for (pattern_x, p) in line.iter().enumerate() {
