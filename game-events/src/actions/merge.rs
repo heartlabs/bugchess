@@ -12,7 +12,7 @@ use game_model::{
     piece::{EffectKind, Piece},
     Point2,
 };
-use nanoserde::{DeBin, SerBin};
+use nanoserde::{DeJson, SerJson};
 
 use super::compound_events::FlushResult;
 
@@ -39,7 +39,7 @@ impl MergeBuilder {
     }
 }
 
-#[derive(Debug, Clone, SerBin, DeBin, Getters)]
+#[derive(Debug, Clone, SerJson, DeJson, Getters)]
 pub struct MergeCompoundEvent {
     placed_pieces: Vec<(Point2, Piece)>,
     removed_pieces: Vec<(Point2, Piece)>,

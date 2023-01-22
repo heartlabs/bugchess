@@ -1,7 +1,6 @@
 use game_events::{
     actions::{compound_events::GameAction, merge::MergeCompoundEvent},
     atomic_events::AtomicEvent,
-    game_events::*,
 };
 use game_model::{
     piece::{EffectKind, PieceKind},
@@ -13,6 +12,7 @@ use crate::{
     BoardRender,
 };
 use std::{cell::RefCell, rc::Rc};
+use game_core::game_events::EventConsumer;
 
 pub struct RenderEventConsumer {
     pub(crate) board_render: Rc<RefCell<BoardRender>>,

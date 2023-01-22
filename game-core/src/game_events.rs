@@ -1,18 +1,19 @@
-use nanoserde::{DeBin, SerBin};
+use nanoserde::{DeJson, SerJson};
 
 use quad_rand::rand;
 
-use crate::actions::compound_events::GameAction;
+use game_events::actions::compound_events::GameAction;
 
 use std::fmt::{Debug, Display};
+use crate::game_controller::GameCommand;
 
-#[derive(Debug, Clone, SerBin, DeBin)]
+#[derive(Debug, Clone, SerJson, DeJson)]
 pub enum Event {
-    GameAction(GameAction),
+    GameCommand(GameCommand),
     PlayerAction(PlayerAction),
 }
 
-#[derive(Debug, Clone, SerBin, DeBin)]
+#[derive(Debug, Clone, SerJson, DeJson)]
 pub enum PlayerAction {
     /// player name, index
     Connect(String, usize),
@@ -20,7 +21,7 @@ pub enum PlayerAction {
     NewGame((String, String)),
 }
 
-#[derive(Debug, Clone, SerBin, DeBin)]
+#[derive(Debug, Clone, SerJson, DeJson)]
 pub struct GameEventObject {
     pub id: String,
     pub sender: String,
@@ -46,7 +47,7 @@ pub trait EventConsumer {
 impl Display for GameEventObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match &self.event {
-            Event::GameAction(game_action) => write!(
+            Event::GameCommand(game_action) => write!(
                 f,
                 "GameEventObject {} with GameAction {}",
                 self.id, game_action

@@ -10,3 +10,5 @@ game-model = {path = "../game-model"}
 game-events = {path = "../game-events"}
 miniquad = "0.3.13" # only used for logging
 indexmap = "1.9.2"
+nanoserde = "0.1.32"
+quad-rand = "0.2.1"

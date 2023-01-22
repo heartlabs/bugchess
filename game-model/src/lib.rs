@@ -1,4 +1,4 @@
-use nanoserde::{DeBin, SerBin};
+use nanoserde::{DeJson, SerJson};
 use std::fmt::Display;
 
 pub mod board;
@@ -7,7 +7,7 @@ pub mod pattern;
 pub mod piece;
 pub mod ranges;
 
-#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, SerBin, DeBin)]
+#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, SerJson, DeJson)]
 pub struct Point2 {
     pub x: u8,
     pub y: u8,

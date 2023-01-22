@@ -2,11 +2,12 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use game_events::{
     actions::compound_events::GameAction,
-    game_events::{Event, GameEventObject, PlayerAction},
-};
 
+};
+use crate::game_events::{Event, GameEventObject, PlayerAction};
 use indexmap::IndexMap;
 use miniquad::{debug, info};
+use crate::game_controller::GameCommand;
 
 pub trait MultiplayerClient {
     fn is_ready(&self) -> bool;
@@ -87,7 +88,7 @@ impl MultiplayerConector {
                     events.push(event_object);
                 }
             } else {
-                debug!("Event already received before: {}", event_object);
+                debug!("Event already received before: {:?}", event_object);
             }
         }
 
@@ -100,10 +101,18 @@ impl MultiplayerConector {
             .is_none()
     }
 
-    pub fn handle_event(&mut self, game_action: &GameAction) {
+    pub fn handle_event(&mut self, game_action: &GameCommand) {
         let sender = self.get_own_player_id().expect("Own player ID unknown");
 
-        let event = &GameEventObject::new(Event::GameAction(game_action.clone()), &sender);
+        let event = &GameEventObject::new(Event::GameCommand(game_action.clone()), &sender);
+
+        self.send(event);
+    }
+
+    pub fn send_command(&mut self, game_action: &GameCommand) {
+        let sender = self.get_own_player_id().expect("Own player ID unknown");
+
+        let event = &GameEventObject::new(Event::GameCommand(game_action.clone()), &sender);
 
         self.send(event);
     }
@@ -112,7 +121,8 @@ impl MultiplayerConector {
         let opponent_id = self.opponent_id.as_ref().unwrap().clone();
         self.register_event(event);
         self.client.send(event, &opponent_id);
-        debug!("Sent event: {}", event);
+        //println!("Sent event: {}", event);
+        //debug!("Sent event: {}", event);
     }
 
     pub fn signal_connect(&mut self) {
@@ -151,7 +161,7 @@ impl MultiplayerConector {
             .registered_events
             .values()
             .map(|e| e.clone())
-            .filter(|e| matches!(e.event, Event::GameAction(_)))
+            .filter(|e| matches!(e.event, Event::GameCommand(_)))
             .collect();
 
         registered_events.iter().for_each(|e| self.send(e));

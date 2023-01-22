@@ -10,7 +10,7 @@ use crate::{
     atomic_events::AtomicEvent,
 };
 use game_model::{piece::Piece, Point2};
-use nanoserde::{DeBin, SerBin};
+use nanoserde::{DeJson, SerJson};
 use std::fmt::{Debug, Display};
 
 pub trait CompoundEventBuilder {
@@ -30,7 +30,7 @@ pub trait CompoundEvent: Debug {
     fn get_events(&self) -> Vec<AtomicEvent>;
 }
 
-#[derive(Debug, Clone, SerBin, DeBin)]
+#[derive(Debug, Clone, SerJson, DeJson)]
 pub enum GameAction {
     Attack(AttackCompoundEvent),
     Place(PlaceCompoundEvent),

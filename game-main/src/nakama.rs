@@ -1,7 +1,7 @@
 use game_events::{game_events::{GameEventObject}};
 use macroquad::{prelude::{info, error}, rand::rand};
 use nakama_rs::{api_client::{ApiClient, Event}, matchmaker::{Matchmaker, QueryItemBuilder}, rt_api::Presence};
-use nanoserde::DeBin;
+use nanoserde::DeJson;
 
 use url::Url;
 #[cfg(target_family = "wasm")]
@@ -139,7 +139,7 @@ impl MultiplayerClient for NakamaClient {
                     }
                 }
                 Event::MatchData { data, .. } => {
-                    let event_object: GameEventObject = DeBin::deserialize_bin(&data).unwrap();
+                    let event_object: GameEventObject = DeJson::deserialize_json(&data).unwrap();
                     events.push(event_object);
                 }
             }

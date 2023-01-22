@@ -8,9 +8,9 @@ use game_model::{
     piece::{Exhaustion, Piece},
     Point2,
 };
-use nanoserde::{DeBin, SerBin};
+use nanoserde::{DeJson, SerJson};
 
-#[derive(Debug, Clone, SerBin, DeBin)]
+#[derive(Debug, Clone, SerJson, DeJson)]
 pub struct FinishTurnCompoundEvent {
     events: Vec<AtomicEvent>,
     was_flushed: bool,

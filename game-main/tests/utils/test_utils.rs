@@ -5,9 +5,12 @@ use game_core::{
     core_game::CoreGameSubstate, event_broker::EventBroker,
     game_controller::GameController, multiplayer_connector::MultiplayerConector,
 };
+use game_core::board_event_consumer::BoardEventConsumer;
+use game_core::command_handler::CommandHandler;
+use game_core::game_controller::GameCommand;
+use game_core::game_events::EventConsumer;
 use game_events::{
-    actions::compound_events::GameAction, board_event_consumer::BoardEventConsumer,
-    game_events::EventConsumer,
+    actions::compound_events::GameAction,
 };
 use game_model::{
     game::{Game, Team},
@@ -18,7 +21,7 @@ use game_render::{BoardRender, render_events::RenderEventConsumer};
 pub struct TestGame {
     pub logs: Rc<RefCell<VecDeque<GameAction>>>,
     pub game: Rc<RefCell<Game>>,
-    pub event_broker: EventBroker,
+    pub command_handler: CommandHandler,
     pub game_state: CoreGameSubstate,
     multiplayer_connector: Option<Rc<RefCell<MultiplayerConector>>>,
 }
@@ -39,19 +42,22 @@ impl TestGame {
 
         recieved_events
             .iter()
-            .for_each(|e| self.event_broker.handle_remote_event(e));
+            .for_each(|e| {
+                let game = (*self.game.borrow()).clone();
+                self.command_handler.handle_remote_event(game, e)
+            });
     }
 
     pub fn click_at_pos(&mut self, pos: (u8, u8)) {
         let game_clone = (*self.game.borrow()).clone();
         self.game_state = self
             .game_state
-            .on_click(&pos.into(), game_clone, &mut self.event_broker);
+            .on_click(&pos.into(), game_clone, &mut self.command_handler);
     }
 
     pub fn next_turn(&mut self) {
-        let event_option = GameController::next_turn(&(*self.game).borrow());
-        self.event_broker.handle_new_event(&event_option);
+        let game = (*self.game).borrow().clone();
+        self.command_handler.handle_new_event(game, &GameCommand::NextTurn);
     }
 
     pub fn assert_has_game_state(&self, game_state: CoreGameSubstate) {
@@ -94,7 +100,7 @@ fn make_multiplayer(multiplayer_client1: Rc<RefCell<FakeboxClient>>, test_game: 
     multiplayer_connector.matchmaking();
     let multiplayer_connector = Rc::new(RefCell::new(multiplayer_connector));
 
-    test_game.event_broker.multiplayer_connector = Some(multiplayer_connector.clone());
+    test_game.command_handler.multiplayer_connector = Some(multiplayer_connector.clone());
     test_game.multiplayer_connector = Some(multiplayer_connector);
 }
 
@@ -112,7 +118,7 @@ pub fn create_singleplayer_game() -> TestGame {
     )))));
 
     TestGame {
-        event_broker,
+        command_handler: CommandHandler::new(event_broker),
         logs,
         game,
         game_state: CoreGameSubstate::Place,

@@ -3,9 +3,9 @@ use game_model::{
     piece::{EffectKind, Exhaustion, Piece},
     Point2,
 };
-use nanoserde::{DeBin, SerBin};
+use nanoserde::{DeJson, SerJson};
 
-#[derive(Debug, Copy, Clone, SerBin, DeBin)]
+#[derive(Debug, Copy, Clone, SerJson, DeJson)]
 pub enum AtomicEvent {
     Place(Point2, Piece),
     Remove(Point2, Piece),

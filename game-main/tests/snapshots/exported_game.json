@@ -1,0 +1,619 @@
+[
+  [
+    {
+      "InitPlayer": [
+        6
+      ]
+    },
+    {
+      "InitPlayer": [
+        6
+      ]
+    },
+    {
+      "PlacePiece": [
+        {
+          "x": 2,
+          "y": 2
+        }
+      ]
+    },
+    "NextTurn",
+    {
+      "PlacePiece": [
+        {
+          "x": 5,
+          "y": 5
+        }
+      ]
+    },
+    "NextTurn",
+    {
+      "PlacePiece": [
+        {
+          "x": 3,
+          "y": 2
+        }
+      ]
+    },
+    {
+      "PlacePiece": [
+        {
+          "x": 4,
+          "y": 2
+        }
+      ]
+    },
+    "NextTurn",
+    {
+      "PlacePiece": [
+        {
+          "x": 4,
+          "y": 6
+        }
+      ]
+    },
+    {
+      "PlacePiece": [
+        {
+          "x": 4,
+          "y": 4
+        }
+      ]
+    },
+    {
+      "PlacePiece": [
+        {
+          "x": 6,
+          "y": 4
+        }
+      ]
+    },
+    {
+      "PlacePiece": [
+        {
+          "x": 6,
+          "y": 6
+        }
+      ]
+    }
+  ],
+  {
+    "board": {
+      "cells": [
+        [
+          {
+            "point": {
+              "x": 0,
+              "y": 0
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 0,
+              "y": 1
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 0,
+              "y": 2
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 0,
+              "y": 3
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 0,
+              "y": 4
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 0,
+              "y": 5
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 0,
+              "y": 6
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 0,
+              "y": 7
+            },
+            "effects": []
+          }
+        ],
+        [
+          {
+            "point": {
+              "x": 1,
+              "y": 0
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 1,
+              "y": 1
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 1,
+              "y": 2
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 1,
+              "y": 3
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 1,
+              "y": 4
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 1,
+              "y": 5
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 1,
+              "y": 6
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 1,
+              "y": 7
+            },
+            "effects": []
+          }
+        ],
+        [
+          {
+            "point": {
+              "x": 2,
+              "y": 0
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 2,
+              "y": 1
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 2,
+              "y": 2
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 2,
+              "y": 3
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 2,
+              "y": 4
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 2,
+              "y": 5
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 2,
+              "y": 6
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 2,
+              "y": 7
+            },
+            "effects": []
+          }
+        ],
+        [
+          {
+            "point": {
+              "x": 3,
+              "y": 0
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 3,
+              "y": 1
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 3,
+              "y": 2
+            },
+            "piece": {
+              "piece_kind": "HorizontalBar",
+              "attack": true,
+              "pierce": true,
+              "shield": false,
+              "movement": {
+                "range": {
+                  "direction": "Horizontal",
+                  "context": "Moving",
+                  "steps": 255,
+                  "jumps": false,
+                  "include_self": false
+                }
+              },
+              "activatable": {
+                "kind": "Blast",
+                "range": {
+                  "direction": "Horizontal",
+                  "context": "Moving",
+                  "steps": 255,
+                  "jumps": false,
+                  "include_self": false
+                }
+              },
+              "exhaustion": {
+                "moved": false,
+                "used_special": false,
+                "strategy": "Either"
+              },
+              "team_id": 0
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 3,
+              "y": 3
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 3,
+              "y": 4
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 3,
+              "y": 5
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 3,
+              "y": 6
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 3,
+              "y": 7
+            },
+            "effects": []
+          }
+        ],
+        [
+          {
+            "point": {
+              "x": 4,
+              "y": 0
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 4,
+              "y": 1
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 4,
+              "y": 2
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 4,
+              "y": 3
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 4,
+              "y": 4
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 4,
+              "y": 5
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 4,
+              "y": 6
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 4,
+              "y": 7
+            },
+            "effects": []
+          }
+        ],
+        [
+          {
+            "point": {
+              "x": 5,
+              "y": 0
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 5,
+              "y": 1
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 5,
+              "y": 2
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 5,
+              "y": 3
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 5,
+              "y": 4
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 5,
+              "y": 5
+            },
+            "piece": {
+              "piece_kind": "Sniper",
+              "attack": true,
+              "pierce": true,
+              "shield": false,
+              "activatable": {
+                "kind": "TargetedShoot",
+                "range": {
+                  "direction": "Anywhere",
+                  "context": "Special",
+                  "steps": 0,
+                  "jumps": false,
+                  "include_self": false
+                }
+              },
+              "exhaustion": {
+                "moved": true,
+                "used_special": true,
+                "strategy": "Either"
+              },
+              "team_id": 1
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 5,
+              "y": 6
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 5,
+              "y": 7
+            },
+            "effects": []
+          }
+        ],
+        [
+          {
+            "point": {
+              "x": 6,
+              "y": 0
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 6,
+              "y": 1
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 6,
+              "y": 2
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 6,
+              "y": 3
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 6,
+              "y": 4
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 6,
+              "y": 5
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 6,
+              "y": 6
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 6,
+              "y": 7
+            },
+            "effects": []
+          }
+        ],
+        [
+          {
+            "point": {
+              "x": 7,
+              "y": 0
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 7,
+              "y": 1
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 7,
+              "y": 2
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 7,
+              "y": 3
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 7,
+              "y": 4
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 7,
+              "y": 5
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 7,
+              "y": 6
+            },
+            "effects": []
+          },
+          {
+            "point": {
+              "x": 7,
+              "y": 7
+            },
+            "effects": []
+          }
+        ]
+      ],
+      "w": 8,
+      "h": 8
+    },
+    "teams": [
+      {
+        "id": 0,
+        "lost": false,
+        "unused_pieces": 7
+      },
+      {
+        "id": 1,
+        "lost": false,
+        "unused_pieces": 3
+      }
+    ],
+    "current_team_index": 1
+  }
+]

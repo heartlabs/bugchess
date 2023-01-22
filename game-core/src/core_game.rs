@@ -8,6 +8,8 @@ use crate::{
     event_broker::EventBroker,
     game_controller::{GameController, MoveError},
 };
+use crate::command_handler::CommandHandler;
+use crate::game_controller::GameCommand;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum CoreGameSubstate {
@@ -23,21 +25,19 @@ impl CoreGameSubstate {
         &self,
         target_point: &Point2,
         mut game_clone: Game,
-        event_broker: &mut EventBroker,
+        command_handler: &mut CommandHandler,
     ) -> CoreGameSubstate {
         let board = &game_clone.board;
         if !board.has_cell(target_point) {
             return CoreGameSubstate::Place;
         }
 
-        //        std::mem::drop(game_ref);
-
         match self {
             CoreGameSubstate::Place => {
-                match GameController::place_piece(&mut game_clone, target_point) {
+                let place_command = GameCommand::PlacePiece(*target_point);
+                match GameController::handle_command(game_clone.clone(), &place_command) {
                     Ok(event) => {
-                        //std::mem::drop(game);
-                        event_broker.handle_new_event(&event);
+                        command_handler.handle_new_event(game_clone, &place_command);
                     }
                     Err(MoveError::PieceAlreadyPresent(target_piece)) => {
                         if target_piece.team_id == game_clone.current_team_index {
@@ -62,11 +62,12 @@ impl CoreGameSubstate {
                         if let Some(activatable) = target_piece.activatable {
                             return match activatable.kind {
                                 Power::Blast => {
+                                    let blast_command = GameCommand::Blast(*target_point);
+
                                     if let Ok(game_action) =
-                                        GameController::blast(&mut game_clone, target_point)
+                                        GameController::handle_command(game_clone.clone(), &blast_command)
                                     {
-                                        std::mem::drop(game_clone);
-                                        event_broker.handle_new_event(&game_action);
+                                        command_handler.handle_new_event(game_clone, &blast_command);
                                     }
 
                                     CoreGameSubstate::Place
@@ -82,19 +83,20 @@ impl CoreGameSubstate {
                     }
                 }
 
-                if let Ok(game_action) =
-                    GameController::move_piece(&mut game_clone, itself, target_point)
+                let move_command = GameCommand::MovePiece(*itself, *target_point);
+
+                if let Ok(_) =
+                    GameController::handle_command(game_clone.clone(), &move_command)
                 {
-                    std::mem::drop(game_clone);
-                    event_broker.handle_new_event(&game_action);
+                    command_handler.handle_new_event(game_clone, &move_command);
                 }
             }
             CoreGameSubstate::Activate(active_piece_pos) => {
-                if let Ok(game_action) =
-                    GameController::targeted_shoot(&mut game_clone, active_piece_pos, target_point)
+                let shoot_command = GameCommand::TargetedShoot(*active_piece_pos, *target_point);
+                if let Ok(_) =
+                    GameController::handle_command(game_clone.clone(), &shoot_command)
                 {
-                    std::mem::drop(game_clone);
-                    event_broker.handle_new_event(&game_action);
+                    command_handler.handle_new_event(game_clone, &shoot_command);
                 }
             }
             CoreGameSubstate::Won(team) => {
@@ -125,7 +127,9 @@ mod tests {
     };
 
     use super::{CoreGameSubstate, EventBroker};
-    use game_events::{actions::compound_events::GameAction, game_events::EventConsumer};
+    use game_events::{actions::compound_events::GameAction};
+    use crate::command_handler::CommandHandler;
+    use crate::game_events::EventConsumer;
 
     #[test]
     fn test_place_single_piece() {
@@ -136,8 +140,10 @@ mod tests {
             events: event_log.clone(),
         }));
 
+        let mut command_handler = CommandHandler::new(event_broker);
+
         let game_state = CoreGameSubstate::Place;
-        game_state.on_click(&(0, 0).into(), game, &mut event_broker);
+        game_state.on_click(&(0, 0).into(), game, &mut command_handler);
 
         let log: &VecDeque<GameAction> = &(*event_log).borrow();
         assert!(log.len() == 1, "Logged events: {:?}", log);

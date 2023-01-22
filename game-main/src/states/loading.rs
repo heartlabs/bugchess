@@ -14,8 +14,6 @@ use game_core::{
 };
 use game_events::{
     actions::compound_events::GameAction,
-    board_event_consumer::BoardEventConsumer,
-    game_events::{Event, PlayerAction},
 };
 use game_model::{game::*, piece::*, Point2};
 use game_render::{
@@ -31,6 +29,10 @@ use std::{
 
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
+use game_core::board_event_consumer::BoardEventConsumer;
+use game_core::command_handler::CommandHandler;
+use game_core::game_controller::GameCommand;
+use game_core::game_events::{Event, PlayerAction};
 
 pub struct LoadingState {
     core_game_state: Option<CoreGameState>,
@@ -171,7 +173,7 @@ impl GameState for LoadingState {
                 matchbox_client.signal_connect();
 
                 let multiplayer_events = Option::Some(Rc::new(RefCell::new(matchbox_client)));
-                core_game_state.event_broker.multiplayer_connector =
+                core_game_state.command_handler.multiplayer_connector =
                     Some(Rc::clone(multiplayer_events.as_ref().unwrap()));
 
                 core_game_state.matchbox_events = multiplayer_events;
@@ -233,7 +235,7 @@ impl GameState for LoadingState {
                         let set_up_actions =
                             set_up_pieces(num_teams, &(*core_game_state.game).borrow());
                         for start_event in &set_up_actions {
-                            core_game_state.event_broker.handle_new_event(start_event);
+                            core_game_state.command_handler.handle_new_event(core_game_state.game_clone(), start_event);
                         }
                     } else {
                         core_game_state.set_sub_state(CoreGameSubstate::Wait);
@@ -241,8 +243,9 @@ impl GameState for LoadingState {
 
                     events
                         .iter()
-                        .filter(|e| matches!(e.event, Event::GameAction(_)))
-                        .for_each(|e| core_game_state.event_broker.handle_remote_event(e));
+                        .filter(|e| matches!(e.event, Event::GameCommand(_)))
+                        .for_each(|e| core_game_state.command_handler.handle_remote_event(core_game_state.game_clone(), e));
+
                 } else {
                     debug!("waiting for opponent message");
                     return None;
@@ -256,7 +259,7 @@ impl GameState for LoadingState {
                 let num_teams = 2;
                 let set_up_actions = set_up_pieces(num_teams, &(*core_game_state.game).borrow());
                 for start_event in &set_up_actions {
-                    core_game_state.event_broker.handle_new_event(start_event);
+                    core_game_state.command_handler.handle_new_event(core_game_state.game_clone(), start_event);
                 }
                 return Option::Some(Box::new(self.core_game_state.take().unwrap()));
             }
@@ -305,16 +308,22 @@ fn egui_setup_fonts(egui_ctx: &egui::Context) {
     egui_ctx.set_visuals(visuals);
 }
 
-fn set_up_pieces(team_count: usize, game_ref: &Game) -> Vec<GameAction> {
+fn set_up_pieces(team_count: usize, game_ref: &Game) -> Vec<GameCommand> {
     let start_pieces = 6;
 
     let mut events = vec![];
 
-    for team_id in 0..team_count {
-        let mut finish_turn = GameAction::finish_turn();
 
+    for _ in 0..team_count {
+        events.push(GameCommand::InitPlayer(start_pieces));
+    }
+
+    for team_id in 0..team_count {
         let target_point = Point2::new((2 + team_id * 3) as u8, (2 + team_id * 3) as u8);
-        let mut piece = Piece::new(team_id, PieceKind::Simple);
+        events.push(GameCommand::PlacePiece(target_point));
+        events.push(GameCommand::NextTurn);
+
+        /*let mut piece = Piece::new(team_id, PieceKind::Simple);
         piece.exhaustion.reset();
         finish_turn.place_piece(target_point, piece);
 
@@ -324,7 +333,7 @@ fn set_up_pieces(team_count: usize, game_ref: &Game) -> Vec<GameAction> {
 
         let compound_event = finish_turn.build();
         BoardEventConsumer::flush_unsafe(&mut game_ref.clone(), &compound_event);
-        events.push(compound_event);
+        events.push(compound_event);*/
     }
 
     events

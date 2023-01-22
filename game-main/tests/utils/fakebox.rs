@@ -1,4 +1,4 @@
-use game_events::game_events::GameEventObject;
+use game_core::game_events::GameEventObject;
 use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
 use game_core::multiplayer_connector::MultiplayerClient;

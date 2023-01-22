@@ -4,7 +4,7 @@ use futures::SinkExt;
 use game_events::game_events::GameEventObject;
 use macroquad::prelude::*;
 use matchbox_socket::{RtcIceServerConfig, WebRtcSocket, WebRtcSocketConfig};
-use nanoserde::{DeBin, SerBin};
+use nanoserde::{DeJson, SerJson};
 use tokio::net::TcpStream;
 use tokio_tungstenite::{WebSocketStream, MaybeTlsStream, tungstenite::Message};
 use std::{borrow::Borrow, future::Future, pin::Pin, sync::Arc, collections::VecDeque};
@@ -57,7 +57,7 @@ pub struct CustomClient {
     write: futures::stream::SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>
 }
 
-#[derive(DeBin, SerBin, Clone, Debug)]
+#[derive(DeJson, SerJson, Clone, Debug)]
 pub enum CustomMessage {
     Connect(String),
     Event(GameEventObject)
@@ -69,7 +69,7 @@ impl CustomClient {
             match message {
                 Message::Text(string) => panic!("String messages not supported: {}", string),
                 Message::Ping(_) | Message::Pong(_)| Message::Close(_) | Message::Frame(_) => {},
-                Message::Binary(message) => return DeBin::deserialize_bin(message.as_slice()).expect("Could not deserialize ws message"),
+                Message::Binary(message) => return DeJson::deserialize_json(message.as_slice()).expect("Could not deserialize ws message"),
             }
         } 
 
@@ -77,7 +77,7 @@ impl CustomClient {
     }
 
     fn send_message(&mut self, message: CustomMessage) {
-        self.write.start_send_unpin(Message::Binary(message.serialize_bin())).unwrap();
+        self.write.start_send_unpin(Message::Binary(message.serialize_json())).unwrap();
     }
 }
 

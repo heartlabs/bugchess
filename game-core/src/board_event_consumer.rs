@@ -1,14 +1,12 @@
-use crate::{
-    actions::compound_events::{CompoundEventBuilder, FlushResult, GameAction},
-    atomic_events::AtomicEvent::{self, *},
-    game_events::EventConsumer,
-};
 use game_model::game::Game;
 use miniquad::{debug, warn};
 use std::{cell::RefCell, rc::Rc};
+use game_events::actions::compound_events::{CompoundEventBuilder, FlushResult, GameAction};
+use game_events::atomic_events::AtomicEvent;
+use crate::game_events::EventConsumer;
 
 pub struct BoardEventConsumer {
-    pub(crate) game: Rc<RefCell<Game>>,
+    pub game: Rc<RefCell<Game>>,
 }
 
 impl EventConsumer for BoardEventConsumer {
@@ -43,23 +41,23 @@ impl BoardEventConsumer {
     }
 
     fn handle_event_internal(game: &mut Game, event: &AtomicEvent) {
-        println!("Handling event INTERNAL {:?}", event);
+        //println!("Handling event INTERNAL {:?}", event);
         let board = &mut game.board;
 
         match event {
-            Place(at, piece) => {
+            AtomicEvent::Place(at, piece) => {
                 board.place_piece_at(*piece, at);
             }
-            Remove(at, _) => {
+            AtomicEvent::Remove(at, _) => {
                 board.remove_piece_at(at);
             }
-            AddUnusedPiece(team_id) => {
+            AtomicEvent::AddUnusedPiece(team_id) => {
                 game.add_unused_piece_for(*team_id);
             }
-            RemoveUnusedPiece(team_id) => {
+            AtomicEvent::RemoveUnusedPiece(team_id) => {
                 game.remove_unused_piece(*team_id);
             }
-            ChangeExhaustion(from, to, point) => {
+            AtomicEvent::ChangeExhaustion(from, to, point) => {
                 let piece = &mut board.get_piece_mut_at(point).expect(&*format!(
                     "Can't execute {:?} for non-existing piece at {:?}",
                     event, point
@@ -73,10 +71,10 @@ impl BoardEventConsumer {
 
                 piece.exhaustion = *to;
             }
-            AddEffect(kind, at) => {
+            AtomicEvent::AddEffect(kind, at) => {
                 board.add_effect(*kind, at);
             }
-            RemoveEffect(kind, at) => board.remove_effect(kind, at),
+            AtomicEvent::RemoveEffect(kind, at) => board.remove_effect(kind, at),
             NextTurn => {
                 warn!("NEXT TURN");
                 game.next_team();

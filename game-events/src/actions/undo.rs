@@ -4,9 +4,9 @@ use crate::{
     actions::compound_events::{CompoundEvent, GameAction},
     atomic_events::AtomicEvent,
 };
-use nanoserde::{DeBin, SerBin};
+use nanoserde::{DeJson, SerJson};
 
-#[derive(Debug, Clone, SerBin, DeBin)]
+#[derive(Debug, Clone, SerJson, DeJson)]
 pub struct UndoCompoundEvent {
     pub events: Vec<AtomicEvent>,
     pub undone: Box<GameAction>,

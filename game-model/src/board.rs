@@ -6,16 +6,16 @@ use crate::{
     Point2,
 };
 use colored::Colorize;
-use nanoserde::{DeBin, SerBin};
+use nanoserde::{DeJson, SerJson};
 
-#[derive(Clone, PartialEq, Eq, Debug, DeBin, SerBin)]
+#[derive(Clone, PartialEq, Eq, Debug, DeJson, SerJson)]
 pub struct Cell {
     pub point: Point2,
     pub piece: Option<Piece>,
     pub effects: Vec<EffectKind>,
 }
 
-#[derive(Clone, PartialEq, Debug, Eq, DeBin, SerBin)]
+#[derive(Clone, PartialEq, Debug, Eq, DeJson, SerJson)]
 pub struct Board {
     pub(crate) cells: Vec<Vec<Cell>>,
     pub w: u8,

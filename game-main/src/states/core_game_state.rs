@@ -13,11 +13,13 @@ use game_render::{constants::cell_hovered, BoardRender, CustomRenderContext};
 use crate::states::GameState;
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
-use nanoserde::SerBin;
+use nanoserde::SerJson;
+use game_core::command_handler::CommandHandler;
+use game_core::game_controller::GameCommand;
 
 pub struct CoreGameState {
     pub game: Rc<RefCell<Game>>,
-    pub(crate) event_broker: EventBroker,
+    pub(crate) command_handler: CommandHandler,
     board_render: Rc<RefCell<BoardRender>>,
     pub matchbox_events: Option<Rc<RefCell<MultiplayerConector>>>,
     render_context: CustomRenderContext,
@@ -37,7 +39,7 @@ impl CoreGameState {
     ) -> Self {
         CoreGameState {
             game,
-            event_broker,
+            command_handler: CommandHandler::new(event_broker),
             board_render,
             matchbox_events,
             render_context: CustomRenderContext::new(),
@@ -45,6 +47,10 @@ impl CoreGameState {
             is_multi_player,
             team_names,
         }
+    }
+
+    pub fn game_clone(&self) -> Game {
+        (*self.game).borrow().clone()
     }
 
     pub fn set_sub_state(&mut self, sub_state: CoreGameSubstate) {
@@ -61,7 +67,9 @@ impl GameState for CoreGameState {
 
             recieved_events
                 .iter()
-                .for_each(|e| self.event_broker.handle_remote_event(e));
+                .for_each(|e| self.command_handler.handle_remote_event(self.game_clone(), e));
+
+            //TODO: event_broker
 
             if self.own_player_team_id.is_none() {
                 self.own_player_team_id = (**self.matchbox_events.as_ref().unwrap())
@@ -85,7 +93,7 @@ impl GameState for CoreGameState {
             _ => {
                 handle_player_input(
                     &mut self.game,
-                    &mut self.event_broker,
+                    &mut self.command_handler,
                     &mut self.render_context,
                     canvas,
                 );
@@ -201,49 +209,44 @@ fn can_control_player(game: &Game, own_player_id: &Option<usize>, is_online: boo
 
 fn handle_player_input(
     game: &mut Rc<RefCell<Game>>,
-    event_broker: &mut EventBroker,
+    command_handler: &mut CommandHandler,
     render_context: &mut CustomRenderContext,
     canvas: &Canvas2D,
 ) {
     if is_key_pressed(KeyCode::U) || render_context.button_undo.clicked(canvas) {
-        event_broker.undo();
+        let game_clone = (*game).borrow().clone();
+        command_handler.handle_new_event(game_clone, &GameCommand::Undo);
     } else if is_key_pressed(KeyCode::D) {
-        export_to_file(&(**game).borrow(), event_broker).expect("Could not export to file");
+        export_to_file(&(**game).borrow(), command_handler).expect("Could not export to file");
     } else if is_key_pressed(KeyCode::Enter)
         || is_key_pressed(KeyCode::KpEnter)
         || render_context.button_next.clicked(canvas)
     {
-        let event_option = GameController::next_turn(&(**game).borrow());
-        event_broker.handle_new_event(&event_option);
+        let game_clone = (*game).borrow().clone();
+        command_handler.handle_new_event(game_clone, &GameCommand::NextTurn);
 
         render_context.game_state = CoreGameSubstate::Wait;
         // BoardEventConsumer::flush_unsafe(game.as_ref().borrow_mut().borrow_mut(), &event_option);
     } else if is_mouse_button_pressed(MouseButton::Left) {
-        let builder_option = None;
         let game_clone = (**game).borrow().clone();
         let next_game_state =
             render_context
                 .game_state
-                .on_click(&cell_hovered(canvas), game_clone, event_broker);
-        //.on_click(&cell_hovered(canvas), game, &mut builder_option);
+                .on_click(&cell_hovered(canvas), game_clone, command_handler);
 
         info!("{:?} -> {:?}", render_context.game_state, next_game_state);
         render_context.game_state = next_game_state;
-
-        if let Some(game_action) = builder_option {
-            event_broker.handle_new_event(&game_action);
-        }
     }
 }
 
-fn export_to_file(game: &Game, event_broker: &mut EventBroker) -> Result<(), std::io::Error>{
-    let filename = String::from("game-main/tests/snapshots/exported_game") + &macroquad::time::get_time().to_string() + ".txt";
+fn export_to_file(game: &Game, command_handler: &CommandHandler) -> Result<(), std::io::Error>{
+    let filename = String::from("game-main/tests/snapshots/exported_game") + &macroquad::time::get_time().to_string() + ".json";
     let mut file = File::create(filename)?;
     file.write(
         (
-            event_broker.get_past_events().clone(),
+            command_handler.get_past_events().clone(),
             game.clone()
-        ).serialize_bin().as_slice()
+        ).serialize_json().into_bytes().as_slice()
     )?;
 
     Ok(())

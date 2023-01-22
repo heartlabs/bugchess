@@ -1,9 +1,9 @@
 use game_core::multiplayer_connector::{MultiplayerClient, MultiplayerConector};
-use game_events::game_events::GameEventObject;
 use macroquad::prelude::*;
 use matchbox_socket::{ChannelConfig, RtcIceServerConfig, WebRtcSocket, WebRtcSocketConfig};
-use nanoserde::{DeBin, SerBin};
+use nanoserde::{DeJson, SerJson};
 use urlencoding::encode;
+use game_core::game_events::GameEventObject;
 
 fn connect(room_id: &str) -> MatchboxClient {
     let (socket, loop_fut) = WebRtcSocket::new_with_config(WebRtcSocketConfig {
@@ -58,14 +58,19 @@ impl MultiplayerClient for MatchboxClient {
         self.socket
             .receive()
             .into_iter()
-            .map(|(_, g)| DeBin::deserialize_bin(&g).unwrap()) // TODO: Proper error
+            .map(|(_, g)| {
+                let json = std::str::from_utf8(&(*g)).unwrap();
+                DeJson::deserialize_json(json).unwrap()
+            }) // TODO: Proper error
             .collect()
     }
 
     fn send(&mut self, game_object: &GameEventObject, opponent_id: &str) {
         debug!("Sending {} to {}", game_object, opponent_id);
+
+        let json = game_object.serialize_json();
         self.socket.send(
-            game_object.serialize_bin().into_boxed_slice(),
+            json.into_bytes().into_boxed_slice(),
             opponent_id.to_string(),
         );
     }

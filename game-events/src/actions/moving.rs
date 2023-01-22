@@ -13,11 +13,11 @@ use game_model::{
     piece::{EffectKind, Exhaustion, Piece},
     Point2,
 };
-use nanoserde::{DeBin, SerBin};
+use nanoserde::{DeJson, SerJson};
 
 use super::compound_events::FlushResult;
 
-#[derive(Debug, Clone, SerBin, DeBin, Getters)]
+#[derive(Debug, Clone, SerJson, DeJson, Getters)]
 pub struct MoveCompoundEvent {
     from: Point2,
     to: Point2,

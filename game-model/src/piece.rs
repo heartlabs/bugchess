@@ -1,9 +1,9 @@
 use crate::ranges::*;
 use colored::Colorize;
-use nanoserde::{DeBin, SerBin};
+use nanoserde::{DeJson, SerJson};
 use std::fmt::{Debug, Display};
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, SerBin, DeBin)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, SerJson, DeJson)]
 pub enum EffectKind {
     Protection,
 }
@@ -33,13 +33,13 @@ impl Move {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, SerBin, DeBin)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, SerJson, DeJson)]
 pub struct ActivatablePower {
     pub kind: Power,
     pub range: Range,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, SerBin, DeBin)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, SerJson, DeJson)]
 pub struct Move {
     pub range: Range,
 }
@@ -49,13 +49,13 @@ pub struct TurnInto {
     pub kind: PieceKind,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, SerBin, DeBin)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, SerJson, DeJson)]
 pub enum Power {
     Blast,
     TargetedShoot,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, SerBin, DeBin)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, SerJson, DeJson)]
 pub enum PieceKind {
     Simple,
     HorizontalBar,
@@ -66,7 +66,7 @@ pub enum PieceKind {
     Sniper,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, SerBin, DeBin)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, SerJson, DeJson)]
 pub struct Effect {
     pub kind: EffectKind,
     pub range: Range,
@@ -171,7 +171,7 @@ impl Piece {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, SerBin, DeBin)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, SerJson, DeJson)]
 pub struct Piece {
     pub piece_kind: PieceKind,
     pub attack: bool,
@@ -184,7 +184,7 @@ pub struct Piece {
     pub team_id: usize,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, SerBin, DeBin)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, SerJson, DeJson)]
 pub enum ExhaustionStrategy {
     Either,
     Both,
@@ -192,7 +192,7 @@ pub enum ExhaustionStrategy {
     Special,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, SerBin, DeBin)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, SerJson, DeJson)]
 pub struct Exhaustion {
     moved: bool,
     used_special: bool,
