@@ -1,7 +1,6 @@
 use std::fmt::Display;
 
 use crate::{
-    pattern::{Pattern, PatternComponent},
     piece::*,
     Point2,
 };

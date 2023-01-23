@@ -77,7 +77,7 @@ impl BoardEventConsumer {
                 board.add_effect(*kind, at);
             }
             AtomicEvent::RemoveEffect(kind, at) => board.remove_effect(kind, at),
-            NextTurn => {
+            _NextTurn => {
                 warn!("NEXT TURN");
                 game.next_team();
             }

@@ -19,7 +19,7 @@ use game_events::actions::{
     moving::MoveBuilder,
     place::EffectBuilder,
 };
-use game_model::{pattern::Pattern, piece::PieceKind::Sniper};
+use game_model::{pattern::Pattern};
 
 pub struct GameController {}
 

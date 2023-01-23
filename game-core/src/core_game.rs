@@ -1,4 +1,4 @@
-use game_events::event_broker::EventBroker;
+
 use game_model::{
     game::Game,
     piece::{Piece, Power},
@@ -23,7 +23,7 @@ impl CoreGameSubstate {
     pub fn on_click(
         &self,
         target_point: &Point2,
-        mut game_clone: Game,
+        game_clone: Game,
         command_handler: &mut CommandHandler,
     ) -> CoreGameSubstate {
         let board = &game_clone.board;
@@ -35,7 +35,7 @@ impl CoreGameSubstate {
             CoreGameSubstate::Place => {
                 let place_command = GameCommand::PlacePiece(*target_point);
                 match GameController::handle_command(game_clone.clone(), &place_command) {
-                    Ok(event) => {
+                    Ok(_event) => {
                         command_handler.handle_new_event(game_clone, &place_command);
                     }
                     Err(MoveError::PieceAlreadyPresent(target_piece)) => {
@@ -63,7 +63,7 @@ impl CoreGameSubstate {
                                 Power::Blast => {
                                     let blast_command = GameCommand::Blast(*target_point);
 
-                                    if let Ok(game_action) = GameController::handle_command(
+                                    if let Ok(_game_action) = GameController::handle_command(
                                         game_clone.clone(),
                                         &blast_command,
                                     ) {
@@ -123,9 +123,10 @@ mod tests {
         piece::PieceKind,
     };
 
-    use super::{CoreGameSubstate, EventBroker};
+    use super::{CoreGameSubstate};
     use crate::command_handler::CommandHandler;
     use game_events::{actions::compound_events::GameAction, event_broker::EventConsumer};
+    use game_events::event_broker::EventBroker;
 
     #[test]
     fn test_place_single_piece() {

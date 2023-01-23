@@ -1,6 +1,6 @@
 use indexmap::IndexSet;
 use nanoserde::{DeJson, SerJson};
-use std::{collections::HashSet, iter::successors};
+use std::{iter::successors};
 
 use crate::{board::*, piece::*, Point2};
 
