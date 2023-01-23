@@ -1,9 +1,6 @@
 use std::fmt::Display;
 
-use crate::{
-    piece::*,
-    Point2,
-};
+use crate::{piece::*, Point2};
 use colored::Colorize;
 use nanoserde::{DeJson, SerJson};
 

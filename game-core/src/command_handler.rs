@@ -5,7 +5,7 @@ use crate::{
     game_events::{Event, GameEventObject, PlayerAction},
     multiplayer_connector::MultiplayerConector,
 };
-use game_events::{event_broker::EventBroker};
+use game_events::event_broker::EventBroker;
 use game_model::game::Game;
 
 pub struct CommandHandler {

@@ -1,6 +1,5 @@
 use crate::actions::compound_events::GameAction;
 
-
 pub trait EventConsumer {
     fn handle_event(&mut self, event: &GameAction);
 }

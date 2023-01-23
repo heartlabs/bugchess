@@ -2,8 +2,6 @@ use nanoserde::{DeJson, SerJson};
 
 use quad_rand::rand;
 
-
-
 use crate::game_controller::GameCommand;
 use std::fmt::{Debug, Display};
 

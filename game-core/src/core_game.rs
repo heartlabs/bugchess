@@ -1,4 +1,3 @@
-
 use game_model::{
     game::Game,
     piece::{Piece, Power},
@@ -123,10 +122,12 @@ mod tests {
         piece::PieceKind,
     };
 
-    use super::{CoreGameSubstate};
+    use super::CoreGameSubstate;
     use crate::command_handler::CommandHandler;
-    use game_events::{actions::compound_events::GameAction, event_broker::EventConsumer};
-    use game_events::event_broker::EventBroker;
+    use game_events::{
+        actions::compound_events::GameAction,
+        event_broker::{EventBroker, EventConsumer},
+    };
 
     #[test]
     fn test_place_single_piece() {
