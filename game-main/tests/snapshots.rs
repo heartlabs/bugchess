@@ -9,7 +9,7 @@ use game_core::game_controller::GameCommand;
 fn test_snapshot() -> anyhow::Result<()> {
     let file_content = std::fs::read("tests/snapshots/exported_game.json")?;
     let json = std::str::from_utf8(&file_content).unwrap();
-    let (events, game): (Vec<GameCommand>, Game) = DeJson::deserialize_json(&json)?;
+    let (events, game): (Vec<GameCommand>, Game) = DeJson::deserialize_json(json)?;
 
     let mut test_game = utils::test_utils::create_singleplayer_game();
 

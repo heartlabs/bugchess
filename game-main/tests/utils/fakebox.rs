@@ -38,7 +38,7 @@ impl MultiplayerClient for FakeboxClient {
 
     fn accept_new_connections(&mut self) -> Vec<String> {
         if let Some(client) = &self.opponent_client {
-            vec![(*client.borrow()).id.clone()]
+            vec![client.borrow().id.clone()]
         } else {
             vec![]
         }

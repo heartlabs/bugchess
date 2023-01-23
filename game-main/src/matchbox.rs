@@ -61,7 +61,7 @@ impl MultiplayerClient for MatchboxClient {
             .receive()
             .into_iter()
             .map(|(_, g)| {
-                let json = std::str::from_utf8(&(*g)).unwrap();
+                let json = std::str::from_utf8(&g).unwrap();
                 DeJson::deserialize_json(json).unwrap()
             }) // TODO: Proper error
             .collect()
