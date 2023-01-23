@@ -62,7 +62,7 @@ impl GameState for CoreGameState {
 
             recieved_events.iter().for_each(|e| {
                 self.command_handler
-                    .handle_remote_event(self.game_clone(), e)
+                    .handle_remote_command(self.game_clone(), e)
             });
 
             //TODO: event_broker
@@ -218,7 +218,7 @@ fn handle_player_input(
 ) {
     if is_key_pressed(KeyCode::U) || render_context.button_undo.clicked(canvas) {
         let game_clone = (*game).borrow().clone();
-        command_handler.handle_new_event(game_clone, &GameCommand::Undo);
+        command_handler.handle_new_command(game_clone, &GameCommand::Undo);
     } else if is_key_pressed(KeyCode::D) {
         export_to_file(&(**game).borrow(), command_handler).expect("Could not export to file");
     } else if is_key_pressed(KeyCode::Enter)
@@ -226,7 +226,7 @@ fn handle_player_input(
         || render_context.button_next.clicked(canvas)
     {
         let game_clone = (*game).borrow().clone();
-        command_handler.handle_new_event(game_clone, &GameCommand::NextTurn);
+        command_handler.handle_new_command(game_clone, &GameCommand::NextTurn);
 
         render_context.game_state = CoreGameSubstate::Wait;
         // BoardEventConsumer::flush_unsafe(game.as_ref().borrow_mut().borrow_mut(), &event_option);
@@ -248,7 +248,7 @@ fn export_to_file(game: &Game, command_handler: &CommandHandler) -> Result<(), s
         + ".json";
     let mut file = File::create(filename)?;
     file.write(
-        (command_handler.get_past_events().clone(), game.clone())
+        (command_handler.get_past_commands().clone(), game.clone())
             .serialize_json()
             .into_bytes()
             .as_slice(),

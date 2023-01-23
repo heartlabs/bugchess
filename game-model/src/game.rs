@@ -1,5 +1,6 @@
 use crate::board::Board;
 use nanoserde::{DeJson, SerJson};
+use std::fmt::{Display, Formatter};
 
 #[derive(Clone, PartialEq, Eq, Debug, DeJson, SerJson)]
 pub struct Game {
@@ -14,6 +15,36 @@ pub struct Team {
     //pub name: String,
     pub lost: bool,
     pub unused_pieces: u8,
+}
+
+impl Display for Team {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}: {}", self.id, self.unused_pieces)?;
+
+        if self.lost {
+            write!(f, " #lost")?;
+        }
+
+        Ok(())
+    }
+}
+
+impl Display for Game {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        for (index, team) in self.teams.iter().enumerate() {
+            if index == self.current_team_index {
+                write!(f, "* ")?;
+            } else {
+                write!(f, "  ")?;
+            }
+
+            write!(f, "{}\n", team)?;
+        }
+
+        write!(f, "\n{}\n", self.board)?;
+
+        Ok(())
+    }
 }
 
 impl Game {

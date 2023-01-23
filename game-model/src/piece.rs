@@ -254,11 +254,11 @@ impl Display for Piece {
             PieceKind::Sniper => "x",
         };
 
-        let kind = match self.team_id {
+        /*       let kind = match self.team_id {
             0 => kind.red(),
             1 => kind.yellow(),
             _ => kind.normal(),
-        };
+        };*/
 
         write!(f, "{}", kind)
     }

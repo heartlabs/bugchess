@@ -235,7 +235,7 @@ impl GameState for LoadingState {
                         for start_event in &set_up_actions {
                             core_game_state
                                 .command_handler
-                                .handle_new_event(core_game_state.game_clone(), start_event);
+                                .handle_new_command(core_game_state.game_clone(), start_event);
                         }
                     } else {
                         core_game_state.set_sub_state(CoreGameSubstate::Wait);
@@ -247,7 +247,7 @@ impl GameState for LoadingState {
                         .for_each(|e| {
                             core_game_state
                                 .command_handler
-                                .handle_remote_event(core_game_state.game_clone(), e)
+                                .handle_remote_command(core_game_state.game_clone(), e)
                         });
                 } else {
                     debug!("waiting for opponent message");
@@ -264,7 +264,7 @@ impl GameState for LoadingState {
                 for start_event in &set_up_actions {
                     core_game_state
                         .command_handler
-                        .handle_new_event(core_game_state.game_clone(), start_event);
+                        .handle_new_command(core_game_state.game_clone(), start_event);
                 }
                 return Option::Some(Box::new(self.core_game_state.take().unwrap()));
             }

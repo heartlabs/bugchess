@@ -35,7 +35,7 @@ impl CoreGameSubstate {
                 let place_command = GameCommand::PlacePiece(*target_point);
                 match GameController::handle_command(game_clone.clone(), &place_command) {
                     Ok(_event) => {
-                        command_handler.handle_new_event(game_clone, &place_command);
+                        command_handler.handle_new_command(game_clone, &place_command);
                     }
                     Err(MoveError::PieceAlreadyPresent(target_piece)) => {
                         if target_piece.team_id == game_clone.current_team_index {
@@ -67,7 +67,7 @@ impl CoreGameSubstate {
                                         &blast_command,
                                     ) {
                                         command_handler
-                                            .handle_new_event(game_clone, &blast_command);
+                                            .handle_new_command(game_clone, &blast_command);
                                     }
 
                                     CoreGameSubstate::Place
@@ -86,13 +86,13 @@ impl CoreGameSubstate {
                 let move_command = GameCommand::MovePiece(*itself, *target_point);
 
                 if let Ok(_) = GameController::handle_command(game_clone.clone(), &move_command) {
-                    command_handler.handle_new_event(game_clone, &move_command);
+                    command_handler.handle_new_command(game_clone, &move_command);
                 }
             }
             CoreGameSubstate::Activate(active_piece_pos) => {
                 let shoot_command = GameCommand::TargetedShoot(*active_piece_pos, *target_point);
                 if let Ok(_) = GameController::handle_command(game_clone.clone(), &shoot_command) {
-                    command_handler.handle_new_event(game_clone, &shoot_command);
+                    command_handler.handle_new_command(game_clone, &shoot_command);
                 }
             }
             CoreGameSubstate::Won(team) => {

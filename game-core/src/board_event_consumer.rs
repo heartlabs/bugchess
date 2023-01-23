@@ -43,7 +43,6 @@ impl BoardEventConsumer {
     }
 
     fn handle_event_internal(game: &mut Game, event: &AtomicEvent) {
-        //println!("Handling event INTERNAL {:?}", event);
         let board = &mut game.board;
 
         match event {

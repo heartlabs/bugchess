@@ -40,7 +40,7 @@ impl TestGame {
 
         recieved_events.iter().for_each(|e| {
             let game = (*self.game.borrow()).clone();
-            self.command_handler.handle_remote_event(game, e)
+            self.command_handler.handle_remote_command(game, e)
         });
     }
 
@@ -54,7 +54,7 @@ impl TestGame {
     pub fn next_turn(&mut self) {
         let game = (*self.game).borrow().clone();
         self.command_handler
-            .handle_new_event(game, &GameCommand::NextTurn);
+            .handle_new_command(game, &GameCommand::NextTurn);
     }
 
     pub fn assert_has_game_state(&self, game_state: CoreGameSubstate) {

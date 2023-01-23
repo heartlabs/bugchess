@@ -32,6 +32,7 @@ game-core = {path = "../game-core"}
 
 [dev-dependencies]
 anyhow = "1.0.68"
+insta = "1.26.0"
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 sapp-jsutils = "0.1.5"

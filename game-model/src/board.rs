@@ -164,7 +164,9 @@ impl Board {
 
 impl Display for Board {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "    0   1   2   3   4   5   6   7\n")?;
         for y in 0..self.h as usize {
+            write!(f, "{}:|", y)?;
             for x in 0..self.w as usize {
                 write!(f, "{}", self.cells[x][y])?;
             }
@@ -176,7 +178,7 @@ impl Display for Board {
 
 impl Display for Cell {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let cell = if let Some(piece) = self.piece {
+        /*let cell = if let Some(piece) = self.piece {
             format!("{}", piece)
         } else {
             ".".to_string()
@@ -187,7 +189,17 @@ impl Display for Cell {
         } else {
             cell.normal()
         };
-
         write!(f, "{}", cell)
+        */
+
+        let effect = if !self.effects.is_empty() { "p" } else { " " };
+
+        let piece = if let Some(piece) = self.piece {
+            format!("{}{}", piece.team_id, piece)
+        } else {
+            "  ".to_string()
+        };
+
+        write!(f, "{}{}|", effect, piece)
     }
 }
