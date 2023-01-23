@@ -1,21 +1,20 @@
-use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 use super::fakebox::FakeboxClient;
+use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
 use game_core::{
-    core_game::CoreGameSubstate,
-    game_controller::GameController, multiplayer_connector::MultiplayerConector,
+    board_event_consumer::BoardEventConsumer, command_handler::CommandHandler,
+    core_game::CoreGameSubstate, game_controller::GameCommand,
+    multiplayer_connector::MultiplayerConector,
 };
-use game_core::board_event_consumer::BoardEventConsumer;
-use game_core::command_handler::CommandHandler;
-use game_events::event_broker::EventConsumer;
-use game_core::game_controller::GameCommand;
-use game_events::actions::compound_events::GameAction;
-use game_events::event_broker::EventBroker;
+use game_events::{
+    actions::compound_events::GameAction,
+    event_broker::{EventBroker, EventConsumer},
+};
 use game_model::{
     game::{Game, Team},
     piece::PieceKind,
 };
-use game_render::{BoardRender, render_events::RenderEventConsumer};
+use game_render::{render_events::RenderEventConsumer, BoardRender};
 
 pub struct TestGame {
     pub logs: Rc<RefCell<VecDeque<GameAction>>>,
@@ -39,24 +38,23 @@ impl TestGame {
 
         println!("RECEIVED {} EVENTS", recieved_events.len());
 
-        recieved_events
-            .iter()
-            .for_each(|e| {
-                let game = (*self.game.borrow()).clone();
-                self.command_handler.handle_remote_event(game, e)
-            });
+        recieved_events.iter().for_each(|e| {
+            let game = (*self.game.borrow()).clone();
+            self.command_handler.handle_remote_event(game, e)
+        });
     }
 
     pub fn click_at_pos(&mut self, pos: (u8, u8)) {
         let game_clone = (*self.game.borrow()).clone();
-        self.game_state = self
-            .game_state
-            .on_click(&pos.into(), game_clone, &mut self.command_handler);
+        self.game_state =
+            self.game_state
+                .on_click(&pos.into(), game_clone, &mut self.command_handler);
     }
 
     pub fn next_turn(&mut self) {
         let game = (*self.game).borrow().clone();
-        self.command_handler.handle_new_event(game, &GameCommand::NextTurn);
+        self.command_handler
+            .handle_new_event(game, &GameCommand::NextTurn);
     }
 
     pub fn assert_has_game_state(&self, game_state: CoreGameSubstate) {

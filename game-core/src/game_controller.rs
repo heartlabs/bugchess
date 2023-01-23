@@ -1,6 +1,8 @@
-use std::collections::HashSet;
-use std::fmt::{Display, Formatter};
-use nanoserde::{SerJson, DeJson};
+use nanoserde::{DeJson, SerJson};
+use std::{
+    collections::HashSet,
+    fmt::{Display, Formatter},
+};
 
 use game_model::{
     board::Board,
@@ -9,18 +11,15 @@ use game_model::{
     Point2,
 };
 
-use game_events::{
-    actions::{
-        attack::AttackBuilder,
-        compound_events::{CompoundEventBuilder, FlushResult, GameAction},
-        merge::MergeBuilder,
-        moving::MoveBuilder,
-        place::EffectBuilder,
-    },
-};
-use game_model::pattern::Pattern;
-use game_model::piece::PieceKind::Sniper;
 use crate::board_event_consumer::BoardEventConsumer;
+use game_events::actions::{
+    attack::AttackBuilder,
+    compound_events::{CompoundEventBuilder, FlushResult, GameAction},
+    merge::MergeBuilder,
+    moving::MoveBuilder,
+    place::EffectBuilder,
+};
+use game_model::{pattern::Pattern, piece::PieceKind::Sniper};
 
 pub struct GameController {}
 
@@ -37,7 +36,7 @@ pub enum MoveError {
 pub enum GameCommand {
     InitPlayer(u8),
     PlacePiece(Point2),
-    MovePiece(Point2,Point2),
+    MovePiece(Point2, Point2),
     Blast(Point2),
     TargetedShoot(Point2, Point2),
     NextTurn,
@@ -49,7 +48,7 @@ impl Display for GameCommand {
         match self {
             GameCommand::InitPlayer(start_pieces) => write!(f, "Init({})", start_pieces),
             GameCommand::PlacePiece(at) => write!(f, "Place{}", at),
-            GameCommand::MovePiece(from,to) => write!(f, "Move{}{}", from, to),
+            GameCommand::MovePiece(from, to) => write!(f, "Move{}{}", from, to),
             GameCommand::Blast(at) => write!(f, "Blast{}", at),
             GameCommand::TargetedShoot(from, to) => write!(f, "Shoot{}{}", from, to),
             GameCommand::NextTurn => write!(f, "NextTurn"),
@@ -61,24 +60,29 @@ impl Display for GameCommand {
 type MoveResult = Result<GameAction, MoveError>;
 
 impl GameController {
-
     pub fn handle_command(mut game: Game, command: &GameCommand) -> MoveResult {
         let game = &mut game;
         match command {
             GameCommand::InitPlayer(add_unused) => Self::init_player(game, *add_unused),
             GameCommand::PlacePiece(pos) => Self::place_piece(game, pos),
-            GameCommand::MovePiece(from, target_point) => Self::move_piece(game, from, target_point),
+            GameCommand::MovePiece(from, target_point) => {
+                Self::move_piece(game, from, target_point)
+            }
             GameCommand::Blast(piece_pos) => Self::blast(game, piece_pos),
-            GameCommand::TargetedShoot(attacking_piece_pos, target_pos) => Self::targeted_shoot(game, attacking_piece_pos, target_pos),
+            GameCommand::TargetedShoot(attacking_piece_pos, target_pos) => {
+                Self::targeted_shoot(game, attacking_piece_pos, target_pos)
+            }
             GameCommand::NextTurn => Ok(Self::next_turn(game)),
             GameCommand::Undo => todo!(),
         }
     }
 
     pub fn init_player(game: &mut Game, add_unused: u8) -> MoveResult {
-        if game.current_team().unused_pieces != 0 || !game.board.placed_pieces(game.current_team_index).is_empty(){
+        if game.current_team().unused_pieces != 0
+            || !game.board.placed_pieces(game.current_team_index).is_empty()
+        {
             // TODO: Find better way to assert that the game hasn't started yet
-            return Err(MoveError::IllegalMove)
+            return Err(MoveError::IllegalMove);
         }
 
         let mut builder = GameAction::finish_turn();

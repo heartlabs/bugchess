@@ -1,22 +1,16 @@
-use std::{cell::RefCell, rc::Rc};
-use std::fs::File;
-use std::io::Write;
+use std::{cell::RefCell, fs::File, io::Write, rc::Rc};
 
-use game_core::{
-    core_game::CoreGameSubstate, game_controller::GameController,
-    multiplayer_connector::MultiplayerConector,
-};
+use game_core::{core_game::CoreGameSubstate, multiplayer_connector::MultiplayerConector};
 use game_model::game::Game;
 
-use game_render::{BoardRender, constants::cell_hovered, CustomRenderContext};
+use game_render::{constants::cell_hovered, BoardRender, CustomRenderContext};
 
 use crate::states::GameState;
+use game_core::{command_handler::CommandHandler, game_controller::GameCommand};
+use game_events::event_broker::EventBroker;
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
 use nanoserde::SerJson;
-use game_core::command_handler::CommandHandler;
-use game_core::game_controller::GameCommand;
-use game_events::event_broker::EventBroker;
 
 pub struct CoreGameState {
     pub game: Rc<RefCell<Game>>,
@@ -66,9 +60,10 @@ impl GameState for CoreGameState {
                 .borrow_mut()
                 .try_recieve();
 
-            recieved_events
-                .iter()
-                .for_each(|e| self.command_handler.handle_remote_event(self.game_clone(), e));
+            recieved_events.iter().for_each(|e| {
+                self.command_handler
+                    .handle_remote_event(self.game_clone(), e)
+            });
 
             //TODO: event_broker
 
@@ -117,7 +112,10 @@ impl GameState for CoreGameState {
         let game = (*self.game).borrow();
         board_render.render(&(*self.game).borrow().board, &self.render_context, canvas);
 
-        for (i, text) in description(&self.render_context, &game, &self.team_names).iter().enumerate() {
+        for (i, text) in description(&self.render_context, &game, &self.team_names)
+            .iter()
+            .enumerate()
+        {
             draw_text(
                 text.as_str(),
                 10.,
@@ -148,7 +146,11 @@ fn check_if_somebody_won(game: &Game, render_context: &mut CustomRenderContext) 
     }
 }
 
-fn description(render_context: &CustomRenderContext, game: &Game, team_names: &Vec<String>) -> Vec<String> {
+fn description(
+    render_context: &CustomRenderContext,
+    game: &Game,
+    team_names: &Vec<String>,
+) -> Vec<String> {
     let mut description = vec![];
     let board = &game.board;
 
@@ -240,14 +242,16 @@ fn handle_player_input(
     }
 }
 
-fn export_to_file(game: &Game, command_handler: &CommandHandler) -> Result<(), std::io::Error>{
-    let filename = String::from("game-main/tests/snapshots/exported_game") + &macroquad::time::get_time().to_string() + ".json";
+fn export_to_file(game: &Game, command_handler: &CommandHandler) -> Result<(), std::io::Error> {
+    let filename = String::from("game-main/tests/snapshots/exported_game")
+        + &macroquad::time::get_time().to_string()
+        + ".json";
     let mut file = File::create(filename)?;
     file.write(
-        (
-            command_handler.get_past_events().clone(),
-            game.clone()
-        ).serialize_json().into_bytes().as_slice()
+        (command_handler.get_past_events().clone(), game.clone())
+            .serialize_json()
+            .into_bytes()
+            .as_slice(),
     )?;
 
     Ok(())

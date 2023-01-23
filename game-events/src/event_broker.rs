@@ -1,5 +1,5 @@
-use std::{cell::RefCell, rc::Rc};
 use crate::actions::compound_events::GameAction;
+use std::{cell::RefCell, rc::Rc};
 
 pub trait EventConsumer {
     fn handle_event(&mut self, event: &GameAction);

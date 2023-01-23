@@ -6,10 +6,9 @@ use game_model::{
 };
 
 use crate::{
-    game_controller::{GameController, MoveError},
+    command_handler::CommandHandler,
+    game_controller::{GameCommand, GameController, MoveError},
 };
-use crate::command_handler::CommandHandler;
-use crate::game_controller::GameCommand;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum CoreGameSubstate {
@@ -64,10 +63,12 @@ impl CoreGameSubstate {
                                 Power::Blast => {
                                     let blast_command = GameCommand::Blast(*target_point);
 
-                                    if let Ok(game_action) =
-                                        GameController::handle_command(game_clone.clone(), &blast_command)
-                                    {
-                                        command_handler.handle_new_event(game_clone, &blast_command);
+                                    if let Ok(game_action) = GameController::handle_command(
+                                        game_clone.clone(),
+                                        &blast_command,
+                                    ) {
+                                        command_handler
+                                            .handle_new_event(game_clone, &blast_command);
                                     }
 
                                     CoreGameSubstate::Place
@@ -85,17 +86,13 @@ impl CoreGameSubstate {
 
                 let move_command = GameCommand::MovePiece(*itself, *target_point);
 
-                if let Ok(_) =
-                    GameController::handle_command(game_clone.clone(), &move_command)
-                {
+                if let Ok(_) = GameController::handle_command(game_clone.clone(), &move_command) {
                     command_handler.handle_new_event(game_clone, &move_command);
                 }
             }
             CoreGameSubstate::Activate(active_piece_pos) => {
                 let shoot_command = GameCommand::TargetedShoot(*active_piece_pos, *target_point);
-                if let Ok(_) =
-                    GameController::handle_command(game_clone.clone(), &shoot_command)
-                {
+                if let Ok(_) = GameController::handle_command(game_clone.clone(), &shoot_command) {
                     command_handler.handle_new_event(game_clone, &shoot_command);
                 }
             }
@@ -127,9 +124,8 @@ mod tests {
     };
 
     use super::{CoreGameSubstate, EventBroker};
-    use game_events::actions::compound_events::GameAction;
-    use game_events::event_broker::EventConsumer;
     use crate::command_handler::CommandHandler;
+    use game_events::{actions::compound_events::GameAction, event_broker::EventConsumer};
 
     #[test]
     fn test_place_single_piece() {

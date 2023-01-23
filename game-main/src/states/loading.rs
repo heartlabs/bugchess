@@ -8,16 +8,13 @@ use egui_macroquad::{
         Align, Color32, FontData, FontDefinitions, FontFamily, FontTweak, Layout, TextEdit, Visuals,
     },
 };
-use game_core::{
-    core_game::CoreGameSubstate,
-    multiplayer_connector::MultiplayerConector,
-};
-use game_events::actions::compound_events::GameAction;
-use game_model::{game::*, piece::*, Point2};
+use game_core::{core_game::CoreGameSubstate, multiplayer_connector::MultiplayerConector};
+
+use game_model::{game::*, Point2};
 use game_render::{
-    BoardRender,
     constants::{BOARD_HEIGHT, BOARD_WIDTH},
     render_events::RenderEventConsumer,
+    BoardRender,
 };
 use std::{
     cell::RefCell,
@@ -25,12 +22,14 @@ use std::{
     rc::Rc,
 };
 
+use game_core::board_event_consumer::BoardEventConsumer;
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
-use game_core::board_event_consumer::BoardEventConsumer;
-use game_core::command_handler::CommandHandler;
-use game_core::game_controller::GameCommand;
-use game_core::game_events::{Event, PlayerAction};
+
+use game_core::{
+    game_controller::GameCommand,
+    game_events::{Event, PlayerAction},
+};
 use game_events::event_broker::EventBroker;
 
 pub struct LoadingState {
@@ -83,7 +82,7 @@ impl LoadingState {
                 board_render,
                 Option::None,
                 false,
-                vec!["Red".to_string(), "Yellow".to_string()]
+                vec!["Red".to_string(), "Yellow".to_string()],
             )),
             sub_state: LoadingSubState::GameMode,
             client: Option::None,
@@ -234,7 +233,9 @@ impl GameState for LoadingState {
                         let set_up_actions =
                             set_up_pieces(num_teams, &(*core_game_state.game).borrow());
                         for start_event in &set_up_actions {
-                            core_game_state.command_handler.handle_new_event(core_game_state.game_clone(), start_event);
+                            core_game_state
+                                .command_handler
+                                .handle_new_event(core_game_state.game_clone(), start_event);
                         }
                     } else {
                         core_game_state.set_sub_state(CoreGameSubstate::Wait);
@@ -243,8 +244,11 @@ impl GameState for LoadingState {
                     events
                         .iter()
                         .filter(|e| matches!(e.event, Event::GameCommand(_)))
-                        .for_each(|e| core_game_state.command_handler.handle_remote_event(core_game_state.game_clone(), e));
-
+                        .for_each(|e| {
+                            core_game_state
+                                .command_handler
+                                .handle_remote_event(core_game_state.game_clone(), e)
+                        });
                 } else {
                     debug!("waiting for opponent message");
                     return None;
@@ -258,7 +262,9 @@ impl GameState for LoadingState {
                 let num_teams = 2;
                 let set_up_actions = set_up_pieces(num_teams, &(*core_game_state.game).borrow());
                 for start_event in &set_up_actions {
-                    core_game_state.command_handler.handle_new_event(core_game_state.game_clone(), start_event);
+                    core_game_state
+                        .command_handler
+                        .handle_new_event(core_game_state.game_clone(), start_event);
                 }
                 return Option::Some(Box::new(self.core_game_state.take().unwrap()));
             }
@@ -307,11 +313,10 @@ fn egui_setup_fonts(egui_ctx: &egui::Context) {
     egui_ctx.set_visuals(visuals);
 }
 
-fn set_up_pieces(team_count: usize, game_ref: &Game) -> Vec<GameCommand> {
+fn set_up_pieces(team_count: usize, _game_ref: &Game) -> Vec<GameCommand> {
     let start_pieces = 6;
 
     let mut events = vec![];
-
 
     for _ in 0..team_count {
         events.push(GameCommand::InitPlayer(start_pieces));

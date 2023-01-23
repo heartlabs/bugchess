@@ -4,8 +4,8 @@ use quad_rand::rand;
 
 use game_events::actions::compound_events::GameAction;
 
-use std::fmt::{Debug, Display};
 use crate::game_controller::GameCommand;
+use std::fmt::{Debug, Display};
 
 #[derive(Debug, Clone, SerJson, DeJson)]
 pub enum Event {

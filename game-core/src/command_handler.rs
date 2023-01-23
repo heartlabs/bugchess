@@ -1,13 +1,12 @@
 use std::{cell::RefCell, rc::Rc};
 
-use game_events::{
-    actions::compound_events::GameAction,
+use crate::{
+    game_controller::{GameCommand, GameController},
+    game_events::{Event, GameEventObject, PlayerAction},
+    multiplayer_connector::MultiplayerConector,
 };
+use game_events::{actions::compound_events::GameAction, event_broker::EventBroker};
 use game_model::game::Game;
-use game_events::event_broker::EventBroker;
-use crate::game_controller::{GameCommand, GameController};
-use crate::game_events::{Event, GameEventObject, PlayerAction};
-use crate::multiplayer_connector::MultiplayerConector;
 
 pub struct CommandHandler {
     start_of_turn: usize,
@@ -61,7 +60,8 @@ impl CommandHandler {
 
             self.event_broker.undo();
         } else {
-            let action = GameController::handle_command(game, event).expect(&format!("Could not handle command {:?}", event));
+            let action = GameController::handle_command(game, event)
+                .expect(&format!("Could not handle command {:?}", event));
 
             self.event_broker.handle_new_event(&action);
         }

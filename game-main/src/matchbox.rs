@@ -1,9 +1,11 @@
-use game_core::multiplayer_connector::{MultiplayerClient, MultiplayerConector};
+use game_core::{
+    game_events::GameEventObject,
+    multiplayer_connector::{MultiplayerClient, MultiplayerConector},
+};
 use macroquad::prelude::*;
 use matchbox_socket::{ChannelConfig, RtcIceServerConfig, WebRtcSocket, WebRtcSocketConfig};
 use nanoserde::{DeJson, SerJson};
 use urlencoding::encode;
-use game_core::game_events::GameEventObject;
 
 fn connect(room_id: &str) -> MatchboxClient {
     let (socket, loop_fut) = WebRtcSocket::new_with_config(WebRtcSocketConfig {

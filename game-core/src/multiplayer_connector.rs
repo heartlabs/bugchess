@@ -1,13 +1,11 @@
-use std::cell::RefCell;
-use std::rc::Rc;
-use game_events::{
-    actions::compound_events::GameAction,
-
+use crate::{
+    game_controller::GameCommand,
+    game_events::{Event, GameEventObject, PlayerAction},
 };
-use crate::game_events::{Event, GameEventObject, PlayerAction};
+use game_events::actions::compound_events::GameAction;
 use indexmap::IndexMap;
 use miniquad::{debug, info};
-use crate::game_controller::GameCommand;
+use std::{cell::RefCell, rc::Rc};
 
 pub trait MultiplayerClient {
     fn is_ready(&self) -> bool;
@@ -168,7 +166,7 @@ impl MultiplayerConector {
     }
 }
 
-impl <T : MultiplayerClient> MultiplayerClient for Rc<RefCell<T>> {
+impl<T: MultiplayerClient> MultiplayerClient for Rc<RefCell<T>> {
     fn is_ready(&self) -> bool {
         (*self).borrow().is_ready()
     }

@@ -11,11 +11,11 @@ use crate::{
     animation::{Animation, PlacePieceAnimation},
     BoardRender,
 };
+use game_events::{
+    actions::{attack::AttackCompoundEvent, moving::MoveCompoundEvent, place::PlaceCompoundEvent},
+    event_broker::EventConsumer,
+};
 use std::{cell::RefCell, rc::Rc};
-use game_events::actions::attack::AttackCompoundEvent;
-use game_events::actions::moving::MoveCompoundEvent;
-use game_events::actions::place::PlaceCompoundEvent;
-use game_events::event_broker::EventConsumer;
 
 pub struct RenderEventConsumer {
     pub(crate) board_render: Rc<RefCell<BoardRender>>,
@@ -136,8 +136,7 @@ impl RenderEventConsumer {
     }
 
     fn handle_place(place_event: &PlaceCompoundEvent) -> Vec<Animation> {
-        let place_piece =
-            PlacePieceAnimation::new(*place_event.team_id(), *place_event.at());
+        let place_piece = PlacePieceAnimation::new(*place_event.team_id(), *place_event.at());
 
         let mut animation = Animation::new(Box::new(place_piece));
 
@@ -251,7 +250,7 @@ impl EventConsumer for RenderEventConsumer {
         let mut board_render = (*self.board_render).borrow_mut();
         let animations = match event {
             GameAction::Attack(attack_event) => Self::handle_attack(attack_event),
-            GameAction::Place(place_event) =>  Self::handle_place(place_event),
+            GameAction::Place(place_event) => Self::handle_place(place_event),
             GameAction::Move(move_event) => Self::handle_move(move_event),
             GameAction::Undo(_) => Self::handle_undo(&event),
             GameAction::FinishTurn(_) => Self::handle_finish_turn(&event),
