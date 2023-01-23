@@ -2,16 +2,15 @@ use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 use super::fakebox::FakeboxClient;
 
 use game_core::{
-    core_game::CoreGameSubstate, event_broker::EventBroker,
+    core_game::CoreGameSubstate,
     game_controller::GameController, multiplayer_connector::MultiplayerConector,
 };
 use game_core::board_event_consumer::BoardEventConsumer;
 use game_core::command_handler::CommandHandler;
+use game_events::event_broker::EventConsumer;
 use game_core::game_controller::GameCommand;
-use game_core::game_events::EventConsumer;
-use game_events::{
-    actions::compound_events::GameAction,
-};
+use game_events::actions::compound_events::GameAction;
+use game_events::event_broker::EventBroker;
 use game_model::{
     game::{Game, Team},
     piece::PieceKind,

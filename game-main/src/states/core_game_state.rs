@@ -3,12 +3,12 @@ use std::fs::File;
 use std::io::Write;
 
 use game_core::{
-    core_game::CoreGameSubstate, event_broker::EventBroker, game_controller::GameController,
+    core_game::CoreGameSubstate, game_controller::GameController,
     multiplayer_connector::MultiplayerConector,
 };
 use game_model::game::Game;
 
-use game_render::{constants::cell_hovered, BoardRender, CustomRenderContext};
+use game_render::{BoardRender, constants::cell_hovered, CustomRenderContext};
 
 use crate::states::GameState;
 use macroquad::prelude::*;
@@ -16,6 +16,7 @@ use macroquad_canvas::Canvas2D;
 use nanoserde::SerJson;
 use game_core::command_handler::CommandHandler;
 use game_core::game_controller::GameCommand;
+use game_events::event_broker::EventBroker;
 
 pub struct CoreGameState {
     pub game: Rc<RefCell<Game>>,

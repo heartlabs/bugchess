@@ -4,15 +4,15 @@ use game_events::{
     actions::compound_events::GameAction,
 };
 use game_model::game::Game;
-use crate::event_broker::EventBroker;
+use game_events::event_broker::EventBroker;
 use crate::game_controller::{GameCommand, GameController};
-use crate::game_events::{Event, EventConsumer, GameEventObject, PlayerAction};
+use crate::game_events::{Event, GameEventObject, PlayerAction};
 use crate::multiplayer_connector::MultiplayerConector;
 
 pub struct CommandHandler {
     start_of_turn: usize,
     past_events: Vec<GameCommand>,
-    pub event_broker: EventBroker,
+    event_broker: EventBroker,
     pub multiplayer_connector: Option<Rc<RefCell<MultiplayerConector>>>,
 }
 

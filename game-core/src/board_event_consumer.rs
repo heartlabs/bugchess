@@ -3,7 +3,7 @@ use miniquad::{debug, warn};
 use std::{cell::RefCell, rc::Rc};
 use game_events::actions::compound_events::{CompoundEventBuilder, FlushResult, GameAction};
 use game_events::atomic_events::AtomicEvent;
-use crate::game_events::EventConsumer;
+use game_events::event_broker::EventConsumer;
 
 pub struct BoardEventConsumer {
     pub game: Rc<RefCell<Game>>,

@@ -1,3 +1,4 @@
+use game_events::event_broker::EventBroker;
 use game_model::{
     game::Game,
     piece::{Piece, Power},
@@ -5,7 +6,6 @@ use game_model::{
 };
 
 use crate::{
-    event_broker::EventBroker,
     game_controller::{GameController, MoveError},
 };
 use crate::command_handler::CommandHandler;
@@ -127,9 +127,9 @@ mod tests {
     };
 
     use super::{CoreGameSubstate, EventBroker};
-    use game_events::{actions::compound_events::GameAction};
+    use game_events::actions::compound_events::GameAction;
+    use game_events::event_broker::EventConsumer;
     use crate::command_handler::CommandHandler;
-    use crate::game_events::EventConsumer;
 
     #[test]
     fn test_place_single_piece() {

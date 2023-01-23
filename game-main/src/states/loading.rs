@@ -9,17 +9,15 @@ use egui_macroquad::{
     },
 };
 use game_core::{
-    core_game::CoreGameSubstate, event_broker::EventBroker,
+    core_game::CoreGameSubstate,
     multiplayer_connector::MultiplayerConector,
 };
-use game_events::{
-    actions::compound_events::GameAction,
-};
+use game_events::actions::compound_events::GameAction;
 use game_model::{game::*, piece::*, Point2};
 use game_render::{
+    BoardRender,
     constants::{BOARD_HEIGHT, BOARD_WIDTH},
     render_events::RenderEventConsumer,
-    BoardRender,
 };
 use std::{
     cell::RefCell,
@@ -33,6 +31,7 @@ use game_core::board_event_consumer::BoardEventConsumer;
 use game_core::command_handler::CommandHandler;
 use game_core::game_controller::GameCommand;
 use game_core::game_events::{Event, PlayerAction};
+use game_events::event_broker::EventBroker;
 
 pub struct LoadingState {
     core_game_state: Option<CoreGameState>,
