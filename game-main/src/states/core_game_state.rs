@@ -149,7 +149,7 @@ fn check_if_somebody_won(game: &Game, render_context: &mut CustomRenderContext) 
 fn description(
     render_context: &CustomRenderContext,
     game: &Game,
-    team_names: &Vec<String>,
+    team_names: &[String],
 ) -> Vec<String> {
     let mut description = vec![];
     let board = &game.board;
