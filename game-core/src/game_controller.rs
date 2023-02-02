@@ -21,7 +21,7 @@ use game_events::actions::{
 };
 use game_model::pattern::Pattern;
 
-pub struct GameController {}
+pub(crate) struct GameController {}
 
 #[derive(Debug, Copy, Clone)]
 pub enum MoveError {

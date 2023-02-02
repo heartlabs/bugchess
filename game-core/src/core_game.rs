@@ -115,7 +115,12 @@ fn can_blast(piece: &Piece) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use std::{cell::RefCell, collections::VecDeque, rc::Rc};
+    use std::{
+        cell::RefCell,
+        collections::VecDeque,
+        rc::Rc,
+        sync::{Arc, Mutex},
+    };
 
     use game_model::{
         game::{Game, Team},
@@ -138,7 +143,7 @@ mod tests {
             events: event_log.clone(),
         }));
 
-        let mut command_handler = CommandHandler::new(event_broker);
+        let mut command_handler = CommandHandler::new(event_broker, Arc::new(Mutex::new(vec![])));
 
         let game_state = CoreGameSubstate::Place;
         game_state.on_click(&(0, 0).into(), game, &mut command_handler);

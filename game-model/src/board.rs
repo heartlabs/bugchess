@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::{piece::*, Point2};
+use crate::{game::Game, piece::*, GameError, GameResult, Point2};
 use colored::Colorize;
 use nanoserde::{DeJson, SerJson};
 
@@ -97,7 +97,9 @@ impl Board {
     }
 
     pub fn has_effect_at(&self, effect: &EffectKind, pos: &Point2) -> bool {
-        self.get_cell(pos).effects.contains(effect)
+        self.get_cell(pos)
+            .map(|cell| cell.effects.contains(effect))
+            .unwrap_or(false)
     }
 
     pub fn get_piece_at(&self, pos: &Point2) -> Option<&Piece> {
@@ -108,6 +110,9 @@ impl Board {
     }
 
     pub fn get_piece_mut(&mut self, x: u8, y: u8) -> Option<&mut Piece> {
+        if !self.has_cell(&(x, y).into()) {
+            return Option::None;
+        }
         self.cells[x as usize][y as usize].piece.as_mut()
     }
 
@@ -119,46 +124,63 @@ impl Board {
         point.x < self.w && point.y < self.h
     }
 
-    pub fn place_piece_at(&mut self, piece: Piece, pos: &Point2) {
-        let target_cell = self.get_cell_mut(pos);
+    pub fn place_piece_at(&mut self, piece: Piece, pos: &Point2) -> GameResult<()> {
+        let target_cell = self.get_cell_mut(pos)?;
 
-        assert!(
-            target_cell.piece.is_none(),
-            "Can't place on top of another piece at {:?}",
-            pos
-        );
+        if target_cell.piece.is_some() {
+            return Err(GameError::new(format!(
+                "Can't place on top of another piece at {:?}",
+                pos
+            )));
+        }
 
         target_cell.piece = Some(piece);
+
+        Ok(())
     }
 
-    pub fn add_effect(&mut self, kind: EffectKind, pos: &Point2) {
-        self.get_cell_mut(pos).effects.push(kind);
+    pub fn add_effect(&mut self, kind: EffectKind, pos: &Point2) -> GameResult<()> {
+        self.get_cell_mut(pos)?.effects.push(kind);
+
+        Ok(())
     }
 
-    pub fn remove_effect(&mut self, kind: &EffectKind, pos: &Point2) {
-        let effects = &mut self.get_cell_mut(pos).effects;
-        let index = effects.iter().position(|e| e == kind).expect(
-            format!(
+    pub fn remove_effect(&mut self, kind: &EffectKind, pos: &Point2) -> GameResult<()> {
+        let effects = &mut self.get_cell_mut(pos)?.effects;
+        let index = effects
+            .iter()
+            .position(|e| e == kind)
+            .ok_or(GameError::new(format!(
                 "Can't remove effect {:?} at {:?} because it doesn't exist",
                 kind, pos
-            )
-            .as_str(),
-        );
+            )))?;
         effects.swap_remove(index);
+
+        Ok(())
     }
 
-    fn get_cell_mut(&mut self, pos: &Point2) -> &mut Cell {
-        &mut self.cells[pos.x as usize][pos.y as usize]
-    }
-    fn get_cell(&self, pos: &Point2) -> &Cell {
-        &self.cells[pos.x as usize][pos.y as usize]
+    fn get_cell_mut(&mut self, pos: &Point2) -> GameResult<&mut Cell> {
+        self.cells
+            .get_mut(pos.x as usize)
+            .and_then(|cells| cells.get_mut(pos.y as usize))
+            .ok_or(GameError::new(format!(
+                "Can't get cell {} because it's not on the board",
+                pos
+            )))
     }
 
-    pub fn remove_piece_at(&mut self, pos: &Point2) {
-        self.get_cell_mut(pos)
-            .piece
-            .take()
-            .expect(format!("Cannot remove: There is no piece on {:?}", pos).as_str());
+    fn get_cell(&self, pos: &Point2) -> GameResult<&Cell> {
+        self.cells
+            .get(pos.x as usize)
+            .and_then(|cells| cells.get(pos.y as usize))
+            .ok_or(GameError::new(format!(
+                "Can't get cell {} because it's not on the board",
+                pos
+            )))
+    }
+
+    pub fn remove_piece_at(&mut self, pos: &Point2) -> GameResult<Option<Piece>> {
+        Ok(self.get_cell_mut(pos)?.piece.take())
     }
 }
 

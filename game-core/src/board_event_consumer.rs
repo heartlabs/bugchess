@@ -3,7 +3,7 @@ use game_events::{
     atomic_events::AtomicEvent,
     event_broker::EventConsumer,
 };
-use game_model::game::Game;
+use game_model::{game::Game, GameError, GameResult};
 use miniquad::{debug, warn};
 use std::{cell::RefCell, rc::Rc};
 
@@ -21,6 +21,8 @@ impl EventConsumer for BoardEventConsumer {
             .iter()
             .for_each(|e| {
                 BoardEventConsumer::handle_event_internal(&mut (*self.game).borrow_mut(), e)
+                    .unwrap_or_else(|e| panic!("Failed to handle board event: {:?}", e))
+                // TODO: propagate error
             });
     }
 }
@@ -30,27 +32,23 @@ impl BoardEventConsumer {
         BoardEventConsumer { game }
     }
 
-    pub fn flush_unsafe(game: &mut Game, action: &GameAction) {
-        for event in action.get_compound_event().get_events() {
-            BoardEventConsumer::handle_event_internal(game, &event);
-        }
-    }
-
     pub fn flush(game: &mut Game, action: Box<dyn CompoundEventBuilder>) -> FlushResult {
         action.flush(&mut |event| {
-            BoardEventConsumer::handle_event_internal(game, &event);
+            BoardEventConsumer::handle_event_internal(game, &event)
+                .unwrap_or_else(|e| panic!("Failed to handle board event: {:?}", e));
+            // TODO: propagate error
         })
     }
 
-    fn handle_event_internal(game: &mut Game, event: &AtomicEvent) {
+    fn handle_event_internal(game: &mut Game, event: &AtomicEvent) -> GameResult<()> {
         let board = &mut game.board;
 
         match event {
             AtomicEvent::Place(at, piece) => {
-                board.place_piece_at(*piece, at);
+                board.place_piece_at(*piece, at)?;
             }
             AtomicEvent::Remove(at, _) => {
-                board.remove_piece_at(at);
+                board.remove_piece_at(at)?;
             }
             AtomicEvent::AddUnusedPiece(team_id) => {
                 game.add_unused_piece_for(*team_id);
@@ -59,27 +57,30 @@ impl BoardEventConsumer {
                 game.remove_unused_piece(*team_id);
             }
             AtomicEvent::ChangeExhaustion(from, to, point) => {
-                let piece = &mut board.get_piece_mut_at(point).expect(&*format!(
+                let piece = &mut board.get_piece_mut_at(point).ok_or(GameError::new(format!(
                     "Can't execute {:?} for non-existing piece at {:?}",
                     event, point
-                ));
+                )))?;
 
-                assert_eq!(
-                    from, &piece.exhaustion,
-                    "Expected piece at {:?} to have exhaustion state {:?} but it had {:?}",
-                    point, from, piece.exhaustion
-                );
+                if from != &piece.exhaustion {
+                    return Err(GameError::new(format!(
+                        "Expected piece at {:?} to have exhaustion state {:?} but it had {:?}",
+                        point, from, piece.exhaustion
+                    )));
+                }
 
                 piece.exhaustion = *to;
             }
             AtomicEvent::AddEffect(kind, at) => {
-                board.add_effect(*kind, at);
+                board.add_effect(*kind, at)?;
             }
-            AtomicEvent::RemoveEffect(kind, at) => board.remove_effect(kind, at),
-            _NextTurn => {
+            AtomicEvent::RemoveEffect(kind, at) => board.remove_effect(kind, at)?,
+            AtomicEvent::NextTurn => {
                 warn!("NEXT TURN");
                 game.next_team();
             }
         }
+
+        Ok(())
     }
 }

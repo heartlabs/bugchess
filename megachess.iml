@@ -10,6 +10,7 @@
       <sourceFolder url="file://$MODULE_DIR$/game-model/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/game-render/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/game-server/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

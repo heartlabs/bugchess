@@ -1,3 +1,4 @@
+use crate::game::Game;
 use nanoserde::{DeJson, SerJson};
 use std::fmt::Display;
 
@@ -6,6 +7,19 @@ pub mod game;
 pub mod pattern;
 pub mod piece;
 pub mod ranges;
+
+pub type GameResult<T> = Result<T, GameError>;
+
+#[derive(Debug, Clone)]
+pub struct GameError {
+    description: String,
+}
+
+impl GameError {
+    pub fn new(description: String) -> Self {
+        Self { description }
+    }
+}
 
 #[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, SerJson, DeJson)]
 pub struct Point2 {

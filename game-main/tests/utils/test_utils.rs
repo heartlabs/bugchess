@@ -1,5 +1,10 @@
 use super::fakebox::FakeboxClient;
-use std::{cell::RefCell, collections::VecDeque, rc::Rc};
+use std::{
+    cell::RefCell,
+    collections::VecDeque,
+    rc::Rc,
+    sync::{Arc, Mutex},
+};
 
 use game_core::{
     board_event_consumer::BoardEventConsumer, command_handler::CommandHandler,
@@ -115,7 +120,7 @@ pub fn create_singleplayer_game() -> TestGame {
     )))));
 
     TestGame {
-        command_handler: CommandHandler::new(event_broker),
+        command_handler: CommandHandler::new(event_broker, Arc::new(Mutex::new(vec![]))),
         logs,
         game,
         game_state: CoreGameSubstate::Place,

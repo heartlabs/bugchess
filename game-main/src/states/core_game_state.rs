@@ -1,13 +1,23 @@
-use std::{cell::RefCell, fs::File, io::Write, rc::Rc};
+use futures_util::future::err;
+use std::{
+    borrow::{Borrow, BorrowMut},
+    cell::{Ref, RefCell},
+    fs::File,
+    io::Write,
+    path::{Display, Path},
+    rc::Rc,
+    sync::{Arc, Mutex},
+};
 
 use game_core::{core_game::CoreGameSubstate, multiplayer_connector::MultiplayerConector};
 use game_model::game::Game;
 
 use game_render::{constants::cell_hovered, BoardRender, CustomRenderContext};
 
-use crate::states::GameState;
+use crate::states::{error_state::ErrorState, GameState};
 use game_core::{command_handler::CommandHandler, game_controller::GameCommand};
 use game_events::event_broker::EventBroker;
+use game_model::GameError;
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
 use nanoserde::SerJson;
@@ -32,13 +42,40 @@ impl CoreGameState {
         is_multi_player: bool,
         team_names: Vec<String>,
     ) -> Self {
+        let commands = Arc::new(Mutex::new(vec![]));
+        let command_handler = CommandHandler::new(event_broker, commands.clone());
+
+        std::panic::set_hook(Box::new(move |panic_info| {
+            let message = panic_info
+                .payload()
+                .downcast_ref::<&str>()
+                .unwrap_or(&"Panicked without error string");
+
+            let location = panic_info
+                .location()
+                .map(|l| l.to_string())
+                .unwrap_or("Unknown Location".to_string());
+
+            println!(
+                "{} at {} after commands: {:?}",
+                message,
+                location,
+                (*commands).lock()
+            );
+
+            let commands = (*commands).lock().unwrap().borrow().to_vec();
+            if let Err(e) = export_to_file(&message, &commands) {
+                println!("{:?}", e);
+            }
+        }));
+
         CoreGameState {
             game,
-            command_handler: CommandHandler::new(event_broker),
+            command_handler,
             board_render,
             matchbox_events,
             render_context: CustomRenderContext::new(),
-            own_player_team_id: Option::None,
+            own_player_team_id: None,
             is_multi_player,
             team_names,
         }
@@ -51,10 +88,8 @@ impl CoreGameState {
     pub fn set_sub_state(&mut self, sub_state: CoreGameSubstate) {
         self.render_context.game_state = sub_state;
     }
-}
 
-impl GameState for CoreGameState {
-    fn update(&mut self, canvas: &Canvas2D) -> Option<Box<dyn GameState>> {
+    fn update_internal(&mut self, canvas: &Canvas2D) -> Option<Box<dyn GameState>> {
         if self.is_multi_player {
             let recieved_events = (**self.matchbox_events.as_mut().unwrap())
                 .borrow_mut()
@@ -64,8 +99,6 @@ impl GameState for CoreGameState {
                 self.command_handler
                     .handle_remote_command(self.game_clone(), e)
             });
-
-            //TODO: event_broker
 
             if self.own_player_team_id.is_none() {
                 self.own_player_team_id = (**self.matchbox_events.as_ref().unwrap())
@@ -98,16 +131,12 @@ impl GameState for CoreGameState {
 
         check_if_somebody_won(&(*self.game).borrow(), &mut self.render_context);
 
-        if false {
-            self.board_render = Rc::new(RefCell::new(BoardRender::new(&(*self.game).borrow())));
-        }
-
         (*self.board_render).borrow_mut().update();
 
         Option::None
     }
 
-    fn render(&self, canvas: &Canvas2D) {
+    fn render_internal(&self, canvas: &Canvas2D) {
         let board_render = (*self.board_render).borrow();
         let game = (*self.game).borrow();
         board_render.render(&(*self.game).borrow().board, &self.render_context, canvas);
@@ -124,6 +153,43 @@ impl GameState for CoreGameState {
                 *board_render.get_team_color(game.current_team_index),
             );
         }
+    }
+}
+/*
+fn catch_unwind_silent<F: FnOnce() -> R + std::panic::UnwindSafe, R>(f: F) -> Result<R, GameError> {
+    let mut error_holder: Option<GameError> = None;
+
+    let prev_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(|panic_info| {
+        let message = panic_info
+            .payload()
+            .downcast_ref::<&str>()
+            .unwrap_or(&"Panicked without error string");
+        let message = format!(
+            "Panicked at {} with message {}",
+            panic_info.location().unwrap(),
+            message
+        );
+
+        let _ = error_holder.insert(GameError::new(message));
+    }));
+    let result = std::panic::catch_unwind(f);
+    std::panic::set_hook(prev_hook);
+
+    if let Ok(r) = result {
+        Ok(r)
+    } else {
+        Err(error_holder.unwrap_or(GameError::new("Unknown Error".to_string())))
+    }
+}
+*/
+impl GameState for CoreGameState {
+    fn update(&mut self, canvas: &Canvas2D) -> Option<Box<dyn GameState>> {
+        self.update_internal(canvas)
+    }
+
+    fn render(&self, canvas: &Canvas2D) {
+        self.render_internal(canvas)
     }
 
     fn uses_egui(&self) -> bool {
@@ -217,15 +283,18 @@ fn handle_player_input(
     canvas: &Canvas2D,
 ) {
     if is_key_pressed(KeyCode::U) || render_context.button_undo.clicked(canvas) {
-        let game_clone = (*game).borrow().clone();
+        let game_clone = (**game).borrow().clone();
         command_handler.handle_new_command(game_clone, &GameCommand::Undo);
+    } else if is_key_pressed(KeyCode::Q) {
+        panic!("Error on Purpose");
     } else if is_key_pressed(KeyCode::D) {
-        export_to_file(&(**game).borrow(), command_handler).expect("Could not export to file");
+        export_to_file("exported_game", command_handler.get_past_commands())
+            .expect("Could not export to file");
     } else if is_key_pressed(KeyCode::Enter)
         || is_key_pressed(KeyCode::KpEnter)
         || render_context.button_next.clicked(canvas)
     {
-        let game_clone = (*game).borrow().clone();
+        let game_clone = (**game).borrow().clone();
         command_handler.handle_new_command(game_clone, &GameCommand::NextTurn);
 
         render_context.game_state = CoreGameSubstate::Wait;
@@ -242,17 +311,21 @@ fn handle_player_input(
     }
 }
 
-fn export_to_file(game: &Game, command_handler: &CommandHandler) -> Result<(), std::io::Error> {
-    let filename = String::from("game-main/tests/snapshots/exported_game")
-        + &macroquad::time::get_time().to_string()
-        + ".json";
+const EXPORTED_GAMES_DIR: &'static str = "game-main/tests/exported_games";
+
+fn export_to_file(message: &str, content: &Vec<GameCommand>) -> Result<(), std::io::Error> {
+    let num_games = std::fs::read_dir(EXPORTED_GAMES_DIR)?.count();
+    let mut filename = format!(
+        "{}/{:04}_{}.json",
+        EXPORTED_GAMES_DIR,
+        num_games + 1,
+        message.replace(['/', '\\'], "_").as_str()
+    );
+
+    println!("Exporting to {}", filename);
     let mut file = File::create(filename)?;
-    file.write(
-        (command_handler.get_past_commands().clone(), game.clone())
-            .serialize_json()
-            .into_bytes()
-            .as_slice(),
-    )?;
+    file.write(format!("// {}\n", message).as_ref())?;
+    file.write(content.serialize_json().into_bytes().as_slice())?;
 
     Ok(())
 }
