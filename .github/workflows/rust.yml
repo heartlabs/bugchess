@@ -66,5 +66,5 @@ jobs:
         username: ${{ secrets.DEPLOY_USER }}
         password: ${{ secrets.DEPLOY_USER_PASSWORD }}
         source: "target/release/game-server"
-        target: "/tmp/game-server"
+        target: "/home/server/game-server"
         strip_components: 1
