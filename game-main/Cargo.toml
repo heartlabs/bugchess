@@ -25,6 +25,7 @@ uuid = {version = "1.0.0", features = ["v4"]}
 async-trait = "0.1.58"
 futures-util = "0.3.25"
 json_comments = "0.2.1"
+reqwest = { version = "0.11", features = ["blocking"] }
 
 game-model = {path = "../game-model"}
 game-events = {path = "../game-events"}

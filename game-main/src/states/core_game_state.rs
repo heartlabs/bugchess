@@ -21,6 +21,7 @@ use game_model::GameError;
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
 use nanoserde::SerJson;
+use reqwest::Error;
 
 pub struct CoreGameState {
     pub game: Rc<RefCell<Game>>,
@@ -45,6 +46,8 @@ impl CoreGameState {
         let commands = Arc::new(Mutex::new(vec![]));
         let command_handler = CommandHandler::new(event_broker, commands.clone());
 
+        let once = std::sync::Once::new();
+
         std::panic::set_hook(Box::new(move |panic_info| {
             let message = panic_info
                 .payload()
@@ -56,17 +59,33 @@ impl CoreGameState {
                 .map(|l| l.to_string())
                 .unwrap_or("Unknown Location".to_string());
 
-            println!(
-                "{} at {} after commands: {:?}",
-                message,
-                location,
+            error!(
+                "{} after commands: {:?}",
+                panic_info,
                 (*commands).lock()
             );
 
-            let commands = (*commands).lock().unwrap().borrow().to_vec();
-            if let Err(e) = export_to_file(&message, &commands) {
-                println!("{:?}", e);
-            }
+            once.call_once(|| {
+                let commands = (*commands).lock().unwrap().borrow().to_vec();
+
+                #[cfg(not(target_family = "wasm"))]
+                if let Err(e) = export_to_file(&message, &commands) {
+                    println!("{:?}", e);
+                }
+
+                #[cfg(target_family = "wasm")]{
+                    let error_report_url = web_sys::window()
+                        .as_ref()
+                        .and_then(web_sys::Window::document)
+                        .and_then(|document| document.url().ok())
+                        .and_then(|url| url::Url::parse(&url).ok())
+                        .and_then(|url| {
+                            Some(format!("{}://{}", url.scheme(), url.host_str()?))
+                        })
+                        .unwrap();
+                    wasm_bindgen_futures::spawn_local(post_error_report(error_report_url, format!("{}", panic_info), commands))
+                }
+            });
         }));
 
         CoreGameState {
@@ -285,11 +304,10 @@ fn handle_player_input(
     if is_key_pressed(KeyCode::U) || render_context.button_undo.clicked(canvas) {
         let game_clone = (**game).borrow().clone();
         command_handler.handle_new_command(game_clone, &GameCommand::Undo);
-    } else if is_key_pressed(KeyCode::Q) {
-        panic!("Error on Purpose");
     } else if is_key_pressed(KeyCode::D) {
-        export_to_file("exported_game", command_handler.get_past_commands())
-            .expect("Could not export to file");
+        if let Err(e) = export_to_file("exported_game", command_handler.get_past_commands()) {
+            error!("Could not export game to file: {:?}", e);
+        }
     } else if is_key_pressed(KeyCode::Enter)
         || is_key_pressed(KeyCode::KpEnter)
         || render_context.button_next.clicked(canvas)
@@ -328,6 +346,16 @@ fn export_to_file(message: &str, content: &Vec<GameCommand>) -> Result<(), std::
     file.write(content.serialize_json().into_bytes().as_slice())?;
 
     Ok(())
+}
+
+async fn post_error_report(url: String, message: String, content: Vec<GameCommand>){
+    let client = reqwest::Client::new();
+    if let Err(e) = client.post(url + ":3030/error_report")
+        .body(format!("// {}\n\n{}", message, content.serialize_json()))
+        .send()
+        .await {
+        println!("{:?}", e);
+    }
 }
 
 #[cfg(test)]

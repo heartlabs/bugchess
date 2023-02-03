@@ -36,7 +36,8 @@ async fn main() {
                 Err(reject::custom(NoString {}))
             }
         })
-        .map(|string: String| string);
+        .map(|string: String| string)
+        .with(warp::cors::cors().allow_any_origin());
 
     warp::serve(error_report).run(([127, 0, 0, 1], 3030)).await
 }
