@@ -26,7 +26,6 @@ services:
       - "3536:3536"
   coturn:
     image: "coturn/coturn"
-    ports:
-      - "3478:3478"
+    network_mode: "host"
     volumes:
       - ./turnserver.conf:/etc/coturn/turnserver.conf
