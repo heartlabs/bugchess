@@ -7,9 +7,9 @@ services:
       - "3537:3537"
     volumes:
       - ./html:/usr/share/nginx/html
-      - ./docker/nginx:/etc/nginx/conf.d
-      - ./docker/certbot/conf:/etc/letsencrypt
-      - ./docker/certbot/www:/var/www/certbot
+      - ./nginx:/etc/nginx/conf.d
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
     image: nginx
     restart: unless-stopped
     command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
@@ -17,8 +17,8 @@ services:
     image: certbot/certbot
     restart: unless-stopped
     volumes:
-      - ./docker/certbot/conf:/etc/letsencrypt
-      - ./docker/certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
   matchbox:
     image: "jhelsing/matchbox-server:0.5"
@@ -29,4 +29,4 @@ services:
     ports:
       - "3478:3478"
     volumes:
-      - ./docker/turnserver.conf:/etc/coturn/turnserver.conf
+      - ./turnserver.conf:/etc/coturn/turnserver.conf
