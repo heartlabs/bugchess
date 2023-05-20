@@ -1,0 +1,22 @@
+Game server:
+============
+
+update GLIBC: https://stackoverflow.com/questions/10863613/how-to-upgrade-glibc-on-debian
+
+
+docker-compose
+===============
+https://github.com/wmnnd/nginx-certbot
+
+needed:
+
+* SSL proxy
+  - https://github.com/wmnnd/nginx-certbot
+* serve HTML & wasm
+   - also nginx
+* game-server
+   - build & push docker image in GHA
+* matchbox server
+   - https://hub.docker.com/r/jhelsing/matchbox-server/tags
+* coturn
+   - https://hub.docker.com/r/coturn/coturn

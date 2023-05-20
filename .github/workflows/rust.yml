@@ -48,7 +48,7 @@ jobs:
         files: |
           megachess_wasm.zip
         tag_name: ${{ steps.tag_version.outputs.new_tag }}
-    - name: copy file via ssh
+    - name: copy static files via ssh
       uses: appleboy/scp-action@master
       with:
         host: v2202204174441188151.happysrv.de
@@ -57,14 +57,15 @@ jobs:
         source: "html/*"
         target: "/var/www/heartlabs.tech/html/megachess"
         strip_components: 1
-    - name: Build game server
-      run: cargo build -p game-server --release
-    - name: copy file via ssh
+    - name: copy docker-compose files via ssh
       uses: appleboy/scp-action@master
       with:
         host: v2202204174441188151.happysrv.de
         username: ${{ secrets.DEPLOY_USER }}
         password: ${{ secrets.DEPLOY_USER_PASSWORD }}
-        source: "target/release/game-server"
-        target: "/home/server/game-server"
+        source: "docker/*"
+        target: "/home/server/docker"
         strip_components: 1
+    - name: Build game server
+      run: cargo build -p game-server --release
+    
