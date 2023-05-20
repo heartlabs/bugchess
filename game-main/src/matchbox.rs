@@ -3,50 +3,67 @@ use game_core::{
     multiplayer_connector::{MultiplayerClient, MultiplayerConector},
 };
 use macroquad::prelude::*;
-use matchbox_socket::{ChannelConfig, RtcIceServerConfig, WebRtcSocket, WebRtcSocketConfig};
+use matchbox_socket::{ChannelConfig, PeerId, RtcIceServerConfig, WebRtcSocket};
 use nanoserde::{DeJson, SerJson};
 use urlencoding::encode;
 
 fn connect(room_id: &str) -> MatchboxClient {
-    let (socket, loop_fut) = WebRtcSocket::new_with_config(WebRtcSocketConfig {
-        room_url: format!("wss://heartlabs.tech:3537/{}?next=2", encode(room_id)),
-        ice_server: RtcIceServerConfig {
-            urls: vec![
-                "stun:heartlabs.tech:3478".to_string(),
-                "turn:heartlabs.tech:3478".to_string(),
-            ],
-            username: Some("testuser".to_string()),
-            credential: Some("fyUTdD7dQjeSauYv".to_string()), // does it make sense to hide this better?
-        },
-        channels: vec![ChannelConfig::reliable()],
-    });
+    let (socket, loop_fut) =
+        WebRtcSocket::builder(format!("ws://localhost:3537/{}?next=2", encode(room_id)))
+            /*.ice_server(RtcIceServerConfig {
+                urls: vec![
+                    //"stun:heartlabs.tech:3478".to_string(),
+                    //"turn:heartlabs.tech:3478".to_string(),
+                ],
+                username: Some("testuser".to_string()),
+                credential: Some("fyUTdD7dQjeSauYv".to_string()), // does it make sense to hide this better?
+            })*/
+            .add_reliable_channel()
+            .build();
+
     info!("my id is {:?}", socket.id());
 
+    let loop_fut_simple = async {
+        info!("matchbox loop started");
+        loop_fut.await.unwrap();
+        error!("matchbox loop exited");
+    };
+
     #[cfg(target_family = "wasm")]
-    wasm_bindgen_futures::spawn_local(loop_fut);
+    wasm_bindgen_futures::spawn_local(loop_fut_simple);
 
     #[cfg(not(target_family = "wasm"))]
     std::thread::spawn(move || {
         let executor = async_executor::Executor::new();
-        let task = executor.spawn(loop_fut);
+        let task = executor.spawn(loop_fut_simple);
         futures::executor::block_on(executor.run(task));
         error!("message future quit");
     });
 
-    MatchboxClient { socket }
+    MatchboxClient {
+        socket,
+        is_ready: false,
+    }
 }
 pub struct MatchboxClient {
     socket: WebRtcSocket,
+    is_ready: bool,
 }
 
 impl MultiplayerClient for MatchboxClient {
     fn is_ready(&self) -> bool {
-        debug!("{:?}", self.socket.connected_peers());
-        self.socket.connected_peers().len() == 1
+        self.is_ready
     }
 
     fn accept_new_connections(&mut self) -> Vec<String> {
-        self.socket.accept_new_connections()
+        self.socket
+            .update_peers()
+            .iter()
+            .map(|(i, _)| {
+                self.is_ready = true;
+                i.0.to_string()
+            })
+            .collect()
     }
 
     fn recieved_events(&mut self) -> Vec<GameEventObject> {
@@ -72,12 +89,12 @@ impl MultiplayerClient for MatchboxClient {
         let json = game_object.serialize_json();
         self.socket.send(
             json.into_bytes().into_boxed_slice(),
-            opponent_id.to_string(),
+            PeerId(opponent_id.try_into().unwrap()),
         );
     }
 
     fn own_player_id(&self) -> Option<String> {
-        Some(self.socket.id().clone())
+        self.socket.id().map(|id| id.0.to_string())
     }
 }
 
