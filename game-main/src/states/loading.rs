@@ -299,13 +299,13 @@ fn egui_setup_fonts(egui_ctx: &egui::Context) {
     font_data.tweak.scale = 10.;
     font_definitions
         .font_data
-        .insert("megachess".to_owned(), font_data);
+        .insert("bugchess".to_owned(), font_data);
     // Put my font first (highest priority):
     font_definitions
         .families
         .get_mut(&FontFamily::Proportional)
         .unwrap()
-        .insert(0, "megachess".to_owned());
+        .insert(0, "bugchess".to_owned());
     egui_ctx.set_fonts(font_definitions);
     let mut visuals = Visuals::default();
     //visuals.override_text_color = Some(Color32::from_rgb(0,255,0));

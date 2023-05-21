@@ -539,6 +539,38 @@ dependencies = [
 ]
 
 [[package]]
+name = "bugchess"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-executor",
+ "async-trait",
+ "egui-macroquad",
+ "futures",
+ "futures-util",
+ "game-core",
+ "game-events",
+ "game-model",
+ "game-render",
+ "insta",
+ "instant",
+ "json_comments",
+ "macroquad",
+ "macroquad-canvas",
+ "matchbox_socket",
+ "nanoserde",
+ "openssl",
+ "reqwest",
+ "sapp-jsutils",
+ "url",
+ "urlencoding",
+ "uuid",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.12.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1969,38 +2001,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6365506850d44bff6e2fbcb5176cf63650e48bd45ef2fe2665ae1570e0f4b9ca"
 dependencies = [
  "digest 0.10.7",
-]
-
-[[package]]
-name = "megachess"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-executor",
- "async-trait",
- "egui-macroquad",
- "futures",
- "futures-util",
- "game-core",
- "game-events",
- "game-model",
- "game-render",
- "insta",
- "instant",
- "json_comments",
- "macroquad",
- "macroquad-canvas",
- "matchbox_socket",
- "nanoserde",
- "openssl",
- "reqwest",
- "sapp-jsutils",
- "url",
- "urlencoding",
- "uuid",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
 ]
 
 [[package]]

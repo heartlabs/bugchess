@@ -2,7 +2,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Megachess</title>
+    <title>Bugchess</title>
     <style>
         html,
         body {
@@ -111,7 +111,7 @@
     <!--<script src="https://not-fl3.github.io/miniquad-samples/mq_js_bundle.js"></script>-->
     <script src="gl.js"></script>
     <script type="module">
-        import init, { set_wasm } from "./megachess.js";
+        import init, { set_wasm } from "./bugchess.js";
         async function run() {
             let wbg = await init();
             miniquad_add_plugin({
@@ -120,7 +120,7 @@
                 version: "0.0.1",
                 name: "wbg",
             });
-            load("./megachess_bg.wasm");
+            load("./bugchess_bg.wasm");
         }
         run();
     </script>

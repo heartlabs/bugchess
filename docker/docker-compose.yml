@@ -32,3 +32,5 @@ services:
       - ./turnserver.conf:/etc/coturn/turnserver.conf
   game-server:
     image: "neidhart/bugchess-server"
+    volumes:
+      - ./error_reports/:/error_reports

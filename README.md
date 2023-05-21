@@ -1,4 +1,4 @@
-# Megachess
+# Bugchess
 A turn based strategy game on a chess-like board. Be the first to destroy all of your opponent's pieces to win. 
 Each turn the player can place new pieces and arrange them in patterns to create stronger ones with special powers and longer range.
 
