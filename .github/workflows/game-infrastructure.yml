@@ -6,9 +6,6 @@ on:
     paths:
       - "game-server/**"
       - "docker/**"
-    paths-ignore:
-      - "**.txt"
-      - "**.md"
 
 env:
   CARGO_TERM_COLOR: always
