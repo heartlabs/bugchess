@@ -1,0 +1,50 @@
+name: Rust
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - "game-server/**"
+      - "docker/**"
+    paths-ignore:
+      - "**.txt"
+      - "**.md"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    environment: heartlabs.tech
+    steps:
+    - uses: actions/checkout@v2
+    - name: Log in to Docker Hub
+      uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+    - name: Build and push Docker image
+      uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
+      with:
+        context: game-server/
+        file: game-server/Dockerfile
+        push: true
+        tags: neidhart/bugchess-server:latest
+    - name: copy docker-compose files via ssh
+      uses: appleboy/scp-action@master
+      with:
+        host: v2202204174441188151.happysrv.de
+        username: ${{ secrets.DEPLOY_USER }}
+        password: ${{ secrets.DEPLOY_USER_PASSWORD }}
+        source: "docker/*"
+        target: "/home/server/docker"
+        strip_components: 1
+    - name: restart docker compose
+      uses: appleboy/ssh-action@v0.1.10
+      with:
+        host: v2202204174441188151.happysrv.de
+        username: ${{ secrets.DEPLOY_USER }}
+        password: ${{ secrets.DEPLOY_USER_PASSWORD }}
+        script: cd /home/server/docker && docker compose up -d # --force-recreate
+    
