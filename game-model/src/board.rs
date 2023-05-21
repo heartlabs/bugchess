@@ -1,7 +1,6 @@
 use std::fmt::Display;
 
-use crate::{game::Game, piece::*, GameError, GameResult, Point2};
-use colored::Colorize;
+use crate::{piece::*, GameError, GameResult, Point2};
 use nanoserde::{DeJson, SerJson};
 
 #[derive(Clone, PartialEq, Eq, Debug, DeJson, SerJson)]
