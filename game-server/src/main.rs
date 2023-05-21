@@ -29,7 +29,7 @@ async fn main() {
                         }
                     })
                     .map(|()| format!("{}/{}.json", ERROR_REPORTS_DIR, Utc::now()))
-                    .and_then(|filename| File::create(filename))
+                    .and_then(File::create)
                     .and_then(|mut file| file.write(body_string.clone().into_bytes().as_slice()))
                     .map(|_| body_string)
                     .map_err(|_| reject::custom(NoString {}))
