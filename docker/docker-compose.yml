@@ -30,5 +30,5 @@ services:
     network_mode: "host"
     volumes:
       - ./turnserver.conf:/etc/coturn/turnserver.conf
-  server:
+  game-server:
     image: "neidhart/bugchess-server"
