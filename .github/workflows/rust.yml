@@ -57,15 +57,7 @@ jobs:
         source: "html/*"
         target: "/home/server/docker/html"
         strip_components: 1
-    - name: copy docker-compose files via ssh
-      uses: appleboy/scp-action@master
-      with:
-        host: v2202204174441188151.happysrv.de
-        username: ${{ secrets.DEPLOY_USER }}
-        password: ${{ secrets.DEPLOY_USER_PASSWORD }}
-        source: "docker/*"
-        target: "/home/server/docker"
-        strip_components: 1
+    
   docker:
     runs-on: ubuntu-latest
     steps:
@@ -81,6 +73,9 @@ jobs:
       uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
       with:
         images: neidhart/bugchess-server
+        tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
     
     - name: Build and push Docker image
       uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
@@ -90,4 +85,13 @@ jobs:
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
+    - name: copy docker-compose files via ssh
+      uses: appleboy/scp-action@master
+      with:
+        host: v2202204174441188151.happysrv.de
+        username: ${{ secrets.DEPLOY_USER }}
+        password: ${{ secrets.DEPLOY_USER_PASSWORD }}
+        source: "docker/*"
+        target: "/home/server/docker"
+        strip_components: 1
     
