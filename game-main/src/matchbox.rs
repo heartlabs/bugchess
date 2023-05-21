@@ -3,7 +3,7 @@ use game_core::{
     multiplayer_connector::{MultiplayerClient, MultiplayerConector},
 };
 use macroquad::prelude::*;
-use matchbox_socket::{ChannelConfig, PeerId, RtcIceServerConfig, WebRtcSocket};
+use matchbox_socket::{PeerId, RtcIceServerConfig, WebRtcSocket};
 use nanoserde::{DeJson, SerJson};
 use urlencoding::encode;
 

@@ -1,10 +1,8 @@
-use futures_util::future::err;
 use std::{
     borrow::{Borrow, BorrowMut},
-    cell::{Ref, RefCell},
+    cell::RefCell,
     fs::File,
     io::Write,
-    path::{Display, Path},
     rc::Rc,
     sync::{Arc, Mutex},
 };
@@ -14,14 +12,13 @@ use game_model::game::Game;
 
 use game_render::{constants::cell_hovered, BoardRender, CustomRenderContext};
 
-use crate::states::{error_state::ErrorState, GameState};
+use crate::states::GameState;
 use game_core::{command_handler::CommandHandler, game_controller::GameCommand};
 use game_events::event_broker::EventBroker;
-use game_model::GameError;
+
 use macroquad::prelude::*;
 use macroquad_canvas::Canvas2D;
 use nanoserde::SerJson;
-use reqwest::Error;
 
 pub struct CoreGameState {
     pub game: Rc<RefCell<Game>>,
@@ -54,36 +51,35 @@ impl CoreGameState {
                 .downcast_ref::<&str>()
                 .unwrap_or(&"Panicked without error string");
 
-            let location = panic_info
+            let _location = panic_info
                 .location()
                 .map(|l| l.to_string())
                 .unwrap_or("Unknown Location".to_string());
 
-            error!(
-                "{} after commands: {:?}",
-                panic_info,
-                (*commands).lock()
-            );
+            error!("{} after commands: {:?}", panic_info, (*commands).lock());
 
             once.call_once(|| {
                 let commands = (*commands).lock().unwrap().borrow().to_vec();
 
                 #[cfg(not(target_family = "wasm"))]
-                if let Err(e) = export_to_file(&message, &commands) {
+                if let Err(e) = export_to_file(message, &commands) {
                     println!("{:?}", e);
                 }
 
-                #[cfg(target_family = "wasm")]{
+                #[cfg(target_family = "wasm")]
+                {
                     let error_report_url = web_sys::window()
                         .as_ref()
                         .and_then(web_sys::Window::document)
                         .and_then(|document| document.url().ok())
                         .and_then(|url| url::Url::parse(&url).ok())
-                        .and_then(|url| {
-                            Some(format!("{}://{}", url.scheme(), url.host_str()?))
-                        })
+                        .and_then(|url| Some(format!("{}://{}", url.scheme(), url.host_str()?)))
                         .unwrap();
-                    wasm_bindgen_futures::spawn_local(post_error_report(error_report_url, format!("{}", panic_info), commands))
+                    wasm_bindgen_futures::spawn_local(post_error_report(
+                        error_report_url,
+                        format!("{}", panic_info),
+                        commands,
+                    ))
                 }
             });
         }));
@@ -329,11 +325,11 @@ fn handle_player_input(
     }
 }
 
-const EXPORTED_GAMES_DIR: &'static str = "game-main/tests/exported_games";
+const EXPORTED_GAMES_DIR: &str = "game-main/tests/exported_games";
 
 fn export_to_file(message: &str, content: &Vec<GameCommand>) -> Result<(), std::io::Error> {
     let num_games = std::fs::read_dir(EXPORTED_GAMES_DIR)?.count();
-    let mut filename = format!(
+    let filename = format!(
         "{}/{:04}_{}.json",
         EXPORTED_GAMES_DIR,
         num_games + 1,
@@ -348,12 +344,14 @@ fn export_to_file(message: &str, content: &Vec<GameCommand>) -> Result<(), std::
     Ok(())
 }
 
-async fn post_error_report(url: String, message: String, content: Vec<GameCommand>){
+async fn post_error_report(url: String, message: String, content: Vec<GameCommand>) {
     let client = reqwest::Client::new();
-    if let Err(e) = client.post(url + ":3030/error_report")
+    if let Err(e) = client
+        .post(url + ":3030/error_report")
         .body(format!("// {}\n\n{}", message, content.serialize_json()))
         .send()
-        .await {
+        .await
+    {
         println!("{:?}", e);
     }
 }

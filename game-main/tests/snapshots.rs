@@ -1,15 +1,8 @@
 mod utils;
 
-use game_model::game::Game;
 use json_comments::StripComments;
 use nanoserde::DeJson;
-use std::{
-    ffi::OsStr,
-    fs::DirEntry,
-    io,
-    io::Read,
-    path::{Path, PathBuf},
-};
+use std::{ffi::OsStr, io::Read, path::PathBuf};
 
 use game_core::game_controller::GameCommand;
 #[test]
