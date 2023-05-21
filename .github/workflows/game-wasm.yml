@@ -4,6 +4,7 @@ on:
   push:
     branches: [ master ]
     paths-ignore:
+      - ".github/workflows/game-wasm.yml"
       - "game-server/**"
       - "docker/**"
       - "**.txt"
