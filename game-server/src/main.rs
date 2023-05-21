@@ -20,7 +20,7 @@ async fn main() {
         .and(warp::body::bytes())
         .and_then(|bytes: bytes::Bytes| async {
             if let Ok(body_string) = String::from_utf8(bytes.into()) {
-                println!("Received error report: {}", body_string);
+                println!("Received error report: \n{}", body_string);
                 std::fs::create_dir_all(ERROR_REPORTS_DIR)
                     .and_then(|()| fs::read_dir(ERROR_REPORTS_DIR))
                     .map(|r| {
