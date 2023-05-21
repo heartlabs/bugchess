@@ -34,11 +34,14 @@ async fn main() {
                     .map(|_| body_string)
                     .map_err(|_| reject::custom(NoString {}))
             } else {
+                println!("Could not receive error report");
                 Err(reject::custom(NoString {}))
             }
         })
         .map(|string: String| string)
         .with(warp::cors::cors().allow_any_origin());
 
-    warp::serve(error_report).run(([127, 0, 0, 1], 3030)).await
+    println!("Started game server.");
+
+    warp::serve(error_report).run(([0, 0, 0, 0], 3030)).await
 }
