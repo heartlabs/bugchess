@@ -71,7 +71,7 @@ impl CommandHandler {
         }
 
         if let GameCommand::Undo = command {
-            if self.past_commands.len() <= self.start_of_turn {
+            if self.past_commands.len() - 1 <= self.start_of_turn {
                 return;
             }
 

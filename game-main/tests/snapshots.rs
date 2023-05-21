@@ -4,6 +4,7 @@ use game_model::game::Game;
 use json_comments::StripComments;
 use nanoserde::DeJson;
 use std::{
+    ffi::OsStr,
     fs::DirEntry,
     io,
     io::Read,
@@ -22,6 +23,12 @@ fn test_all_snapshots() -> anyhow::Result<()> {
     for path in exported_games {
         println!("Testing snapshot {:?}", path);
 
+        let snapshot_name: String = path
+            .file_stem()
+            .and_then(OsStr::to_str)
+            .unwrap_or("No Description")
+            .to_string();
+
         let file_content = std::fs::read(path)?;
         let mut json = String::new();
         StripComments::new(&file_content as &[u8]).read_to_string(&mut json)?;
@@ -38,7 +45,7 @@ fn test_all_snapshots() -> anyhow::Result<()> {
         });
         let game = (*test_game.game).borrow().clone();
 
-        insta::assert_display_snapshot!(game);
+        insta::assert_display_snapshot!(snapshot_name, game);
     }
 
     Ok(())
