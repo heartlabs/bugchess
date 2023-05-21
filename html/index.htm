@@ -17,7 +17,8 @@
             margin: 0px;
             padding: 0px;
             width: min(100%, 100vw);
-            height: min(100%, 100vw);
+            height: min(100%, 90vw);
+            max-height: 90vh;
             aspect-ratio: 8/9;
         }
 
@@ -39,24 +40,63 @@
         </p>
 
         <h2>Basic Rules</h2>
+        When it is your turn you can do any of the following:
+        <ul>
+            <li> Move one of your pieces</li>
+            <li> Place a new piece</li>
+            <li> Activate the special ability of one of your pieces.</li>
+        </ul>
         <p>
-            You can either place a new piece on any free square on the board if you have one (look on the right) or move
-            one of your pieces.<br>
-            You can move every one of your pieces once each turn by clicking on it and then on the square you want to
-            move it to.<br>
-            If the square is already occupied by an opponent's piece you capture and remove it.<br>
-            If you arrange your pieces in certain patterns (see below) they merge into stronger pieces with special
-            abilities.<br>
-            You can activate these abilities by clicking on them twice.<br>
-            If you finished your turn press the "N" key on your keyboard or the "Next" button to give the opponent
-            control over his pieces.<br>
-            At the beginning of each turn you get 2 new pieces which you can either place immediately on the board or
-            save them up for later.<br>
-            You also win if you manage to collect 20 unused pieces while still keeping at least one piece on the
-            board.<br>
-            The first player with no pieces on the board loses.
+            You may do this with as many pieces you like or do nothing at all. As soon as you are done, click the "End
+            Turn" button or the "Return" key on the keyboard to let the opponent do their moves.
         </p>
-        <h2>Special Pieces</h2>
+        <p>
+            If after a move some of your (or the opponent's) pieces end up forming a specific pattern on the board,
+            they merge into another piece type, as defined by the pattern (see below).
+        </p>
+        <p>
+            As long as it is your turn you can undo all of your moves by clicking the "Undo" button or pressing "U" on
+            the keyboard so don't be afraid of "learning by doing" and discovering the rules of the game and the pieces'
+            abilities by yourself.
+        </p>
+        <p>
+            You win if your opponent lost all pieces on the board or if you collect 20 unused pieces on the side of the
+            board
+        </p>
+        <h3>Moving a piece</h3>
+        <p>
+            Most pieces have the ability to move once per turn. You can hover over your piece to highlight the fields
+            where it may go. Click the piece to select it and then the target field to move it.
+        </p>
+        <p>
+            If there is an enemy piece on the target field you capture it. Note, that some weaker
+            piece types can't capture some of the stronger ones that way.
+        </p>
+        <h3>Placing a piece</h3>
+        <p>
+            Each turn you get two new available simple pieces that you can place on a field on the board whenever you
+            like by simply clicking a free field.
+        </p>
+        <p>
+            You can see your available pieces as well as the opponent's on the sides of the board.
+        </p>
+        <h3>Activate an ability</h3>
+        <p>
+            Many piece types have an activatable ability. To activate it, click the piece twice. If it's a targeted
+            ability, possible target fields are highlighted and you can click on a target to select it.
+        </p>
+
+        <h2>Piece Types</h2>
+        TODO: Update piece names to insects
+        <h3>Simple</h3>
+        <dl>
+            <dt>Pattern</dt>
+            <dd>n/a - these are the initial pieces before being merged</dd>
+            <dt>Moves</dt>
+            <dd>One square in each direction, also diagonally </dd>
+            <dt>Special Abilities</dt>
+            <dd>None</dd>
+        </dl>
         <h3>Cross ( + ) </h3>
         <dl>
             <dt>Pattern</dt>

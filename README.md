@@ -6,9 +6,11 @@ Each turn the player can place new pieces and arrange them in patterns to create
 
 ## Technologies
 * Programming language: **Rust**
-* Game engine: **Amethyst**
+* Game engine: **macroquad**
+* Networking: **matchbox**
  
 ## Screencasts
+TODO...
 ### Merge simple pieces into stronger ones
 ![merge pieces](resources/readme/merge.gif)
 
@@ -18,11 +20,14 @@ Each turn the player can place new pieces and arrange them in patterns to create
 ### Fierce Fights between Opponents
 ![fight scene](resources/readme/fight.gif)
 
-## Install
-Please compile and run the game with Rust's *[cargo](https://doc.rust-lang.org/cargo/)* command in the root directory of the checked-out sources.
+## Play
+
+You can play the game online or offline (hot-seat) at https://heartlabs.tech.
+
+You can also compile and run the game locally with Rust's *[cargo](https://doc.rust-lang.org/cargo/)* command in the root directory of the checked-out sources.
 
     cargo run
 
-For mac or linux please enable `metal` instead of `vulcan` in the `Cargo.toml` file.
+
 ## How to Play?
 Coming soon...  
