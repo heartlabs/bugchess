@@ -29,3 +29,7 @@ services:
     network_mode: "host"
     volumes:
       - ./turnserver.conf:/etc/coturn/turnserver.conf
+  server:
+    image: "neidhart/bugchess-server"
+    ports:
+      - "3030:3030"
