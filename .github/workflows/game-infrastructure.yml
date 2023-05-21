@@ -1,4 +1,4 @@
-name: Rust
+name: Game Infrastructure
 
 on:
   push:
