@@ -5,6 +5,7 @@ services:
       - "443:443"
       - "80:80"
       - "3537:3537"
+      - "3030:3030"
     volumes:
       - ./html:/usr/share/nginx/html
       - ./nginx:/etc/nginx/conf.d
@@ -31,5 +32,3 @@ services:
       - ./turnserver.conf:/etc/coturn/turnserver.conf
   server:
     image: "neidhart/bugchess-server"
-    ports:
-      - "3030:3030"
