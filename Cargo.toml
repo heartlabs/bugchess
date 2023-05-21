@@ -1,6 +1,7 @@
 [workspace]
-members = ["game-model", "game-events", "game-core", "game-main", "game-render", "game-server"]
+members = ["game-model", "game-events", "game-core", "game-main", "game-render"]
 default-members = ["game-main"]
+exclude = ["game-server"]
 
 [profile.release]
 lto = true
