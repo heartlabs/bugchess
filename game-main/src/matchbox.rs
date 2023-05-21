@@ -8,18 +8,20 @@ use nanoserde::{DeJson, SerJson};
 use urlencoding::encode;
 
 fn connect(room_id: &str) -> MatchboxClient {
-    let (socket, loop_fut) =
-        WebRtcSocket::builder(format!("ws://localhost:3537/{}?next=2", encode(room_id)))
-            /*.ice_server(RtcIceServerConfig {
-                urls: vec![
-                    //"stun:heartlabs.tech:3478".to_string(),
-                    //"turn:heartlabs.tech:3478".to_string(),
-                ],
-                username: Some("testuser".to_string()),
-                credential: Some("fyUTdD7dQjeSauYv".to_string()), // does it make sense to hide this better?
-            })*/
-            .add_reliable_channel()
-            .build();
+    let (socket, loop_fut) = WebRtcSocket::builder(format!(
+        "wss://heartlabs.tech:3537/{}?next=2",
+        encode(room_id)
+    ))
+    .ice_server(RtcIceServerConfig {
+        urls: vec![
+            "stun:heartlabs.tech:3478".to_string(),
+            "turn:heartlabs.tech:3478".to_string(),
+        ],
+        username: Some("testuser".to_string()),
+        credential: Some("fyUTdD7dQjeSauYv".to_string()), // does it make sense to hide this better?
+    })
+    .add_reliable_channel()
+    .build();
 
     info!("my id is {:?}", socket.id());
 
