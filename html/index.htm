@@ -13,6 +13,7 @@
             font-family: Helvetica;
         }
 
+        #game,
         #glcanvas {
             margin: 0px;
             padding: 0px;
@@ -20,6 +21,75 @@
             height: min(100%, 90vw);
             max-height: 90vh;
             aspect-ratio: 8/9;
+            background-color: black;
+        }
+
+        .gameMenu {
+            list-style-type: none;
+            margin: auto;
+            padding: 0;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            display: flex;
+            height: 100%;
+            width: fit-content;
+        }
+
+        .gameMenu::before,
+        .gameMenu::after {
+            content: "";
+            flex: 1;
+        }
+
+        .gameMenu>* {
+            width: 100%;
+            font-size: 2em;
+            background-color: #444;
+            margin: 1px;
+            color: #CCC;
+        }
+
+        .gameMenu a {
+            padding: 1em;
+            width: 100%;
+            height: 100%;
+            display: block;
+            box-sizing: border-box;
+
+        }
+
+        .gameMenu .description {
+            font-size: 1.5em;
+            padding: 1em;
+            color: #333;
+            background-color: #DDD;
+            box-sizing: border-box;
+        }
+
+        .gameMenu a:hover {
+            background-color: #777;
+            color: #FFF;
+        }
+
+        .gameMenu a:active {
+            background-color: #999;
+            color: #444;
+        }
+
+        #room_id_display {
+            font-style: italic;
+            font-size: 0.9em;
+            display: block;
+            padding-top: 0.5em;
+        }
+
+        .linkCopied .gameMenu>*:nth-child(2) {
+            color: #777;
+        }
+
+        .linkCopied .gameMenu>*:nth-child(3) {
+            color: yellow;
         }
 
         p {
@@ -33,7 +103,29 @@
 </head>
 
 <body>
-    <canvas id="glcanvas" tabindex='1'></canvas>
+    <div id="game">
+        <div id="select_game" hidden>
+            <ul class="gameMenu">
+                <li><a onclick="runOffline()">Offline</a></li>
+                <li><a onclick="runMatchmaking()">Find Opponent</a></li>
+                <li><a onclick="createGame()">Create Game</a></li>
+            </ul>
+        </div>
+        <div id="create_game" hidden>
+            <div class="gameMenu">
+                <span class="description">
+                    Please copy the invite link and send it to the other player <br>
+                    before joining the game yourself: <br>
+                    <span id="room_id_display"></span>
+                </span>
+
+                <div><a onclick="copyInviteLink()">Copy Invite Link</a></div>
+                <div> <a onclick="setProperty('delay_game', false)">Join Game</a></div>
+            </div>
+        </div>
+
+        <canvas id="glcanvas" tabindex='1' hidden></canvas>
+    </div>
     <section>
         <h1>How to Play</h1>
         <p>This is a 2-player turn-based boardgame with the goal to remove all your opponent's pieces from the board.
@@ -162,9 +254,73 @@
             });
             load("./bugchess_bg.wasm");
         }
-        run();
-    </script>
 
+        function tryStartGame() {
+            if (!getProperty('delay_game')) {
+                document.getElementById("glcanvas").hidden = false
+                document.getElementById("create_game").hidden = true
+                run()
+            } else {
+                setTimeout(() => {
+                    tryStartGame()
+                }, 500);
+            }
+        }
+
+        tryStartGame()
+    </script>
+    <script>
+        const properties = {}
+
+        function getProperty(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+
+            var p = urlParams.get(name) || properties[name] || ""
+
+            console.log("property " + name + " is '" + p + "'")
+
+            return p
+        }
+
+        function setProperty(name, value) {
+            properties[name] = value
+            update()
+        }
+
+
+        function update() {
+            let inviteLink = window.location.origin + window.location.pathname + "?room_id=" + getProperty('room_id');
+
+            document.getElementById("select_game").hidden = !!getProperty('room_id') || !!getProperty('offline')
+            document.getElementById("room_id_display").innerHTML = `${inviteLink}`
+        }
+
+        function runOffline() {
+            setProperty("offline", true)
+            setProperty("delay_game", false)
+        }
+
+        function runMatchmaking() {
+            setProperty("room_id", "common")
+            setProperty("delay_game", false)
+        }
+
+        function createGame() {
+            setProperty("room_id", self.crypto.randomUUID())
+            document.getElementById("create_game").hidden = false
+        }
+
+        function copyInviteLink() {
+            let inviteLink = window.location.origin + window.location.pathname + "?room_id=" + getProperty('room_id');
+            navigator.clipboard.writeText(inviteLink)
+
+            document.getElementById("create_game").classList.add("linkCopied")
+        }
+
+        setProperty("delay_game", !getProperty("room_id"))
+        update()
+
+    </script>
 </body>
 
 </html>

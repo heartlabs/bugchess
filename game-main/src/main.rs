@@ -12,6 +12,9 @@ use crate::{
 use macroquad::{prelude::*, rand::srand};
 use macroquad_canvas::Canvas2D;
 
+#[cfg(target_family = "wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 fn window_conf() -> Conf {
     Conf {
         window_title: "Makrochess".to_owned(),
@@ -64,9 +67,15 @@ fn get_url_param(key: &str) -> Option<String> {
         })
 }
 
+#[cfg(target_family = "wasm")]
+#[wasm_bindgen]
+extern "C" {
+    fn getProperty(name: &str) -> wasm_bindgen::JsValue;
+}
+
 async fn setup_game_state() -> Box<dyn GameState> {
     #[cfg(target_family = "wasm")]
-    let preconfigured_room_id = get_url_param("room_id");
+    let preconfigured_room_id = getProperty("room_id").as_string();
     #[cfg(not(target_family = "wasm"))]
     let preconfigured_room_id: Option<String> = None;
 
@@ -80,7 +89,16 @@ async fn setup_game_state() -> Box<dyn GameState> {
 
     let mut loading_state = LoadingState::new();
     if let Some(room_id) = preconfigured_room_id.as_ref() {
-        loading_state.join_room(room_id.as_str());
+        if !room_id.is_empty() {
+            info!("Was preconfigured with room_id {}", room_id);
+            loading_state.join_room(room_id.as_str());
+        }
+    }
+
+    #[cfg(target_family = "wasm")]
+    if let Some(true) = getProperty("offline").as_bool() {
+        info!("Offline game");
+        loading_state.offline_game();
     }
 
     Box::new(loading_state)

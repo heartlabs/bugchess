@@ -115,6 +115,11 @@ impl LoadingState {
 
         self.sub_state = LoadingSubState::Matchmaking;
     }
+
+    pub fn offline_game(&mut self) {
+        self.sub_state = LoadingSubState::SetupGame;
+        self.core_game_state.as_mut().unwrap().is_multi_player = false;
+    }
 }
 
 impl GameState for LoadingState {
