@@ -1,3 +1,11 @@
+Missing
+    * Idle animations
+    * Tutorial
+    * Cheat-Sheet
+    * Reconnecting stopped working
+    * Handle player disconnect
+    * Player name
+==========
 
 Next Steps:
     * Willkommensseite
