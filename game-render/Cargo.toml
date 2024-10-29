@@ -8,7 +8,9 @@ edition = "2021"
 [dependencies]
 macroquad = "0.3.26"
 macroquad-canvas = "0.3.2"
+egui-macroquad = "0.15.0"
+log = "0.4"
 instant = "0.1.13"
-game-model = {path = "../game-model"}
-game-events = {path = "../game-events"}
-game-core = {path = "../game-core"}
+game-model = { path = "../game-model" }
+game-events = { path = "../game-events" }
+game-core = { path = "../game-core" }

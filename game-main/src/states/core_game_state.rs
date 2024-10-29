@@ -10,7 +10,7 @@ use std::{
 use game_core::{core_game::CoreGameSubstate, multiplayer_connector::MultiplayerConector};
 use game_model::game::Game;
 
-use game_render::{constants::cell_hovered, BoardRender, CustomRenderContext};
+use game_render::{constants::cell_hovered, sprite::Colour, BoardRender, CustomRenderContext};
 
 use crate::states::GameState;
 use game_core::{command_handler::CommandHandler, game_controller::GameCommand};
@@ -160,12 +160,13 @@ impl CoreGameState {
             .iter()
             .enumerate()
         {
+            let color: Colour = *board_render.get_team_color(game.current_team_index);
             draw_text(
                 text.as_str(),
                 10.,
                 670. + (i * 50) as f32,
                 50.,
-                *board_render.get_team_color(game.current_team_index),
+                color.into(),
             );
         }
     }

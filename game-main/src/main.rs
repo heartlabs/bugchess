@@ -9,6 +9,7 @@ use crate::{
     states::{loading::LoadingState, GameState},
 };
 
+use env_logger::Target;
 use macroquad::{prelude::*, rand::srand};
 use macroquad_canvas::Canvas2D;
 
@@ -26,6 +27,14 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
+    #[cfg(not(target_family = "wasm"))]
+    env_logger::builder()
+        .filter_level(log::LevelFilter::Debug)
+        .default_format()
+        .target(Target::Stdout)
+        .init();
+    #[cfg(target_family = "wasm")]
+    console_log::init_with_level(log::Level::Debug).expect("Could not initialize logger");
     let canvas = Canvas2D::new(WINDOW_WIDTH as f32, WINDOW_HEIGHT as f32);
     let mut state = setup_game_state().await;
 
@@ -45,7 +54,7 @@ async fn main() {
         canvas.draw();
 
         if state.uses_egui() {
-            egui_macroquad::draw();
+            game_render::draw_ui();
         }
 
         next_frame().await;

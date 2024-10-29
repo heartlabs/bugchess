@@ -1,0 +1,2 @@
+// function not implemented on non-wasm32 targets
+[{"InitPlayer":[6]}]

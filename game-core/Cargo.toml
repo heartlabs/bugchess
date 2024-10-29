@@ -6,9 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-game-model = {path = "../game-model"}
-game-events = {path = "../game-events"}
-miniquad = "0.3.16" # only used for logging
+game-model = { path = "../game-model" }
+game-events = { path = "../game-events" }
+log = "0.4"
 indexmap = "1.9.3"
 nanoserde = "0.1.37"
 quad-rand = "0.2.1"

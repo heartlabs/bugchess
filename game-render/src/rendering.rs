@@ -1,14 +1,18 @@
-use crate::{animation::*, constants::*, ui::Button};
+use crate::{animation::*, constants::*, sprite::*, ui::Button};
 use game_core::core_game::CoreGameSubstate;
 use game_model::{board::*, game::*, piece::*, ranges::*, Point2};
 use instant::{Duration, Instant};
-use macroquad::prelude::*;
+use macroquad::{
+    prelude::{Color, Vec2, WHITE},
+    shapes::{draw_rectangle, draw_rectangle_lines},
+    texture::{draw_texture_ex, DrawTextureParams, Texture2D},
+};
 use macroquad_canvas::Canvas2D;
 use std::collections::{HashMap, VecDeque};
 #[derive(Debug, Clone)]
 pub struct CustomRenderContext {
-    pieces_texture: Texture2D,
-    special_texture: Texture2D,
+    pub pieces_texture: Texture2D,
+    pub special_texture: Texture2D,
     background_texture: Texture2D,
     pub game_state: CoreGameSubstate,
     pub button_next: Button,
@@ -44,7 +48,7 @@ pub struct BoardRender {
     pub(crate) unused_pieces: Vec<Vec<SpriteRender>>,
     pub(crate) placed_pieces: HashMap<Point2, SpriteRender>,
     pub(crate) effects: HashMap<Point2, Vec<EffectRender>>,
-    pub(crate) team_colors: Vec<Color>,
+    pub(crate) team_colors: Vec<Colour>,
     next_animations: VecDeque<Vec<Animation>>,
     current_animations: Vec<Animation>,
 }
@@ -57,8 +61,8 @@ impl BoardRender {
         let board = &game.board;
 
         let team_colors = vec![
-            Color::new(0.96, 0.27, 0.20, 1.),
-            Color::new(0.90, 0.68, 0.15, 1.),
+            Colour::new(0.96, 0.27, 0.20, 1.),
+            Colour::new(0.90, 0.68, 0.15, 1.),
         ];
 
         board.for_each_placed_piece(|point, piece| {
@@ -79,7 +83,7 @@ impl BoardRender {
         }
     }
 
-    pub fn get_team_color(&self, index: usize) -> &Color {
+    pub fn get_team_color(&self, index: usize) -> &Colour {
         self.team_colors
             .get(index)
             .expect("Team with that index does not exist")
@@ -252,7 +256,7 @@ impl BoardRender {
                     board,
                     &hovered_point,
                     &range,
-                    Color::from_rgba(90, 220, 90, 100),
+                    Colour::new(0.3, 0.9, 0.3, 0.4),
                 )
             }
         }
@@ -290,45 +294,14 @@ impl BoardRender {
                         board,
                         &selected_point,
                         &range,
-                        Color::from_rgba(0, 150, 0, 150),
+                        Colour::new(0., 0.6, 0., 0.6),
                     )
                 }
             }
         }
     }
 
-    fn render_cells(board: &Board, canvas: &Canvas2D) {
-        board.for_each_cell(|cell| {
-            let (x_pos, y_pos) = cell_coords(&cell.point);
-
-            let mouse_point = cell_hovered(canvas);
-
-            let color = if cell.point == mouse_point {
-                BLUE
-            } else if (cell.point.x + cell.point.y + 1) % 2 == 0 {
-                Color::from_rgba(187, 173, 160, 255)
-            } else {
-                Color::from_rgba(238, 228, 218, 255)
-            };
-            draw_rectangle(
-                x_pos,
-                y_pos,
-                CELL_ABSOLUTE_WIDTH,
-                CELL_ABSOLUTE_WIDTH,
-                color,
-            );
-            draw_rectangle_lines(
-                x_pos,
-                y_pos,
-                CELL_ABSOLUTE_WIDTH,
-                CELL_ABSOLUTE_WIDTH,
-                1.,
-                BLACK,
-            );
-        });
-    }
-
-    fn highlight_range(board: &Board, source_point: &Point2, range: &Range, color: Color) {
+    fn highlight_range(board: &Board, source_point: &Point2, range: &Range, color: Colour) {
         for point in range.reachable_points(source_point, board).iter() {
             let (x_pos, y_pos) = cell_coords(&point);
 
@@ -344,7 +317,7 @@ impl BoardRender {
                     Color::from_rgba(250, 130, 90, 255),
                 );
 
-                used_color = Color {
+                used_color = Colour {
                     r: 1.,
                     ..used_color
                 }
@@ -355,7 +328,7 @@ impl BoardRender {
                 y_pos,
                 CELL_ABSOLUTE_WIDTH,
                 CELL_ABSOLUTE_WIDTH,
-                used_color,
+                used_color.into(),
             );
         }
     }
@@ -363,34 +336,17 @@ impl BoardRender {
 
 #[derive(Clone, Copy, Debug)]
 pub struct EffectRender {
-    pub from_color: Color,
-    pub towards_color: Color,
+    pub from_color: Colour,
+    pub towards_color: Colour,
     pub from_instant: Instant,
     pub towards_instant: Instant,
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct SpriteRender {
-    pub from: AnimationPoint,
-    pub to: AnimationPoint,
-    pub override_color: Option<Color>,
-    pub color: Color,
-    pub rotation: f32,
-    sprite_kind: SpriteKind,
-    rect_in_sprite: Rect,
-}
-
-#[derive(Clone, Copy, Debug)]
-pub enum SpriteKind {
-    Piece,
-    Special,
 }
 
 impl EffectRender {
     pub fn new() -> Self {
         EffectRender {
-            from_color: Color::new(80., 0., 100., 0.0),
-            towards_color: Color::new(80., 0., 100., 0.6),
+            from_color: Colour::new(80., 0., 100., 0.0),
+            towards_color: Colour::new(80., 0., 100., 0.6),
             from_instant: Instant::now(),
             towards_instant: Instant::now() + Duration::from_millis(ANIMATION_SPEED * 3),
         }
@@ -431,183 +387,5 @@ impl EffectRender {
                 ),
             },
         );
-    }
-}
-
-impl SpriteRender {
-    pub fn new(
-        x_pos: f32,
-        y_pos: f32,
-        scale: f32,
-        color: Color,
-        sprite_kind: SpriteKind,
-        rect_in_sprite: Rect,
-    ) -> Self {
-        let pap = AnimationPoint {
-            x_pos,
-            y_pos,
-            sprite_width: scale,
-            instant: Instant::now(),
-        };
-
-        Self::animated(pap, pap, color, sprite_kind, rect_in_sprite)
-    }
-
-    pub(crate) fn new_at_point(
-        point: &Point2,
-        sprite_width: f32,
-        color: Color,
-        sprite_kind: SpriteKind,
-        rect_in_sprite: Rect,
-    ) -> SpriteRender {
-        let (x_pos, y_pos) = Self::render_pos(sprite_width, point);
-
-        SpriteRender::new(
-            x_pos,
-            y_pos,
-            sprite_width,
-            color,
-            sprite_kind,
-            rect_in_sprite,
-        )
-    }
-
-    pub(crate) fn for_piece(point: &Point2, piece_kind: PieceKind, color: Color) -> SpriteRender {
-        let mut sprite_render = SpriteRender::new_at_point(
-            point,
-            PIECE_SCALE,
-            color,
-            SpriteKind::Piece,
-            Self::piece_sprite_rect(piece_kind),
-        );
-
-        if piece_kind == PieceKind::HorizontalBar {
-            sprite_render.rotation = 1.57;
-        }
-
-        sprite_render
-    }
-
-    fn render_pos(sprite_width: f32, point: &Point2) -> (f32, f32) {
-        let (x_pos, y_pos) = cell_coords(point);
-        let shift = (CELL_ABSOLUTE_WIDTH - sprite_width) / 2.;
-        (x_pos + shift, y_pos + shift)
-    }
-
-    fn animated(
-        from: AnimationPoint,
-        to: AnimationPoint,
-        color: Color,
-        sprite_kind: SpriteKind,
-        rect_in_sprite: Rect,
-    ) -> Self {
-        SpriteRender {
-            from,
-            to,
-            override_color: None,
-            color,
-            sprite_kind,
-            rect_in_sprite,
-            rotation: 0.,
-        }
-    }
-
-    fn piece_sprite_rect(piece_kind: PieceKind) -> Rect {
-        let (sprite_x, sprite_y) = match piece_kind {
-            PieceKind::Simple => (0, 0),
-            PieceKind::HorizontalBar => (2, 1),
-            PieceKind::VerticalBar => (2, 1),
-            PieceKind::Cross => (2, 0),
-            PieceKind::Queen => (1, 1),
-            PieceKind::Castle => (0, 2),
-            PieceKind::Sniper => (0, 1),
-        };
-
-        Rect {
-            x: sprite_x as f32 * 295. + 250.,
-            y: sprite_y as f32 * 255. + 100.,
-            w: 295.,
-            h: 255.,
-        }
-    }
-
-    pub fn greyed_out(color: &Color) -> Color {
-        Color::new(
-            (color.r + WHITE.r * 2.) / 3.,
-            (color.g + WHITE.g * 2.) / 3.,
-            (color.b + WHITE.b * 2.) / 3.,
-            255.,
-        )
-    }
-
-    pub fn move_towards(&mut self, point: &Point2, speed_ms: u64) {
-        self.from = self.to;
-        self.from.instant = Instant::now();
-
-        let (x_pos, y_pos) = Self::render_pos(self.from.sprite_width, point);
-
-        self.to = AnimationPoint {
-            x_pos,
-            y_pos,
-            sprite_width: self.from.sprite_width,
-            instant: Instant::now() + Duration::from_millis(speed_ms),
-        };
-    }
-
-    pub fn scale(&mut self, sprite_width: f32, speed_ms: u64) {
-        self.from.instant = Instant::now();
-
-        self.to = SpriteRender::scale_animation_point(&self.from, sprite_width);
-
-        self.to.instant = Instant::now() + Duration::from_millis(speed_ms);
-    }
-
-    pub fn scale_animation_point(
-        animation_point: &AnimationPoint,
-        sprite_width: f32,
-    ) -> AnimationPoint {
-        let shift = (CELL_ABSOLUTE_WIDTH - sprite_width) / 2.;
-
-        AnimationPoint {
-            x_pos: animation_point.x_pos + animation_point.sprite_width / 2.
-                - CELL_ABSOLUTE_WIDTH / 2.
-                + shift,
-            y_pos: animation_point.y_pos + animation_point.sprite_width / 2.
-                - CELL_ABSOLUTE_WIDTH / 2.
-                + shift,
-            sprite_width,
-            instant: Instant::now(),
-        }
-    }
-
-    fn render(&self, render_context: &CustomRenderContext) {
-        let animation = self.from.interpolate(&self.to, Instant::now());
-
-        let texture = match self.sprite_kind {
-            SpriteKind::Piece => render_context.pieces_texture,
-            SpriteKind::Special => render_context.special_texture,
-        };
-
-        draw_texture_ex(
-            texture,
-            animation.x_pos,
-            animation.y_pos,
-            self.override_color.unwrap_or(self.color),
-            DrawTextureParams {
-                dest_size: Some(Vec2::new(animation.sprite_width, animation.sprite_width)),
-                source: Some(self.rect_in_sprite),
-                rotation: self.rotation,
-                ..Default::default()
-            },
-        );
-
-        /*draw_rectangle_lines(
-            animation.x_pos,
-            animation.y_pos,
-            animation.sprite_width,
-            animation.sprite_width,
-            2.,
-            GREEN
-        )*/
     }
 }

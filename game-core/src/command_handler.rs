@@ -1,4 +1,4 @@
-use miniquad::error;
+use log::error;
 use std::{
     cell::RefCell,
     rc::Rc,

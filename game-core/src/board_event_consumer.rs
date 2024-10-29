@@ -4,7 +4,7 @@ use game_events::{
     event_broker::EventConsumer,
 };
 use game_model::{game::Game, GameError, GameResult};
-use miniquad::{debug, warn};
+use log::{debug, warn};
 use std::{cell::RefCell, rc::Rc};
 
 pub struct BoardEventConsumer {

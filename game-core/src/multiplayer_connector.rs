@@ -4,7 +4,7 @@ use crate::{
 };
 
 use indexmap::IndexMap;
-use miniquad::{debug, info};
+use log::{debug, info};
 use std::{cell::RefCell, rc::Rc};
 
 pub trait MultiplayerClient {

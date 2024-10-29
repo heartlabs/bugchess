@@ -38,7 +38,7 @@ fn test_all_snapshots() -> anyhow::Result<()> {
         });
         let game = (*test_game.game).borrow().clone();
 
-        insta::assert_display_snapshot!(snapshot_name, game);
+        insta::assert_snapshot!(snapshot_name, game);
     }
 
     Ok(())

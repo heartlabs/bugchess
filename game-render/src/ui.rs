@@ -1,5 +1,9 @@
 use crate::constants::*;
-use macroquad::prelude::*;
+use macroquad::{
+    prelude::{is_mouse_button_pressed, MouseButton, DARKGREEN, WHITE},
+    shapes::draw_rectangle,
+    text::draw_text,
+};
 use macroquad_canvas::Canvas2D;
 
 #[derive(Debug, Clone)]

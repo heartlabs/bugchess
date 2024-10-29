@@ -120,45 +120,53 @@ impl LoadingState {
         self.sub_state = LoadingSubState::SetupGame;
         self.core_game_state.as_mut().unwrap().is_multi_player = false;
     }
+
+    fn select_game_mode(&mut self) {
+        egui_macroquad::ui(|egui_ctx| {
+            egui_setup_fonts(egui_ctx);
+
+            egui::CentralPanel::default().show(egui_ctx, |ui| {
+                let mut child_ui =
+                    ui.child_ui(ui.min_rect(), Layout::top_down_justified(Align::Center));
+                child_ui.label("Select game mode");
+
+                if child_ui.button("Offline").clicked() {
+                    self.sub_state = LoadingSubState::SetupGame;
+                }
+
+                if child_ui.button("Online").clicked() {
+                    self.core_game_state.as_mut().unwrap().is_multi_player = true;
+                    self.sub_state = LoadingSubState::Register;
+                }
+            });
+        });
+    }
+
+    fn select_room(&mut self) {
+        egui_macroquad::ui(|egui_ctx| {
+            egui_setup_fonts(egui_ctx);
+
+            egui::CentralPanel::default()
+                //.fixed_size(egui::Vec2::new(800., 600.))
+                //.fixed_rect(emath::Rect::from_two_pos(emath::pos2(0., 0.), emath::pos2(1200., 1000.)))
+                //.resizable(false)
+                //.collapsible(false)
+                .show(egui_ctx, |ui| {
+                    //ui.set_width(ui.max_rect().width());
+                    self.egui_select_room(ui);
+                });
+        });
+    }
 }
 
 impl GameState for LoadingState {
     fn update(&mut self, _canvas: &Canvas2D) -> Option<Box<dyn GameState>> {
         match &self.sub_state {
             LoadingSubState::GameMode => {
-                egui_macroquad::ui(|egui_ctx| {
-                    egui_setup_fonts(egui_ctx);
-
-                    egui::CentralPanel::default().show(egui_ctx, |ui| {
-                        let mut child_ui =
-                            ui.child_ui(ui.min_rect(), Layout::top_down_justified(Align::Center));
-                        child_ui.label("Select game mode");
-
-                        if child_ui.button("Offline").clicked() {
-                            self.sub_state = LoadingSubState::SetupGame;
-                        }
-
-                        if child_ui.button("Online").clicked() {
-                            self.core_game_state.as_mut().unwrap().is_multi_player = true;
-                            self.sub_state = LoadingSubState::Register;
-                        }
-                    });
-                });
+                self.select_game_mode();
             }
             LoadingSubState::Register => {
-                egui_macroquad::ui(|egui_ctx| {
-                    egui_setup_fonts(egui_ctx);
-
-                    egui::CentralPanel::default()
-                        //.fixed_size(egui::Vec2::new(800., 600.))
-                        //.fixed_rect(emath::Rect::from_two_pos(emath::pos2(0., 0.), emath::pos2(1200., 1000.)))
-                        //.resizable(false)
-                        //.collapsible(false)
-                        .show(egui_ctx, |ui| {
-                            //ui.set_width(ui.max_rect().width());
-                            self.egui_select_room(ui);
-                        });
-                });
+                self.select_room();
             }
             LoadingSubState::Matchmaking => {
                 let client = self.client.as_mut().unwrap();

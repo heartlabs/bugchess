@@ -1,13 +1,15 @@
 use crate::{
     constants::*,
-    rendering::{BoardRender, EffectRender, SpriteKind, SpriteRender},
+    rendering::{BoardRender, EffectRender},
+    sprite::*,
 };
 use game_model::{
     piece::{EffectKind, Exhaustion, PieceKind},
     Point2,
 };
 use instant::{Duration, Instant};
-use macroquad::{color::WHITE, logging::info, math::Rect, prelude::BLACK, rand::rand};
+use log::info;
+use macroquad::{math::Rect, rand::rand};
 use std::{
     fmt::Debug,
     ops::{Add, Mul, Sub},
@@ -351,7 +353,7 @@ impl AnimationExpert for DieAnimation {
 
         piece_render.from = piece_render.to;
         piece_render.scale(0., ANIMATION_SPEED);
-        piece_render.override_color = Some(BLACK);
+        piece_render.override_color = Some(Colour::BLACK);
 
         board_render.special_sprites.insert(self.id, piece_render);
     }
@@ -452,7 +454,7 @@ impl AnimationExpert for BulletAnimation {
         let mut sprite_render = SpriteRender::new_at_point(
             &self.from,
             PIECE_SCALE,
-            WHITE,
+            Colour::WHITE,
             SpriteKind::Special,
             Rect::new(0., 0., SPRITE_WIDTH, SPRITE_WIDTH),
         );
@@ -466,7 +468,7 @@ impl AnimationExpert for BlastAnimation {
         let mut sprite_render = SpriteRender::new_at_point(
             &self.from,
             0.,
-            WHITE,
+            Colour::WHITE,
             SpriteKind::Special,
             Rect::new(SPRITE_WIDTH, 0., SPRITE_WIDTH, SPRITE_WIDTH),
         );
