@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 game-model = {path = "../game-model"}
 game-events = {path = "../game-events"}
-miniquad = "0.3.13" # only used for logging
-indexmap = "1.9.2"
-nanoserde = "0.1.32"
+miniquad = "0.3.16" # only used for logging
+indexmap = "1.9.3"
+nanoserde = "0.1.37"
 quad-rand = "0.2.1"

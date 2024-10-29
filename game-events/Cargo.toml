@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 game-model = {path = "../game-model"}
-nanoserde = "0.1.30"
-miniquad = "0.3.13" # only used for logging
+nanoserde = "0.1.37"
+miniquad = "0.3.16" # only used for logging
 quad-rand = "0.2.1"
-derive-getters = "0.2.0"
+derive-getters = "0.2.1"

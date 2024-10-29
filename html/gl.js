@@ -8,10 +8,10 @@
 
 "use strict";
 
-const version = "0.3.14";
+const version = "0.3.12";
 
 const canvas = document.querySelector("#glcanvas");
-const gl = canvas.getContext("webgl");
+const gl = canvas.getContext("webgl2");
 if (gl === null) {
     alert("Unable to initialize WebGL. Your browser or machine may not support it.");
 }
@@ -1252,18 +1252,6 @@ var importObject = {
 
                 wasm_exports.on_files_dropped_finish();
             };
-
-            let lastFocus = document.hasFocus();
-            var checkFocus = function () {
-                let hasFocus = document.hasFocus();
-                if (lastFocus == hasFocus) {
-                    wasm_exports.focus(hasFocus);
-                    lastFocus = hasFocus;
-                }
-            }
-            document.addEventListener("visibilitychange", checkFocus);
-            window.addEventListener("focus", checkFocus);
-            window.addEventListener("blur", checkFocus);
 
             window.requestAnimationFrame(animation);
         },

@@ -6,6 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-nanoserde = "0.1.32"
-colored = "2.0.0"
-indexmap = "1.9.2"
+nanoserde = "0.1.37"
+colored = "2.1.0"
+indexmap = "1.9.3"
