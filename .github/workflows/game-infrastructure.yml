@@ -2,7 +2,7 @@ name: Game Infrastructure
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
     paths:
       - ".github/workflows/game-infrastructure.yml"
       - "game-server/**"
