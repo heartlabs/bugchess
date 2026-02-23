@@ -20,6 +20,7 @@ use std::{
     cell::RefCell,
     fmt::{Display, Formatter},
     rc::Rc,
+    sync::Arc,
 };
 
 use game_core::board_event_consumer::BoardEventConsumer;
@@ -93,7 +94,7 @@ impl LoadingState {
     fn egui_select_room(&mut self, ui: &mut egui::Ui) {
         let mut child_ui = ui.child_ui(
             ui.min_rect(),
-            Layout::top_down_justified(Align::Center), //.with_cross_justify(true)
+            Layout::top_down_justified(Align::Center), None//.with_cross_justify(true)
                                                        //.with_main_justify(true)
                                                        //.with_cross_align()
         );
@@ -127,7 +128,7 @@ impl LoadingState {
 
             egui::CentralPanel::default().show(egui_ctx, |ui| {
                 let mut child_ui =
-                    ui.child_ui(ui.min_rect(), Layout::top_down_justified(Align::Center));
+                    ui.child_ui(ui.min_rect(), Layout::top_down_justified(Align::Center), None);
                 child_ui.label("Select game mode");
 
                 if child_ui.button("Offline").clicked() {
@@ -312,7 +313,7 @@ fn egui_setup_fonts(egui_ctx: &egui::Context) {
     font_data.tweak.scale = 10.;
     font_definitions
         .font_data
-        .insert("bugchess".to_owned(), font_data);
+        .insert("bugchess".to_owned(), Arc::new(font_data));
     // Put my font first (highest priority):
     font_definitions
         .families

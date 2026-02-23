@@ -1,33 +1,33 @@
 [package]
 name = "bugchess"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 console_log = "1.0"
-env_logger = "0.11.5"
+env_logger = "0.11.9"
 log = "0.4"
 
-macroquad = "0.3.26"
-egui-macroquad = "0.15.0"
-macroquad-canvas = "0.3.2"
+macroquad = "0.4.14"
+egui-macroquad = "0.17.3"
+macroquad-canvas = "0.4.1"
 urlencoding = "2.1.3"
 # nakama-rs = "*"
-url = "2.5.2"
+url = "2.5.8"
 # matchbox_socket = { path = "../../matchbox/matchbox_socket" }
 # matchbox_socket = { git = "https://github.com/johanhelsing/matchbox" }
 # matchbox_socket = { git = "https://github.com/heartlabs/matchbox", branch = "feature/reliable-channel2"}
 matchbox_socket = "0.6.1"
-async-executor = "1.13.0"
-nanoserde = "0.1.37"
-futures = "0.3.30"
+async-executor = "1.14.0"
+nanoserde = "0.2.1"
+futures = "0.3.32"
 instant = { version = "0.1.13", features = ["wasm-bindgen"] }
-uuid = { version = "1.10.0", features = ["v4"] }
+uuid = { version = "1.21.0", features = ["v4", "js"] }
 # tokio-tungstenite = "0.17.2"
-async-trait = "0.1.81"
-futures-util = "0.3.30"
+async-trait = "0.1.89"
+futures-util = "0.3.32"
 json_comments = "0.2.2"
 reqwest = { version = "0.11", features = ["blocking"] }
 
@@ -37,12 +37,12 @@ game-render = { path = "../game-render" }
 game-core = { path = "../game-core" }
 
 [dev-dependencies]
-anyhow = "1.0.86"
-insta = "1.39.0"
+anyhow = "1.0.102"
+insta = "1.46.3"
 
 [target.'cfg(target_family = "wasm")'.dependencies]
-sapp-jsutils = "0.1.5"
-wasm-bindgen = "0.2.93"
+sapp-jsutils = "0.1.7"
+wasm-bindgen = "0.2.111"
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3.*", features = ["Document"] }
 

@@ -1,13 +1,13 @@
 [package]
 name = "game-events"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 game-model = { path = "../game-model" }
-nanoserde = "0.1.37"
+nanoserde = "0.2.1"
 log = "0.4"                             # only used for logging
-quad-rand = "0.2.1"
-derive-getters = "0.2.1"
+quad-rand = "0.2.3"
+derive-getters = "0.5.0"

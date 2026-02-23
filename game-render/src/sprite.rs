@@ -216,12 +216,12 @@ impl SpriteRender {
         let animation = self.from.interpolate(&self.to, Instant::now());
 
         let texture = match self.sprite_kind {
-            SpriteKind::Piece => render_context.pieces_texture,
-            SpriteKind::Special => render_context.special_texture,
+            SpriteKind::Piece => render_context.pieces_texture.clone(),
+            SpriteKind::Special => render_context.special_texture.clone(),
         };
 
         draw_texture_ex(
-            texture,
+            &texture,
             animation.x_pos,
             animation.y_pos,
             self.override_color.unwrap_or(self.color).into(),

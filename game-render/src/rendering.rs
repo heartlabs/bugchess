@@ -198,7 +198,7 @@ impl BoardRender {
         //Self::render_cells(board, canvas, render_context);
 
         draw_texture_ex(
-            render_context.background_texture,
+            &render_context.background_texture,
             SHIFT_X,
             SHIFT_Y,
             WHITE,
