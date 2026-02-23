@@ -27,7 +27,9 @@ impl AnimationPoint {
     pub fn interpolate(&self, towards: &AnimationPoint, at_instant: Instant) -> AnimationPoint {
         let progress = Self::calculate_progress(&self.instant, &towards.instant, &at_instant);
 
-        let animation_point = AnimationPoint {
+        
+
+        AnimationPoint {
             x_pos: Self::interpolate_value(self.x_pos, towards.x_pos, progress),
             y_pos: Self::interpolate_value(self.y_pos, towards.y_pos, progress),
             sprite_width: Self::interpolate_value(
@@ -36,9 +38,7 @@ impl AnimationPoint {
                 progress,
             ),
             instant: at_instant,
-        };
-
-        animation_point
+        }
     }
 
     pub fn calculate_progress(
@@ -102,7 +102,7 @@ impl Animation {
             duration: Duration::from_millis(0),
             finished_at: Instant::now(),
             next_animations: vec![],
-            expert: Box::new(AddEffectAnimation { effect, at }),
+            expert: Box::new(AddEffectAnimation { _effect: effect, at }),
         }
     }
 
@@ -111,7 +111,7 @@ impl Animation {
             duration: Duration::from_millis(0),
             finished_at: Instant::now(),
             next_animations: vec![],
-            expert: Box::new(RemoveEffectAnimation { effect, at }),
+            expert: Box::new(RemoveEffectAnimation { _effect: effect, at }),
         }
     }
 
@@ -230,13 +230,13 @@ pub trait AnimationExpert: Debug {
 
 #[derive(Debug, Clone)]
 pub struct AddEffectAnimation {
-    pub(crate) effect: EffectKind,
+    pub(crate) _effect: EffectKind,
     pub at: Point2,
 }
 
 #[derive(Debug, Clone)]
 pub struct RemoveEffectAnimation {
-    pub(crate) effect: EffectKind,
+    pub(crate) _effect: EffectKind,
     pub at: Point2,
 }
 
@@ -349,7 +349,7 @@ impl AnimationExpert for DieAnimation {
         let mut piece_render = board_render
             .placed_pieces
             .remove(&self.at)
-            .expect(&*format!("No piece found at {:?}", self.at));
+            .unwrap_or_else(|| panic!("No piece found at {:?}", self.at));
 
         piece_render.from = piece_render.to;
         piece_render.scale(0., ANIMATION_SPEED);
@@ -384,7 +384,7 @@ impl AnimationExpert for MovePieceAnimation {
         let mut piece_render = board_render
             .placed_pieces
             .remove(&self.from)
-            .expect(&*format!("No piece found at {:?}", self.from));
+            .unwrap_or_else(|| panic!("No piece found at {:?}", self.from));
 
         piece_render.move_towards(&self.to, MOVE_PIECE_SPEED);
 
@@ -396,7 +396,7 @@ impl AnimationExpert for SwooshPieceAnimation {
         let piece_render = board_render
             .placed_pieces
             .get_mut(&self.from)
-            .expect(&*format!("No piece found at {:?}", self.from));
+            .unwrap_or_else(|| panic!("No piece found at {:?}", self.from));
 
         piece_render.move_towards(&self.to, MOVE_PIECE_SPEED);
     }
@@ -406,15 +406,9 @@ impl AnimationExpert for AddEffectAnimation {
     fn start(&self, board_render: &mut BoardRender) {
         info!("Starting addeffectanim");
 
-        if !board_render.effects.contains_key(&self.at) {
-            board_render.effects.insert(self.at, vec![]);
-        }
+        board_render.effects.entry(self.at).or_default();
 
-        board_render
-            .effects
-            .get_mut(&self.at)
-            .unwrap()
-            .push(EffectRender::new());
+        board_render.effects.get_mut(&self.at).unwrap().push(EffectRender::new());
     }
 }
 
@@ -423,23 +417,18 @@ impl AnimationExpert for RemoveEffectAnimation {
         board_render
             .effects
             .get_mut(&self.at)
-            .expect(
-                format!(
-                    "Can't remove effect at {:?} because that position doesn't exist",
-                    self.at
-                )
-                .as_str(),
-            )
+            .unwrap_or_else(|| panic!("Can't remove effect at {:?} because that position doesn't exist",
+                    self.at))
             .remove(0);
     }
 }
 
 impl AnimationExpert for ExhaustAnimation {
     fn start(&self, board_render: &mut BoardRender) {
-        let mut sprite_render = board_render
+        let sprite_render = board_render
             .placed_pieces
             .get_mut(&self.at)
-            .expect(&*format!("No piece found at {:?}", self.at));
+            .unwrap_or_else(|| panic!("No piece found at {:?}", self.at));
 
         if self.to.is_done() {
             sprite_render.override_color = Some(SpriteRender::greyed_out(&sprite_render.color));

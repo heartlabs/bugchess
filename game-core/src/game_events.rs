@@ -29,10 +29,10 @@ pub struct GameEventObject {
 impl GameEventObject {
     pub const OPCODE: i32 = 1;
 
-    pub fn new(event: Event, sender: &String) -> Self {
+    pub fn new(event: Event, sender: &str) -> Self {
         GameEventObject {
             id: rand().to_string(),
-            sender: sender.clone(),
+            sender: sender.to_owned(),
             event,
         }
     }

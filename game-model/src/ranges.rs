@@ -176,7 +176,7 @@ impl Range {
     pub fn reachable_points(&self, from_point: &Point2, board: &Board) -> IndexSet<Point2> {
         let piece = board
             .get_piece_at(from_point)
-            .expect(format!("No piece at {:?}", from_point).as_str());
+            .unwrap_or_else(|| panic!("No piece at {:?}", from_point));
 
         self.reachable_points_for_piece(from_point, piece, board)
     }

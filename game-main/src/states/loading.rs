@@ -178,7 +178,7 @@ impl GameState for LoadingState {
                 }
             }
             LoadingSubState::JoinMatch => {
-                let mut core_game_state = self.core_game_state.as_mut().unwrap();
+                let core_game_state = self.core_game_state.as_mut().unwrap();
 
                 let mut matchbox_client = self.client.take().unwrap();
 
@@ -309,8 +309,8 @@ fn egui_setup_fonts(egui_ctx: &egui::Context) {
     let mut font_definitions = FontDefinitions::default();
     let mut font_data =
         FontData::from_static(include_bytes!("../../resources/fonts/Koulen-Regular.ttf"));
-    font_data.tweak = FontTweak::default();
-    font_data.tweak.scale = 10.;
+        font_data.tweak = FontTweak::default();
+        font_data.tweak.scale = 10.;
     font_definitions
         .font_data
         .insert("bugchess".to_owned(), Arc::new(font_data));

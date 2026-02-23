@@ -35,16 +35,16 @@ impl From<[f32; 4]> for Colour {
     }
 }
 
-impl Into<[f32; 4]> for Colour {
-    fn into(self) -> [f32; 4] {
-        let Colour { r, g, b, a } = self;
+impl From<Colour> for [f32; 4] {
+    fn from(val: Colour) -> Self {
+        let Colour { r, g, b, a } = val;
         [r, g, b, a]
     }
 }
 
-impl Into<Color> for Colour {
-    fn into(self) -> Color {
-        let Colour { r, g, b, a } = self;
+impl From<Colour> for Color {
+    fn from(val: Colour) -> Self {
+        let Colour { r, g, b, a } = val;
         [r, g, b, a].into()
     }
 }

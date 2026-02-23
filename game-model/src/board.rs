@@ -42,7 +42,7 @@ impl Board {
 
     pub fn for_each_cell_mut<F>(&mut self, mut closure: F)
     where
-        F: FnMut(&mut Cell) -> (),
+        F: FnMut(&mut Cell),
     {
         for row in self.cells.iter_mut() {
             for cell in row {
@@ -53,7 +53,7 @@ impl Board {
 
     pub fn for_each_placed_piece_mut<F>(&mut self, mut closure: F)
     where
-        F: FnMut(Point2, &mut Piece) -> (),
+        F: FnMut(Point2, &mut Piece),
     {
         self.for_each_cell_mut(|cell| {
             if let Some(piece) = cell.piece.as_mut() {
@@ -63,7 +63,7 @@ impl Board {
     }
     pub fn for_each_cell<F>(&self, mut closure: F)
     where
-        F: FnMut(&Cell) -> (),
+        F: FnMut(&Cell),
     {
         for row in self.cells.iter() {
             for cell in row {
@@ -74,7 +74,7 @@ impl Board {
 
     pub fn for_each_placed_piece<F>(&self, mut closure: F)
     where
-        F: FnMut(Point2, &Piece) -> (),
+        F: FnMut(Point2, &Piece),
     {
         self.for_each_cell(|cell| {
             if let Some(piece) = cell.piece.as_ref() {
@@ -185,13 +185,13 @@ impl Board {
 
 impl Display for Board {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "    0   1   2   3   4   5   6   7\n")?;
+        writeln!(f, "    0   1   2   3   4   5   6   7")?;
         for y in 0..self.h as usize {
             write!(f, "{}:|", y)?;
             for x in 0..self.w as usize {
                 write!(f, "{}", self.cells[x][y])?;
             }
-            write!(f, "\n")?;
+            writeln!(f)?;
         }
         Ok(())
     }

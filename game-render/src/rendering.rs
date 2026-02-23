@@ -20,6 +20,12 @@ pub struct CustomRenderContext {
     pub animation_speed_factor: f32, // smaller = faster
 }
 
+impl Default for CustomRenderContext {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CustomRenderContext {
     pub fn new() -> Self {
         CustomRenderContext {
@@ -144,15 +150,14 @@ impl BoardRender {
 
         self.current_animations.append(&mut new_animations);
 
-        if self.current_animations.is_empty() {
-            if let Some(mut animations) = self.next_animations.pop_front() {
+        if self.current_animations.is_empty()
+            && let Some(mut animations) = self.next_animations.pop_front() {
                 for animation in animations.iter_mut() {
                     animation.start(self, animation_speed_factor);
                 }
 
                 self.current_animations = animations;
             }
-        }
     }
 
     fn calculate_animation_speed_factor(&mut self) -> f32 {
@@ -160,7 +165,7 @@ impl BoardRender {
             + self
                 .next_animations
                 .iter()
-                .map(Self::calculate_animations_length)
+                .map(|v| Self::calculate_animations_length(v.as_slice()))
                 .sum();
         if upcoming_animation_length < Duration::from_secs(1) {
             1.
@@ -169,7 +174,7 @@ impl BoardRender {
         }
     }
 
-    fn calculate_animations_length(animations: &Vec<Animation>) -> Duration {
+    fn calculate_animations_length(animations: &[Animation]) -> Duration {
         animations
             .iter()
             .map(Self::calculate_animation_length)
@@ -263,23 +268,20 @@ impl BoardRender {
 
         if let CoreGameSubstate::Move(selected_point) | CoreGameSubstate::Activate(selected_point) =
             render_context.game_state
-        {
-            if let Some(selected_piece) = board.get_piece_at(&selected_point) {
+            && let Some(selected_piece) = board.get_piece_at(&selected_point) {
                 let range_contexts = match render_context.game_state {
                     CoreGameSubstate::Move(_) => {
                         let mut highlights = vec![];
 
-                        if let Some(movement) = selected_piece.movement {
-                            if selected_piece.can_move() {
+                        if let Some(movement) = selected_piece.movement
+                            && selected_piece.can_move() {
                                 highlights.push(movement.range);
                             }
-                        }
 
-                        if let Some(activatable) = selected_piece.activatable {
-                            if selected_piece.can_use_special() {
+                        if let Some(activatable) = selected_piece.activatable
+                            && selected_piece.can_use_special() {
                                 highlights.push(activatable.range);
                             }
-                        }
 
                         highlights
                     }
@@ -298,12 +300,11 @@ impl BoardRender {
                     )
                 }
             }
-        }
     }
 
     fn highlight_range(board: &Board, source_point: &Point2, range: &Range, color: Colour) {
         for point in range.reachable_points(source_point, board).iter() {
-            let (x_pos, y_pos) = cell_coords(&point);
+            let (x_pos, y_pos) = cell_coords(point);
 
             let mut used_color = color;
 
@@ -340,6 +341,12 @@ pub struct EffectRender {
     pub towards_color: Colour,
     pub from_instant: Instant,
     pub towards_instant: Instant,
+}
+
+impl Default for EffectRender {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl EffectRender {

@@ -56,8 +56,8 @@ impl CoreGameSubstate {
             }
             CoreGameSubstate::Move(itself) => {
                 if let Some(target_piece) = board.get_piece_at(target_point) {
-                    if *itself == *target_point && target_piece.can_use_special() {
-                        if let Some(activatable) = target_piece.activatable {
+                    if *itself == *target_point && target_piece.can_use_special()
+                        && let Some(activatable) = target_piece.activatable {
                             return match activatable.kind {
                                 Power::Blast => {
                                     let blast_command = GameCommand::Blast(*target_point);
@@ -75,7 +75,6 @@ impl CoreGameSubstate {
                                 Power::TargetedShoot => CoreGameSubstate::Activate(*target_point),
                             };
                         }
-                    }
                     if target_piece.team_id == game_clone.current_team_index
                         && target_piece.can_move()
                     {
@@ -85,13 +84,13 @@ impl CoreGameSubstate {
 
                 let move_command = GameCommand::MovePiece(*itself, *target_point);
 
-                if let Ok(_) = GameController::handle_command(game_clone.clone(), &move_command) {
+                if GameController::handle_command(game_clone.clone(), &move_command).is_ok() {
                     command_handler.handle_new_command(game_clone, &move_command);
                 }
             }
             CoreGameSubstate::Activate(active_piece_pos) => {
                 let shoot_command = GameCommand::TargetedShoot(*active_piece_pos, *target_point);
-                if let Ok(_) = GameController::handle_command(game_clone.clone(), &shoot_command) {
+                if GameController::handle_command(game_clone.clone(), &shoot_command).is_ok() {
                     command_handler.handle_new_command(game_clone, &shoot_command);
                 }
             }

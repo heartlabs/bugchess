@@ -34,7 +34,7 @@ impl BoardEventConsumer {
 
     pub fn flush(game: &mut Game, action: Box<dyn CompoundEventBuilder>) -> FlushResult {
         action.flush(&mut |event| {
-            BoardEventConsumer::handle_event_internal(game, &event)
+            BoardEventConsumer::handle_event_internal(game, event)
                 .unwrap_or_else(|e| panic!("Failed to handle board event: {:?}", e));
             // TODO: propagate error
         })

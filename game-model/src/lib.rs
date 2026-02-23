@@ -1,3 +1,5 @@
+#![allow(clippy::question_mark)]
+
 use nanoserde::{DeJson, SerJson};
 use std::fmt::Display;
 
@@ -11,12 +13,12 @@ pub type GameResult<T> = Result<T, GameError>;
 
 #[derive(Debug, Clone)]
 pub struct GameError {
-    description: String,
+    _description: String,
 }
 
 impl GameError {
     pub fn new(description: String) -> Self {
-        Self { description }
+        Self { _description: description }
     }
 }
 

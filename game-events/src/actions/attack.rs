@@ -36,7 +36,7 @@ pub struct AttackBuilder {
 
 impl AttackBuilder {
     pub fn new(piece: &Piece, piece_pos: Point2) -> Self {
-        let mut exhaustion_afterwards = piece.exhaustion.clone();
+        let mut exhaustion_afterwards = piece.exhaustion;
         exhaustion_afterwards.on_attack();
         AttackBuilder {
             event: AttackCompoundEvent {
@@ -126,11 +126,10 @@ impl Display for AttackCompoundEvent {
         let targets: Vec<&Point2> = self.removed_pieces().iter().map(|(p, _)| p).collect();
         write!(f, "{} Attacks {:?}", self.attacking_piece_pos(), targets)?;
 
-        if let Some(merge) = &self.merge_events {
-            if !merge.placed_pieces().is_empty() {
+        if let Some(merge) = &self.merge_events
+            && !merge.placed_pieces().is_empty() {
                 write!(f, " with {}", merge)?;
             }
-        }
 
         Ok(())
     }

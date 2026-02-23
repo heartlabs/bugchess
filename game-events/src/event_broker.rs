@@ -9,6 +9,12 @@ pub struct EventBroker {
     subscribers: Vec<Box<dyn EventConsumer>>,
 }
 
+impl Default for EventBroker {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl EventBroker {
     pub fn new() -> Self {
         EventBroker {
@@ -30,7 +36,7 @@ impl EventBroker {
 
     pub fn handle_new_event(&mut self, event: &GameAction) {
         self.past_events.push(event.clone());
-        self.handle_event_internal(&event);
+        self.handle_event_internal(event);
     }
 
     fn handle_event_internal(&mut self, event: &GameAction) {

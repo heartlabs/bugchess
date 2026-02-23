@@ -36,7 +36,7 @@ pub struct MoveBuilder {
 
 impl MoveBuilder {
     pub fn new(from: Point2, to: Point2, moved_piece: Piece) -> Self {
-        let mut exhaustion_afterwards = moved_piece.exhaustion.clone();
+        let mut exhaustion_afterwards = moved_piece.exhaustion;
         exhaustion_afterwards.on_move();
 
         MoveBuilder {
@@ -127,11 +127,10 @@ impl Display for MoveCompoundEvent {
         };
         write!(f, "{} {} {}", self.from(), action, self.to())?;
 
-        if let Some(merge) = &self.merge_events {
-            if !merge.placed_pieces().is_empty() {
+        if let Some(merge) = &self.merge_events
+            && !merge.placed_pieces().is_empty() {
                 write!(f, " with {}", merge)?;
             }
-        }
 
         Ok(())
     }

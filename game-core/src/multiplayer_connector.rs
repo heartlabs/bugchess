@@ -24,14 +24,14 @@ pub struct MultiplayerConector {
 
 impl MultiplayerConector {
     pub fn new(client: Box<dyn MultiplayerClient>) -> Self {
-        let connector = MultiplayerConector {
+        
+
+        MultiplayerConector {
             registered_events: IndexMap::new(),
             client,
             opponent_id: None,
             override_own_player_index: None,
-        };
-
-        connector
+        }
     }
 
     pub fn is_ready(&self) -> bool {
@@ -52,17 +52,16 @@ impl MultiplayerConector {
             return self.override_own_player_index;
         }
 
-        if let Some(opponent_id) = self.opponent_id.as_ref() {
-            if let Some(own_player_id) = &self.client.own_player_id() {
+        if let Some(opponent_id) = self.opponent_id.as_ref()
+            && let Some(own_player_id) = &self.client.own_player_id() {
                 if opponent_id < own_player_id {
                     return Some(1);
                 }
 
                 return Some(0);
             }
-        }
 
-        return None;
+        None
     }
 
     pub fn get_own_player_id(&self) -> Option<String> {
@@ -102,7 +101,7 @@ impl MultiplayerConector {
     pub fn handle_event(&mut self, game_action: &GameCommand) {
         let sender = self.get_own_player_id().expect("Own player ID unknown");
 
-        let event = &GameEventObject::new(Event::GameCommand(game_action.clone()), &sender);
+        let event = &GameEventObject::new(Event::GameCommand(*game_action), &sender);
 
         self.send(event);
     }
@@ -110,7 +109,7 @@ impl MultiplayerConector {
     pub fn send_command(&mut self, game_action: &GameCommand) {
         let sender = self.get_own_player_id().expect("Own player ID unknown");
 
-        let event = &GameEventObject::new(Event::GameCommand(game_action.clone()), &sender);
+        let event = &GameEventObject::new(Event::GameCommand(*game_action), &sender);
 
         self.send(event);
     }
@@ -158,8 +157,8 @@ impl MultiplayerConector {
         let registered_events: Vec<GameEventObject> = self
             .registered_events
             .values()
-            .map(|e| e.clone())
             .filter(|e| matches!(e.event, Event::GameCommand(_)))
+            .cloned()
             .collect();
 
         registered_events.iter().for_each(|e| self.send(e));

@@ -105,7 +105,7 @@ impl GameController {
         let new_piece = Piece::new(game.current_team_index, PieceKind::Simple);
         let mut place_event = GameAction::place(*pos, new_piece, game.current_team_index);
 
-        push_effects_if_present(&mut place_event, &game.board, &new_piece, &pos);
+        push_effects_if_present(&mut place_event, &game.board, &new_piece, pos);
 
         MoveResult::Ok(flush_and_merge(game, Box::new(place_event)))
     }
@@ -127,7 +127,7 @@ impl GameController {
 
         if !m
             .range
-            .reachable_points(&from, &game.board)
+            .reachable_points(from, &game.board)
             .contains(target_point)
         {
             return MoveResult::Err(MoveError::NotSupportedByPiece);
@@ -146,7 +146,7 @@ impl GameController {
             remove_effects_if_present(&mut move_event, &game.board, target_piece, target_point);
         }
 
-        return MoveResult::Ok(flush_and_merge(game, Box::new(move_event)));
+        MoveResult::Ok(flush_and_merge(game, Box::new(move_event)))
     }
 
     pub fn blast(game: &mut Game, piece_pos: &Point2) -> MoveResult {
@@ -203,7 +203,7 @@ impl GameController {
             return MoveResult::Err(MoveError::NotSupportedByPiece);
         }
 
-        let mut exhaustion_clone = target_piece.exhaustion.clone();
+        let mut exhaustion_clone = target_piece.exhaustion;
         exhaustion_clone.on_attack();
 
         let mut attack_event = AttackBuilder::new(active_piece, *attacking_piece_pos);
@@ -211,7 +211,7 @@ impl GameController {
 
         remove_effects_if_present(&mut attack_event, &game.board, target_piece, target_pos);
 
-        return Ok(flush_and_merge(game, Box::new(attack_event)));
+        Ok(flush_and_merge(game, Box::new(attack_event)))
     }
 
     pub fn next_turn(game: &Game) -> GameAction {
@@ -228,7 +228,7 @@ impl GameController {
                     return;
                 }
 
-                let mut exhaustion_clone = piece.exhaustion.clone();
+                let mut exhaustion_clone = piece.exhaustion;
                 exhaustion_clone.reset();
 
                 if exhaustion_clone != piece.exhaustion {
@@ -249,7 +249,7 @@ fn push_effects_if_present(
     if let Some(effect) = new_piece.effect {
         effect
             .range
-            .reachable_points_for_piece(pos, new_piece, &board)
+            .reachable_points_for_piece(pos, new_piece, board)
             .iter()
             .for_each(|&point| {
                 effect_builder.add_effect(point);
@@ -266,7 +266,7 @@ fn remove_effects_if_present(
     if let Some(effect) = piece.effect {
         effect
             .range
-            .reachable_points(pos, &board)
+            .reachable_points(pos, board)
             .iter()
             .for_each(|&point| {
                 effect_builder.remove_effect(point);
@@ -279,7 +279,7 @@ fn merge_patterns(board: &Board, merge_builder: &mut MergeBuilder) {
     for pattern in &Pattern::all_patterns() {
         for x in 0..board.w as usize - pattern.components[0].len() + 1 {
             for y in 0..board.h as usize - pattern.components.len() + 1 {
-                let matched = pattern.match_board(&board, x as u8, y as u8);
+                let matched = pattern.match_board(board, x as u8, y as u8);
 
                 if let Some(matched_entities) = matched {
                     let any_team_id = board.get_piece_at(&matched_entities[0]).unwrap().team_id;
@@ -309,7 +309,7 @@ fn merge_patterns(board: &Board, merge_builder: &mut MergeBuilder) {
                             remove_effects_if_present(merge_builder, board, matched_piece, point);
                         });
 
-                        push_effects_if_present(merge_builder, &board, &new_piece, &new_piece_pos);
+                        push_effects_if_present(merge_builder, board, &new_piece, &new_piece_pos);
 
                         /* println!(
                             "Matched pattern at {}:{}; new piece at {}:{}",
@@ -327,7 +327,7 @@ fn merge_patterns(board: &Board, merge_builder: &mut MergeBuilder) {
 fn flush_and_merge(game: &mut Game, event_builder: Box<dyn CompoundEventBuilder>) -> GameAction {
     let mut flush_result = BoardEventConsumer::flush(game, event_builder);
     while let FlushResult::Merge(mut m) = flush_result {
-        merge_patterns(&mut game.board, &mut m);
+        merge_patterns(&game.board, &mut m);
         flush_result = BoardEventConsumer::flush(game, Box::new(m));
     }
     if let FlushResult::Build(game_action) = flush_result {

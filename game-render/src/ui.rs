@@ -35,7 +35,7 @@ impl Button {
         };
 
         draw_rectangle(self.x, self.y, self.width, self.height, button_color);
-        draw_text(&*self.text, self.x + 10., self.y + 40., 40., text_color);
+        draw_text(&self.text, self.x + 10., self.y + 40., 40., text_color);
     }
 
     pub fn hovered(&self, canvas: &Canvas2D) -> bool {

@@ -38,7 +38,7 @@ impl Display for Game {
                 write!(f, "  ")?;
             }
 
-            write!(f, "{}\n", team)?;
+            writeln!(f, "{}", team)?;
         }
 
         write!(f, "\n{}\n", self.board)?;
@@ -106,7 +106,7 @@ impl Game {
     }
 
     pub fn remove_unused_piece(&mut self, team_id: usize) -> bool {
-        if self.teams[team_id].unused_pieces <= 0 {
+        if self.teams[team_id].unused_pieces == 0 {
             false
         } else {
             self.teams[team_id].unused_pieces -= 1;

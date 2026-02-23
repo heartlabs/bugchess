@@ -49,6 +49,12 @@ pub struct MergeCompoundEvent {
     merge_events: Option<Box<MergeCompoundEvent>>,
 }
 
+impl Default for MergeCompoundEvent {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MergeCompoundEvent {
     pub fn new() -> Self {
         MergeCompoundEvent {

@@ -99,7 +99,7 @@ impl RenderEventConsumer {
     fn handle_move(move_event: &MoveCompoundEvent) -> Vec<Animation> {
         let mut animations = vec![];
 
-        if let Some(_) = move_event.captured_piece() {
+        if move_event.captured_piece().is_some() {
             let mut remove_animation = Animation::new_die(*move_event.to());
 
             for pos in move_event.removed_effects() {
@@ -252,8 +252,8 @@ impl EventConsumer for RenderEventConsumer {
             GameAction::Attack(attack_event) => Self::handle_attack(attack_event),
             GameAction::Place(place_event) => Self::handle_place(place_event),
             GameAction::Move(move_event) => Self::handle_move(move_event),
-            GameAction::Undo(_) => Self::handle_undo(&event),
-            GameAction::FinishTurn(_) => Self::handle_finish_turn(&event),
+            GameAction::Undo(_) => Self::handle_undo(event),
+            GameAction::FinishTurn(_) => Self::handle_finish_turn(event),
         };
 
         board_render.add_animation_sequence(animations);

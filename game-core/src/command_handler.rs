@@ -63,9 +63,9 @@ impl CommandHandler {
     }
 
     fn handle_command_internal(&mut self, game: Game, command: &GameCommand) {
-        self.past_commands.push(command.clone());
+        self.past_commands.push(*command);
         if let Ok(mut v) = (*self.past_commands_for_error_export).lock() {
-            v.push(command.clone());
+            v.push(*command);
         } else {
             error!("Could not export command to error queue")
         }
@@ -78,7 +78,7 @@ impl CommandHandler {
             self.event_broker.undo();
         } else {
             let action = GameController::handle_command(game, command)
-                .expect(&format!("Could not handle command {:?}", command));
+                .unwrap_or_else(|_| panic!("Could not handle command {:?}", command));
 
             self.event_broker.handle_new_event(&action);
         }

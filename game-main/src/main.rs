@@ -97,12 +97,11 @@ async fn setup_game_state() -> Box<dyn GameState> {
     srand(seed);
 
     let mut loading_state = LoadingState::new();
-    if let Some(room_id) = preconfigured_room_id.as_ref() {
-        if !room_id.is_empty() {
+    if let Some(room_id) = preconfigured_room_id.as_ref()
+        && !room_id.is_empty() {
             info!("Was preconfigured with room_id {}", room_id);
             loading_state.join_room(room_id.as_str());
         }
-    }
 
     #[cfg(target_family = "wasm")]
     if let Some(true) = getProperty("offline").as_bool() {

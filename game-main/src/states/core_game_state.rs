@@ -339,8 +339,8 @@ fn export_to_file(message: &str, content: &Vec<GameCommand>) -> Result<(), std::
 
     println!("Exporting to {}", filename);
     let mut file = File::create(filename)?;
-    file.write(format!("// {}\n", message).as_ref())?;
-    file.write(content.serialize_json().into_bytes().as_slice())?;
+    file.write_all(format!("// {}\n", message).as_ref())?;
+    file.write_all(content.serialize_json().as_bytes())?;
 
     Ok(())
 }
