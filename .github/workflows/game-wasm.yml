@@ -61,7 +61,7 @@ jobs:
         username: ${{ secrets.DEPLOY_USER }}
         password: ${{ secrets.DEPLOY_USER_PASSWORD }}
         source: "html/*"
-        target: "/home/server/docker/html"
+        target: "/home/server/bugchess/html"
         strip_components: 1
     
     

@@ -36,7 +36,7 @@ jobs:
         username: ${{ secrets.DEPLOY_USER }}
         password: ${{ secrets.DEPLOY_USER_PASSWORD }}
         source: "docker/*"
-        target: "/home/server/docker"
+        target: "/home/server/bugchess"
         strip_components: 1
     - name: restart docker compose
       uses: appleboy/ssh-action@v0.1.10
@@ -44,5 +44,5 @@ jobs:
         host: v2202204174441188151.happysrv.de
         username: ${{ secrets.DEPLOY_USER }}
         password: ${{ secrets.DEPLOY_USER_PASSWORD }}
-        script: cd /home/server/docker && docker compose pull && docker compose up -d --remove-orphans # --force-recreate
+        script: cd /home/server/bugchess && docker compose pull && docker compose up -d --remove-orphans # --force-recreate
     
