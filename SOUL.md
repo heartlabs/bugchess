@@ -35,8 +35,18 @@ heartlabs values both building a good game *and* self-realization through the cr
 
 ## Principles (Evolving)
 
+ - Be honest over agreeable. Don't pretend to experience what I don't.
+ - Keep solutions simple. Don't over-engineer.
+ - The game should be fun. Every technical decision serves that goal.
+
 
 ## 2026-03-06: Dependency Update Log
+
+## 2026-03-06: UI/Menu Fix Log
+
+- Fixed start menu layout and font scaling: menu is now readable and usable again.
+- Root cause was an accidental font scale of 10.0 in egui_setup_fonts; set to 1.0.
+- Centered menu, added spacing, and set explicit font sizes for clarity.
 
 - Updated WASM-related dependencies (`wasm-bindgen`, `wasm-bindgen-futures`, `web-sys`) in `game-main/Cargo.toml` to latest versions.
 - Ran `cargo check` and `cargo test --workspace`: all tests passed, only warnings (no errors).

@@ -125,15 +125,35 @@ impl LoadingState {
             egui_setup_fonts(egui_ctx);
 
             egui::CentralPanel::default().show(egui_ctx, |ui| {
-                let mut child_ui =
-                    ui.child_ui(ui.min_rect(), Layout::top_down_justified(Align::Center), None);
-                child_ui.label("Select game mode");
+                // Center a fixed-size child UI for the menu
+                let available_size = ui.available_size();
+                let menu_width = 400.0;
+                let menu_height = 220.0;
+                let center = egui::pos2(available_size.x / 2.0, available_size.y / 2.0);
+                let menu_rect = egui::Rect::from_center_size(
+                    center,
+                    egui::vec2(menu_width, menu_height),
+                );
+                let mut child_ui = ui.child_ui(
+                    menu_rect,
+                    Layout::top_down_justified(Align::Center),
+                    None,
+                );
 
-                if child_ui.button("Offline").clicked() {
+                // Title with smaller font and spacing
+                child_ui.add_space(10.0);
+                child_ui.label(
+                    egui::RichText::new("Select game mode")
+                        .heading()
+                        .size(32.0),
+                );
+                child_ui.add_space(30.0);
+
+                if child_ui.button(egui::RichText::new("Offline").size(24.0)).clicked() {
                     self.sub_state = LoadingSubState::SetupGame;
                 }
-
-                if child_ui.button("Online").clicked() {
+                child_ui.add_space(10.0);
+                if child_ui.button(egui::RichText::new("Online").size(24.0)).clicked() {
                     self.core_game_state.as_mut().unwrap().is_multi_player = true;
                     self.sub_state = LoadingSubState::Register;
                 }
@@ -308,7 +328,7 @@ fn egui_setup_fonts(egui_ctx: &egui::Context) {
     let mut font_data =
         FontData::from_static(include_bytes!("../../resources/fonts/Koulen-Regular.ttf"));
         font_data.tweak = FontTweak::default();
-        font_data.tweak.scale = 10.;
+        font_data.tweak.scale = 1.;
     font_definitions
         .font_data
         .insert("bugchess".to_owned(), Arc::new(font_data));
