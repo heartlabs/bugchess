@@ -4,12 +4,31 @@ services:
     image: "jhelsing/matchbox-server:0.6"
     ports:
       - "3536:3536"
-  coturn:
-    image: "coturn/coturn"
-    network_mode: "host"
-    volumes:
-      - ./turnserver.conf:/etc/coturn/turnserver.conf
   game-server:
     image: "neidhart/bugchess-server"
     volumes:
       - ./error_reports/:/error_reports
+    networks:
+      bugnet:
+        aliases:
+          - bugchess_network
+  coturn:
+    image: "coturn/coturn"
+    volumes:
+      - ./turnserver.conf:/etc/coturn/turnserver.conf
+    networks:
+      bugnet:
+        aliases:
+          - bugchess_network
+  game-server:
+    image: "neidhart/bugchess-server"
+    volumes:
+      - ./error_reports/:/error_reports
+    networks:
+      bugnet:
+        aliases:
+          - bugchess_network
+
+networks:
+  bugnet:
+    name: bugchess_network
