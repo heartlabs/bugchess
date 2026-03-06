@@ -307,11 +307,6 @@ pub struct AddUnusedAnimation {
     pub team_id: usize,
 }
 
-#[derive(Debug, Clone)]
-pub struct RemoveUnusedAnimation {
-    pub team_id: usize,
-}
-
 impl AnimationExpert for AddUnusedAnimation {
     fn start(&self, board_render: &mut BoardRender) {
         board_render.add_unused_piece(self.team_id);
@@ -324,11 +319,6 @@ impl AnimationExpert for AddUnusedAnimation {
         sprite_render.from = SpriteRender::scale_animation_point(&sprite_render.from, 100.);
         sprite_render.from.instant = Instant::now();
         sprite_render.to.instant = Instant::now() + Duration::from_millis(ADD_UNUSED_SPEED);
-    }
-}
-impl AnimationExpert for RemoveUnusedAnimation {
-    fn start(&self, board_render: &mut BoardRender) {
-        board_render.unused_pieces.pop();
     }
 }
 

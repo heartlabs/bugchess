@@ -345,6 +345,7 @@ fn export_to_file(message: &str, content: &Vec<GameCommand>) -> Result<(), std::
     Ok(())
 }
 
+#[cfg(target_family = "wasm")]
 async fn post_error_report(url: String, message: String, content: Vec<GameCommand>) {
     let client = reqwest::Client::new();
     if let Err(e) = client

@@ -94,9 +94,7 @@ impl LoadingState {
     fn egui_select_room(&mut self, ui: &mut egui::Ui) {
         let mut child_ui = ui.child_ui(
             ui.min_rect(),
-            Layout::top_down_justified(Align::Center), None//.with_cross_justify(true)
-                                                       //.with_main_justify(true)
-                                                       //.with_cross_align()
+            Layout::top_down_justified(Align::Center), None,
         );
         child_ui.label("Enter Room ID");
         child_ui.add(
@@ -321,9 +319,10 @@ fn egui_setup_fonts(egui_ctx: &egui::Context) {
         .unwrap()
         .insert(0, "bugchess".to_owned());
     egui_ctx.set_fonts(font_definitions);
-    let mut visuals = Visuals::default();
-    //visuals.override_text_color = Some(Color32::from_rgb(0,255,0));
-    visuals.collapsing_header_frame = true;
+    let visuals = Visuals {
+        collapsing_header_frame: true,
+        ..Default::default()
+    };
     egui_ctx.set_visuals(visuals);
 }
 

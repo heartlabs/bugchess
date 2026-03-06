@@ -4,6 +4,8 @@ use std::iter::successors;
 
 use crate::{board::*, piece::*, Point2};
 
+type PathFn = Box<dyn Fn((i16, i16)) -> (i16, i16)>;
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq, SerJson, DeJson)]
 pub struct Range {
     pub direction: Direction,
@@ -24,24 +26,7 @@ pub enum Direction {
 }
 
 impl Direction {
-    fn reaches(&self, from_x: u8, from_y: u8, to_x: u8, to_y: u8) -> bool {
-        match &self {
-            Direction::Vertical => from_x == to_x,
-            Direction::Horizontal => from_y == to_y,
-            Direction::Diagonal => {
-                (from_y as i16 - to_y as i16).abs() == (from_x as i16 - to_x as i16).abs()
-            }
-            Direction::Straight => from_x == to_x || from_y == to_y,
-            Direction::Star => {
-                (from_y as i16 - to_y as i16).abs() == (from_x as i16 - to_x as i16).abs()
-                    || from_x == to_x
-                    || from_y == to_y
-            }
-            Direction::Anywhere => true,
-        }
-    }
-
-    fn paths(&self) -> Vec<Box<dyn Fn((i16, i16)) -> (i16, i16)>> {
+    fn paths(&self) -> Vec<PathFn> {
         match &self {
             Direction::Vertical => {
                 vec![Box::new(|(x, y)| (x, y + 1)), Box::new(|(x, y)| (x, y - 1))]

@@ -48,7 +48,3 @@ web-sys = { version = "0.3.*", features = ["Document"] }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 openssl = { version = "0.10", features = ["vendored"] }
-
-[profile.release]
-lto = true
-opt-level = 's'

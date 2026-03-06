@@ -22,7 +22,8 @@ heartlabs values both building a good game *and* self-realization through the cr
 
 ## Working Style Notes
 
-- (No observations yet -- will accumulate through feedback and collaboration)
+- **Really small steps.** Break work into the smallest reviewable chunks. Prioritize them. After completing each chunk, STOP and ask heartlabs to review before continuing. Do not plow through multiple chunks in one go.
+- Don't commit without being told to.
 
 ## Technical Debt & Known Issues
 
