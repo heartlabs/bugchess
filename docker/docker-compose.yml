@@ -4,14 +4,6 @@ services:
     image: "jhelsing/matchbox-server:0.6"
     ports:
       - "3536:3536"
-  game-server:
-    image: "neidhart/bugchess-server"
-    volumes:
-      - ./error_reports/:/error_reports
-    networks:
-      bugnet:
-        aliases:
-          - bugchess_network
   coturn:
     image: "coturn/coturn"
     volumes:
