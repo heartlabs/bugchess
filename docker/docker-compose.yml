@@ -4,23 +4,22 @@ services:
     image: "jhelsing/matchbox-server:0.6"
     ports:
       - "3536:3536"
+    networks:
+      - bugchess_network
   coturn:
     image: "coturn/coturn"
     volumes:
       - ./turnserver.conf:/etc/coturn/turnserver.conf
     networks:
-      bugnet:
-        aliases:
-          - bugchess_network
+      - bugchess_network
   game-server:
     image: "neidhart/bugchess-server"
     volumes:
       - ./error_reports/:/error_reports
     networks:
-      bugnet:
-        aliases:
-          - bugchess_network
+      - bugchess_network
 
 networks:
-  bugnet:
+  bugchess_network:
     name: bugchess_network
+    external: true
