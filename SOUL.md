@@ -52,3 +52,13 @@ heartlabs values both building a good game *and* self-realization through the cr
 - Ran `cargo check` and `cargo test --workspace`: all tests passed, only warnings (no errors).
 - This was a safe, isolated update step as part of regular maintenance.
 
+## 2026-03-06: WASM Browser Loading Fix
+
+- After wasm-bindgen was updated to 0.2.114, the game stopped loading in the browser.
+- Three root causes were identified and fixed:
+  1. **build.sh sed patches outdated**: wasm-bindgen 0.2.114 changed its JS output format (111 numbered `import * as importN from "env"` lines instead of a single `__wbg_star0`; `let wasmModule, wasm;` instead of `let wasm;`; duplicate `"env": importN` entries in return object instead of `imports['env'] = __wbg_star0`). Updated all sed commands to match the new format.
+  2. **index.htm plugin registration used wrong key**: The WASM binary imports from `"./bugchess_bg.js"`, not `"wbg"`. Fixed `register_plugin` to set `importObject["./bugchess_bg.js"]`.
+  3. **WebGL version mismatch**: miniquad 0.4.8 defaults to WebGL1 but macroquad 0.4.14 uses WebGL2 functions (`readBuffer`, `blitFramebuffer`). Added `webgl_version: WebGLVersion::WebGL2` to window config.
+- Also updated gl.js to match miniquad master (version 2): added `init_webgl()` function, re-entrancy guards for focus/resize callbacks, animation loop scheduling fix, and additional GL function bindings.
+- Key lesson: wasm-bindgen output format can change significantly between versions. The sed-based patching in build.sh is fragile and should be verified after any wasm-bindgen upgrade.
+

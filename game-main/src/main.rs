@@ -21,6 +21,10 @@ fn window_conf() -> Conf {
         window_title: "Makrochess".to_owned(),
         window_width: WINDOW_WIDTH,
         window_height: WINDOW_HEIGHT,
+        platform: miniquad::conf::Platform {
+            webgl_version: miniquad::conf::WebGLVersion::WebGL2,
+            ..Default::default()
+        },
         ..Default::default()
     }
 }
