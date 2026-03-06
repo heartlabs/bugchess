@@ -14,7 +14,7 @@ env:
 jobs:
   docker:
     runs-on: ubuntu-latest
-    environment: heartlabs.eu
+    environment: heartlabs.tech
     steps:
     - uses: actions/checkout@v2
     - name: Log in to Docker Hub
