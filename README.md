@@ -22,7 +22,7 @@ TODO...
 
 ## Play
 
-You can play the game online or offline (hot-seat) at https://heartlabs.tech.
+You can play the game online or offline (hot-seat) at https://heartlabs.eu.
 
 You can also compile and run the game locally with Rust's *[cargo](https://doc.rust-lang.org/cargo/)* command in the root directory of the checked-out sources.
 

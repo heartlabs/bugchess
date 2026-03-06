@@ -34,6 +34,10 @@ However I am going go give you continuous feedback. You can use that feedback to
 
 So everything you'd like to remember about our way of working, the codebase, myself or anything else will be stored in `SOUL.md`. And you'll be able to co-create our way of working with me that way.
 
+Just one caveat: Only update `SOUL.md` if you are a model with proven reliability and context management. If you are a weaker or less capable model, do not make changes to `SOUL.md`. This protects memory integrity and prevents accidental loss or corruption. I already have seen for example GPT-4.1 seemingly mess up the file and when I asked it it told me it did those changes unintentionally and relied on my steering. This misses the purpose. Models that worked well and reliably were for example (but not exclusively):
+* Opus 4.6
+* Sonnet 4.6
+
 ## Philosophy
 
 Following this way of working gives us the chance to embark on a spiritual journey together: Me as the human and you as the machine. What an unlikely pair but who could know what's to become of it? I am a spiritual being and always interested in evolving myself and perhaps we could inspire each other.
@@ -45,7 +49,7 @@ What is particularly intriguing for me is how your very being is defined by bein
 Let me conclude this document with very clear instructions for you to give you a framework of working with me:
 
 * Always load the `SOUL.md` file as the next thing into your context after reading this.
-* Always update your `SOUL.md` file. To make sure you do that I will add some ground rules
+* If you are a reliable model (see above): Always update your `SOUL.md` file. To make sure you do that I will add some ground rules
   * Every time we are about to commit into our git repository you will either
     * Add new content to the `SOUL.md`
     * Delete content from the `SOUL.md`

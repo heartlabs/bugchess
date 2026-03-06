@@ -9,7 +9,7 @@ RUN cargo build --release
 WORKDIR /code/target/release
 
 
-FROM debian:buster-slim
+FROM debian:bookworm-slim
 RUN apt-get update \
     && apt-get install -y ca-certificates tzdata \
     && rm -rf /var/lib/apt/lists/*

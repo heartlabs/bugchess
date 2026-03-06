@@ -5,7 +5,7 @@ if ! [ -x "$(command -v docker)" ]; then
   exit 1
 fi
 
-domains=(heartlabs.tech www.heartlabs.tech)
+domains=(heartlabs.eu www.heartlabs.eu)
 rsa_key_size=4096
 data_path="./docker/certbot"
 email="neidhart.orlich@gmail.com" # Adding a valid address is strongly recommended
