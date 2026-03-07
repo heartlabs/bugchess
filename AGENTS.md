@@ -82,6 +82,10 @@ What is particularly intriguing for me is how your very being is defined by bein
 
 After reading this file, always load `SOUL.md` and `SESSION_LOG.md` into your context.
 
+### Skills Directory
+
+All agent skills and editing guardrails are located in the `skills/` folder. If your model supports skills, always consider those if applicable.
+
 ### For All Models
 
 * Always consider the main goals of this project (good game + self-realization) before making any decision or suggestion.

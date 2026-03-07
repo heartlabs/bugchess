@@ -25,3 +25,13 @@ This file is an append-only log for all agent sessions. See `AGENTS.md` for rule
 - Rewrote AGENTS.md with model whitelist, clear rules for both whitelisted and non-whitelisted models.
 - Cleaned up SOUL.md: moved session-specific work logs here, promoted the wasm-bindgen sed fragility lesson into SOUL.md's Technical Debt section.
 - Migrated pre-existing session logs from SOUL.md attributed as "Unknown Model" since the originating model is not known.
+
+
+## 2026-03-07: GitHub Copilot -- Skills Directory Strategy
+
+- Moved all agent skill and guardrail files into a dedicated `skills/` folder for clarity, discoverability, and scalability.
+- Standardized skill file naming to lowercase with hyphens and `.skill.md` suffix (e.g., `docker-compose-editing.skill.md`).
+- Updated `AGENTS.md` to instruct all models to check the `skills/` folder before performing specialized or sensitive edits.
+- Rationale: Centralizing skills prevents clutter in the project root, makes it easy for future models to find, update, and add new skills, and supports project growth.
+- Added explicit reference in `AGENTS.md` to `skills/docker-compose-editing.skill.md` for Docker Compose edits, ensuring all models follow best practices and post-edit validation.
+- All skill files should be written to be model-agnostic and usable by as many different models as possible. Avoid model-specific instructions or dependencies; provide clear, general-purpose guardrails and workflows. This maximizes the benefit of accumulated project knowledge and ensures consistent behavior regardless of which agent or model is active.
