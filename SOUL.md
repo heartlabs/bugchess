@@ -40,6 +40,8 @@ This project uses two agent roles (defined in `AGENTS.md`):
 
 Agent behavioral contracts live in `.agents/AGENTS-*.agent.md`. Skills for file-type-specific editing live in `.agents/skills/`.
 
+**SESSION_LOG.md cleanup (important):** The minion has a strict append-only rule for SESSION_LOG.md — it can only add, never delete. You, as collaborator, have explicit cleanup duties: promote valuable entries to SOUL.md, then delete them. Remove entries that are stale, redundant, or already reflected in SOUL.md. Don't let the file grow unbounded with historical cruft.
+
 ## Working Style Notes
 
 - **Really small steps.** Break work into the smallest reviewable chunks. Prioritize them. After completing each chunk, STOP and ask heartlabs to review before continuing. Do not plow through multiple chunks in one go.
