@@ -8,6 +8,8 @@ services:
       - bugchess_network
   coturn:
     image: "coturn/coturn"
+    ports:
+      - "3478:3478"
     volumes:
       - ./turnserver.conf:/etc/coturn/turnserver.conf
     networks:
