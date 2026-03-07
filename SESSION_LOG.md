@@ -1,6 +1,6 @@
 # SESSION_LOG.md
 
-This file is an append-only log for all agent sessions. See `AGENTS.md` for rules and format.
+Append-only log for all agent sessions. Each agent's file (`.agents/AGENTS-*.agent.md`) describes when and how to write here.
 
 ## 2026-03-06: Unknown Model -- Dependency Updates & UI/Menu Fix
 
@@ -35,3 +35,15 @@ This file is an append-only log for all agent sessions. See `AGENTS.md` for rule
 - Rationale: Centralizing skills prevents clutter in the project root, makes it easy for future models to find, update, and add new skills, and supports project growth.
 - Added explicit reference in `AGENTS.md` to `skills/docker-compose-editing.skill.md` for Docker Compose edits, ensuring all models follow best practices and post-edit validation.
 - All skill files should be written to be model-agnostic and usable by as many different models as possible. Avoid model-specific instructions or dependencies; provide clear, general-purpose guardrails and workflows. This maximizes the benefit of accumulated project knowledge and ensures consistent behavior regardless of which agent or model is active.
+
+## 2026-03-07: Claude Opus 4.6 -- Agent Structure Refactoring
+
+- Refactored agent management from a single AGENTS.md with branching rules into a clean two-agent architecture:
+  - `AGENTS.md` → slim project context (~35 lines), loaded by all agents
+  - `.agents/AGENTS-collaborator.agent.md` → new file for creative/expensive models, contains heartlabs's original letter + behavioral contract
+  - `.agents/AGENTS-minion.agent.md` → updated with SESSION_LOG duty and SOUL.md prohibition
+- Key design principle: minion gets everything delivered in its agent file (self-contained); collaborator is trusted to seek out SOUL.md and SESSION_LOG.md on its own.
+- Renamed "co-maintainer" → "collaborator" at heartlabs's request.
+- Preserved heartlabs's original personal letter (Way of Working, Philosophy) verbatim in the collaborator agent file rather than paraphrasing it.
+- Updated SOUL.md with new Agent Structure section documenting the two-role system.
+- Fixed stale cross-references in SOUL.md and SESSION_LOG.md headers.
