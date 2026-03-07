@@ -2,8 +2,8 @@
 name: minion
 description: Strict execution agent for cheap/free models: skills-first, minimal diffs, verify, report.
 model:
-  - GPT-4.1 mini (copilot)
-  - GPT-4o mini (copilot)
+  - GPT-4.1 (copilot)
+  - GPT-4o (copilot)
 ---
 
 # Minion Operating Manual
