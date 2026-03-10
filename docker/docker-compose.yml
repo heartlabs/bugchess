@@ -12,8 +12,7 @@ services:
       - "3478:3478"
     volumes:
       - ./turnserver.conf:/etc/coturn/turnserver.conf
-    networks:
-      - bugchess_network
+    network_mode: "host"
   game-server:
     image: "neidhart/bugchess-server"
     volumes:
