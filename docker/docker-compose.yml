@@ -1,7 +1,7 @@
 version: "3.9"
 services:
   matchbox:
-    image: "jhelsing/matchbox-server:0.6"
+    image: "jhelsing/matchbox-server:0.14"
     ports:
       - "3536:3536"
     networks:

@@ -1,0 +1,12 @@
+{
+  "name": "bugchess-playwright-automation",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Playwright automation for starting a Bugchess web game",
+  "scripts": {
+    "start-game": "node start-game.js"
+  },
+  "dependencies": {
+    "playwright": "^1.53.0"
+  }
+}

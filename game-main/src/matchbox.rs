@@ -3,12 +3,12 @@ use game_core::{
     multiplayer_connector::{MultiplayerClient, MultiplayerConector},
 };
 use macroquad::prelude::*;
-use matchbox_socket::{PeerId, RtcIceServerConfig, WebRtcSocket};
+use matchbox_socket::{PeerId, PeerState, RtcIceServerConfig, WebRtcSocket};
 use nanoserde::{DeJson, SerJson};
 use urlencoding::encode;
 
 fn connect(room_id: &str) -> MatchboxClient {
-    let (socket, loop_fut) = WebRtcSocket::builder(format!(
+    let (mut socket, loop_fut) = WebRtcSocket::builder(format!(
         "wss://heartlabs.eu:3537/{}?next=2",
         encode(room_id)
     ))
@@ -45,11 +45,13 @@ fn connect(room_id: &str) -> MatchboxClient {
     MatchboxClient {
         socket,
         is_ready: false,
+        own_id: None,
     }
 }
 pub struct MatchboxClient {
     socket: WebRtcSocket,
     is_ready: bool,
+    own_id: Option<String>,
 }
 
 impl MultiplayerClient for MatchboxClient {
@@ -58,9 +60,14 @@ impl MultiplayerClient for MatchboxClient {
     }
 
     fn accept_new_connections(&mut self) -> Vec<String> {
+        // Refresh own_id while we have &mut self (socket.id() requires &mut self in 0.14+)
+        if self.own_id.is_none() {
+            self.own_id = self.socket.id().map(|id| id.0.to_string());
+        }
         self.socket
             .update_peers()
-            .iter()
+            .into_iter()
+            .filter(|(_, state)| *state == PeerState::Connected)
             .map(|(i, _)| {
                 self.is_ready = true;
                 i.0.to_string()
@@ -76,6 +83,7 @@ impl MultiplayerClient for MatchboxClient {
         }
 
         self.socket
+            .channel_mut(0)
             .receive()
             .into_iter()
             .map(|(_, g)| {
@@ -89,14 +97,14 @@ impl MultiplayerClient for MatchboxClient {
         debug!("Sending {} to {}", game_object, opponent_id);
 
         let json = game_object.serialize_json();
-        self.socket.send(
+        self.socket.channel_mut(0).send(
             json.into_bytes().into_boxed_slice(),
             PeerId(opponent_id.try_into().unwrap()),
         );
     }
 
     fn own_player_id(&self) -> Option<String> {
-        self.socket.id().map(|id| id.0.to_string())
+        self.own_id.clone()
     }
 }
 

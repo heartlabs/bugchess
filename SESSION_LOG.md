@@ -36,6 +36,18 @@ Append-only log for all agent sessions. Each agent's file (`.agents/AGENTS-*.age
 - Added explicit reference in `AGENTS.md` to `skills/docker-compose-editing.skill.md` for Docker Compose edits, ensuring all models follow best practices and post-edit validation.
 - All skill files should be written to be model-agnostic and usable by as many different models as possible. Avoid model-specific instructions or dependencies; provide clear, general-purpose guardrails and workflows. This maximizes the benefit of accumulated project knowledge and ensures consistent behavior regardless of which agent or model is active.
 
+## 2026-07-14: GitHub Copilot (Claude Sonnet 4.6) -- matchbox_socket 0.6.1 → 0.14.0 Upgrade
+
+- Upgraded `matchbox_socket` from `0.6.1` to `0.14.0` in `game-main/Cargo.toml`.
+- Four API changes were required in `game-main/src/matchbox.rs`:
+  1. **receive**: `socket.receive()` → `socket.channel_mut(0).receive()`
+  2. **send**: `socket.send(data, peer)` → `socket.channel_mut(0).send(data, peer)`
+  3. **update_peers filter**: `update_peers()` now returns both `Connected` and `Disconnected` events; added `.filter(|(_, state)| *state == PeerState::Connected)` to avoid spurious disconnects being treated as new connections.
+  4. **socket.id() caching**: `socket.id()` now takes `&mut self`, but the `own_player_id()` trait method takes `&self`. Solved by adding `own_id: Option<String>` to `MatchboxClient`, refreshed in `accept_new_connections()`.
+- `add_reliable_channel()` builder method and `PeerId` struct are unchanged through 0.14.0.
+- `cargo check` passes (3 pre-existing warnings only). `bash build.sh` succeeded in ~70s.
+- Verified end-to-end with `webrtc-probe.js`: both browsers connect, ICE negotiates, data channels open, `NEXT TURN` logs confirm game actually starts.
+
 ## 2026-03-07: Claude Opus 4.6 -- Agent Structure Refactoring
 
 - Refactored agent management from a single AGENTS.md with branching rules into a clean two-agent architecture:

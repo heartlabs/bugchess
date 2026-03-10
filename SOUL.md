@@ -15,7 +15,7 @@ Only collaborator agents edit this file. Minion agents contribute knowledge via 
 - **Language:** Rust (edition 2024)
 - **Architecture:** Event-sourced, layered: game-model -> game-events -> game-core -> game-render -> game-main
 - **Rendering:** macroquad (migration away from it may be in progress -- check recent commits)
-- **Multiplayer:** Peer-to-peer via WebRTC (matchbox_socket)
+- **Multiplayer:** Peer-to-peer via WebRTC (matchbox_socket 0.14.0)
 - **Deployment:** WASM to <https://heartlabs.eu>, CI/CD via GitHub Actions, Docker infrastructure
 
 ## Technical Debt & Known Issues
@@ -26,6 +26,7 @@ Only collaborator agents edit this file. Minion agents contribute knowledge via 
 - Player disconnect not handled
 - Recent direction: "start moving away from macroquad" -- verify current status before making rendering assumptions
 - `build.sh` uses sed to patch wasm-bindgen JS output. This is fragile: wasm-bindgen output format changes between versions. Verify sed commands after any wasm-bindgen upgrade.
+- **Verifying WebRTC / game start:** Run `WAIT_MS=45000 node automation/playwright/webrtc-probe.js` from the repo root (requires the WASM build to be served on port 4001). Success indicators: `dc:open matchbox_socket_0`, `data channels ready`, and `NEXT TURN` in the output. The script instruments two headless Chromium browsers — one creates a game, one joins — and logs all WebRTC lifecycle events.
 
 ## The Owner
 
