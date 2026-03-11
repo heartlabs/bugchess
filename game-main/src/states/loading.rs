@@ -92,9 +92,10 @@ impl LoadingState {
     }
 
     fn egui_select_room(&mut self, ui: &mut egui::Ui) {
-        let mut child_ui = ui.child_ui(
-            ui.min_rect(),
-            Layout::top_down_justified(Align::Center), None,
+        let mut child_ui = ui.new_child(
+            egui::UiBuilder::new()
+                .max_rect(ui.available_rect_before_wrap())
+                .layout(Layout::top_down_justified(Align::Center)),
         );
         child_ui.label("Enter Room ID");
         child_ui.add(
@@ -115,6 +116,7 @@ impl LoadingState {
         self.sub_state = LoadingSubState::Matchmaking;
     }
 
+    #[cfg(target_family = "wasm")]
     pub fn offline_game(&mut self) {
         self.sub_state = LoadingSubState::SetupGame;
         self.core_game_state.as_mut().unwrap().is_multi_player = false;
@@ -126,18 +128,17 @@ impl LoadingState {
 
             egui::CentralPanel::default().show(egui_ctx, |ui| {
                 // Center a fixed-size child UI for the menu
-                let available_size = ui.available_size();
                 let menu_width = 400.0;
                 let menu_height = 220.0;
-                let center = egui::pos2(available_size.x / 2.0, available_size.y / 2.0);
+                let center = ui.max_rect().center();
                 let menu_rect = egui::Rect::from_center_size(
                     center,
                     egui::vec2(menu_width, menu_height),
                 );
-                let mut child_ui = ui.child_ui(
-                    menu_rect,
-                    Layout::top_down_justified(Align::Center),
-                    None,
+                let mut child_ui = ui.new_child(
+                    egui::UiBuilder::new()
+                        .max_rect(menu_rect)
+                        .layout(Layout::top_down(Align::Center)),
                 );
 
                 // Title with smaller font and spacing
@@ -149,11 +150,23 @@ impl LoadingState {
                 );
                 child_ui.add_space(30.0);
 
-                if child_ui.button(egui::RichText::new("Offline").size(24.0)).clicked() {
+                if child_ui
+                    .add_sized(
+                        [menu_width * 0.85, 56.0],
+                        egui::Button::new(egui::RichText::new("Offline").size(24.0)),
+                    )
+                    .clicked()
+                {
                     self.sub_state = LoadingSubState::SetupGame;
                 }
                 child_ui.add_space(10.0);
-                if child_ui.button(egui::RichText::new("Online").size(24.0)).clicked() {
+                if child_ui
+                    .add_sized(
+                        [menu_width * 0.85, 56.0],
+                        egui::Button::new(egui::RichText::new("Online").size(24.0)),
+                    )
+                    .clicked()
+                {
                     self.core_game_state.as_mut().unwrap().is_multi_player = true;
                     self.sub_state = LoadingSubState::Register;
                 }

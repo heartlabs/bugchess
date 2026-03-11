@@ -4,7 +4,8 @@
   "version": "1.0.0",
   "description": "Playwright automation for starting a Bugchess web game",
   "scripts": {
-    "start-game": "node start-game.js"
+    "start-game": "node start-game.js",
+    "menu-layout-check": "node menu-layout-check.js"
   },
   "dependencies": {
     "playwright": "^1.53.0"
