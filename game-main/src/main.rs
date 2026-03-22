@@ -6,7 +6,7 @@ mod states;
 
 use crate::{
     constants::*,
-    states::{loading::LoadingState, GameState},
+    states::{GameState, loading::LoadingState},
 };
 
 use env_logger::Target;
@@ -102,10 +102,11 @@ async fn setup_game_state() -> Box<dyn GameState> {
 
     let mut loading_state = LoadingState::new();
     if let Some(room_id) = preconfigured_room_id.as_ref()
-        && !room_id.is_empty() {
-            info!("Was preconfigured with room_id {}", room_id);
-            loading_state.join_room(room_id.as_str());
-        }
+        && !room_id.is_empty()
+    {
+        info!("Was preconfigured with room_id {}", room_id);
+        loading_state.join_room(room_id.as_str());
+    }
 
     #[cfg(target_family = "wasm")]
     if let Some(true) = getProperty("offline").as_bool() {

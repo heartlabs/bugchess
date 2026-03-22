@@ -119,6 +119,44 @@
         section {
             padding: 10px;
         }
+
+        .piece-gif {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            border-radius: 4px;
+            background-color: #000;
+            margin: 1em 0;
+            display: block;
+        }
+
+        .piece-showcase {
+            display: flex;
+            gap: 1.5em;
+            align-items: flex-start;
+            margin: 1em 0;
+        }
+
+        .piece-gif-container {
+            flex: 0 0 auto;
+            min-width: 200px;
+        }
+
+        .piece-description {
+            flex: 1;
+        }
+
+        @media (max-width: 768px) {
+            .piece-showcase {
+                flex-direction: column;
+                gap: 1em;
+            }
+
+            .piece-gif-container {
+                min-width: auto;
+                width: 100%;
+            }
+        }
     </style>
 </head>
 
@@ -147,114 +185,250 @@
         <canvas id="glcanvas" tabindex='1' hidden></canvas>
     </div>
     <section>
-        <h1>How to Play</h1>
-        <p>This is a 2-player turn-based boardgame with the goal to remove all your opponent's pieces from the board.
+        <h1>Welcome to Bugchess</h1>
+        <p style="font-size: 1.1em; color: #666; margin-bottom: 1.5em;">
+            A 2-player turn-based strategy game where simple pieces combine to form powerful units.
+            Outmaneuver your opponent, collect enough pieces, or eliminate them to win.
         </p>
 
-        <h2>Basic Rules</h2>
-        When it is your turn you can do any of the following:
-        <ul>
-            <li> Move one of your pieces</li>
-            <li> Place a new piece</li>
-            <li> Activate the special ability of one of your pieces.</li>
-        </ul>
-        <p>
-            You may do this with as many pieces you like or do nothing at all. As soon as you are done, click the "End
-            Turn" button or the "Return" key on the keyboard to let the opponent do their moves.
-        </p>
-        <p>
-            If after a move some of your (or the opponent's) pieces end up forming a specific pattern on the board,
-            they merge into another piece type, as defined by the pattern (see below).
-        </p>
-        <p>
-            As long as it is your turn you can undo all of your moves by clicking the "Undo" button or pressing "U" on
-            the keyboard so don't be afraid of "learning by doing" and discovering the rules of the game and the pieces'
-            abilities by yourself.
-        </p>
-        <p>
-            You win if your opponent lost all pieces on the board or if you collect 20 unused pieces on the side of the
-            board
-        </p>
-        <h3>Moving a piece</h3>
-        <p>
-            Most pieces have the ability to move once per turn. You can hover over your piece to highlight the fields
-            where it may go. Click the piece to select it and then the target field to move it.
-        </p>
-        <p>
-            If there is an enemy piece on the target field you capture it. Note, that some weaker
-            piece types can't capture some of the stronger ones that way.
-        </p>
-        <h3>Placing a piece</h3>
-        <p>
-            Each turn you get two new available simple pieces that you can place on a field on the board whenever you
-            like by simply clicking a free field.
-        </p>
-        <p>
-            You can see your available pieces as well as the opponent's on the sides of the board.
-        </p>
-        <h3>Activate an ability</h3>
-        <p>
-            Many piece types have an activatable ability. To activate it, click the piece twice. If it's a targeted
-            ability, possible target fields are highlighted and you can click on a target to select it.
-        </p>
+        <details style="margin-bottom: 1.5em;">
+            <summary
+                style="cursor: pointer; font-size: 1.3em; font-weight: bold; padding: 1em; background-color: #f5f5f5; border-radius: 4px; user-select: none;">
+                📖 How to Play (Click to expand)
+            </summary>
 
-        <h2>Piece Types</h2>
-        TODO: Update piece names to insects
-        <h3>Simple</h3>
-        <dl>
-            <dt>Pattern</dt>
-            <dd>n/a - these are the initial pieces before being merged</dd>
-            <dt>Moves</dt>
-            <dd>One square in each direction, also diagonally </dd>
-            <dt>Special Abilities</dt>
-            <dd>None</dd>
-        </dl>
-        <h3>Cross ( + ) </h3>
-        <dl>
-            <dt>Pattern</dt>
-            <dd>a cross of five pieces - 3 vertically and 3 horizontally sharing the middle piece</dd>
-            <dt>Moves</dt>
-            <dd>Horizontally and Vertically until the next piece or the edge of the board </dd>
-            <dt>Special Abilities</dt>
-            <dd>Shielded: Can't be destroyed by simple pieces</dd>
-        </dl>
-        <h3>Bar ( - ), ( | ) </h3>
-        <dl>
-            <dt>Pattern</dt>
-            <dd>3 pieces in a row - vertically or horizontally</dd>
-            <dt>Moves</dt>
-            <dd>Depending on whether you created a vertical or horizontal bar: Horizontally or Vertically until the next
-                piece or the edge of the board </dd>
-            <dt>Special Abilities</dt>
-            <dd>Bullets: Shoots 2 bullets on each and may destroy up to two pieces at once</dd>
-        </dl>
-        <h3>Queen ( ◊ )</h3>
-        <dl>
-            <dt>Pattern</dt>
-            <dd>a 45° rotated square of eight pieces</dd>
-            <dt>Moves</dt>
-            <dd>Diagonally, Horizontally and Vertically until the next piece or the edge of the board </dd>
-            <dt>Special Abilities</dt>
-            <dd>Burst: Destroys any neighboring enemy piece</dd>
-        </dl>
-        <h3>Sniper ( X )</h3>
-        <dl>
-            <dt>Pattern</dt>
-            <dd>an X of five pieces</dd>
-            <dt>Moves</dt>
-            <dd>Doesn't move</dd>
-            <dt>Special Abilities</dt>
-            <dd>Sniper: Can destroy any piece on the board - one per turn</dd>
-        </dl>
-        <h3>Castle ( ◊ )</h3>
-        <dl>
-            <dt>Pattern</dt>
-            <dd>a 45° rotated square of four pieces</dd>
-            <dt>Moves</dt>
-            <dd>Doesn't move</dd>
-            <dt>Special Abilities</dt>
-            <dd>Shielded: Protects any neighboring piece from special abilities</dd>
-        </dl>
+            <div style="padding: 1.5em; background-color: #fafafa; border-radius: 4px; margin-top: 0.5em;">
+                <h3 style="margin-top: 0;">Your Turn</h3>
+                <p>Each turn, you can do as much or as little as you want:</p>
+                <ul>
+                    <li><strong>Move</strong> — Slide your pieces across the board</li>
+                    <li><strong>Place</strong> — Add new pieces (you get 2 per turn)</li>
+                    <li><strong>Activate</strong> — Use special abilities of your pieces</li>
+                </ul>
+                <p>When you're done, press <strong>Return</strong> or click "End Turn" to let your opponent move.</p>
+
+                <h3>The Core Mechanic: Merging</h3>
+                <p>
+                    When your pieces form specific patterns on the board, they automatically merge into a stronger unit.
+                    This is where strategy comes in—plan your placements to create the formations you need.
+                </p>
+
+                <h3>Winning</h3>
+                <p>You win by either:</p>
+                <ul>
+                    <li>Eliminating all opponent pieces, or</li>
+                    <li>Collecting <strong>20 extra pieces</strong> on your side of the board</li>
+                </ul>
+            </div>
+        </details>
+
+        <details style="margin-bottom: 1.5em;">
+            <summary
+                style="cursor: pointer; font-size: 1.3em; font-weight: bold; padding: 1em; background-color: #f5f5f5; border-radius: 4px; user-select: none;">
+                🎮 Actions (Click to expand)
+            </summary>
+
+            <div style="padding: 1.5em; background-color: #fafafa; border-radius: 4px; margin-top: 0.5em;">
+                <h4>Moving a Piece</h4>
+                <p>
+                    Hover over your piece to see where it can move. Different piece types move different distances
+                    and directions. Click the piece to select it, then click the target square.
+                </p>
+                <p>
+                    You can capture enemy pieces by moving onto them—but some stronger pieces can't be captured this
+                    way.
+                </p>
+
+                <h4>Placing a New Piece</h4>
+                <p>
+                    You have 2 new basic pieces each turn. Click any empty square to place one. Your available pieces
+                    are displayed on the side of the board.
+                </p>
+
+                <h4>Activating Abilities</h4>
+                <p>
+                    Many merged pieces have special powers. Click a piece twice to activate its ability.
+                    You'll see where it can target, and just click to confirm.
+                </p>
+
+                <h4>Undo</h4>
+                <p>
+                    Don't worry about making mistakes! Press <strong>U</strong> or click "Undo" to revert any move
+                    during your turn. Learn by experimenting.
+                </p>
+            </div>
+        </details>
+
+        <details style="margin-bottom: 2em;">
+            <summary
+                style="cursor: pointer; font-size: 1.3em; font-weight: bold; padding: 1em; background-color: #f5f5f5; border-radius: 4px; user-select: none;">
+                🐛 Piece Types (Click to expand)
+            </summary>
+
+            <div style="padding: 1.5em; background-color: #fafafa; border-radius: 4px; margin-top: 0.5em;">
+                <p style="color: #666; font-size: 0.95em; margin-bottom: 1.5em;">
+                    <em>Tip: Create patterns with your basic pieces to merge them into stronger units.</em>
+                </p>
+
+                <details
+                    style="margin-bottom: 1em; padding: 0.75em; background-color: white; border-radius: 4px; border-left: 4px solid #ddd;">
+                    <summary style="cursor: pointer; font-weight: bold; user-select: none;">
+                        Basic Piece
+                    </summary>
+                    <div class="piece-showcase">
+                        <div class="piece-gif-container">
+                            <img src="gifs/piece_basic.gif" alt="Basic piece placement animation" class="piece-gif"
+                                onerror="this.style.display='none'">
+                            <p style="font-size: 0.85em; color: #999; margin: 0.5em 0 0 0;">Placement & movement</p>
+                        </div>
+                        <div class="piece-description">
+                            <dl style="margin: 0; padding: 0;">
+                                <dt><strong>How to Create</strong></dt>
+                                <dd>Placed directly from your hand (you get 2 per turn)</dd>
+                                <dt><strong>Movement</strong></dt>
+                                <dd>One square in any direction (including diagonals)</dd>
+                                <dt><strong>Special Ability</strong></dt>
+                                <dd>None—it's just the starting piece</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </details>
+
+                <details
+                    style="margin-bottom: 1em; padding: 0.75em; background-color: white; border-radius: 4px; border-left: 4px solid #4CAF50;">
+                    <summary style="cursor: pointer; font-weight: bold; user-select: none;">
+                        Cross (+)
+                    </summary>
+                    <div class="piece-showcase">
+                        <div class="piece-gif-container">
+                            <img src="gifs/piece_cross.gif" alt="Cross piece creation and ability animation"
+                                class="piece-gif" onerror="this.style.display='none'">
+                            <p style="font-size: 0.85em; color: #999; margin: 0.5em 0 0 0;">Creation & shield ability
+                            </p>
+                        </div>
+                        <div class="piece-description">
+                            <dl style="margin: 0; padding: 0;">
+                                <dt><strong>Pattern</strong></dt>
+                                <dd>A plus sign: 3 pieces in a vertical line + 3 in a horizontal line, sharing the
+                                    center</dd>
+                                <dt><strong>Movement</strong></dt>
+                                <dd>Slides horizontally and vertically across the board</dd>
+                                <dt><strong>Special Ability</strong></dt>
+                                <dd><strong>Shielded</strong> — Can't be captured by basic pieces</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </details>
+
+                <details
+                    style="margin-bottom: 1em; padding: 0.75em; background-color: white; border-radius: 4px; border-left: 4px solid #2196F3;">
+                    <summary style="cursor: pointer; font-weight: bold; user-select: none;">
+                        Bar (— or |)
+                    </summary>
+                    <div class="piece-showcase">
+                        <div class="piece-gif-container">
+                            <img src="gifs/piece_bar.gif" alt="Bar piece creation and gunfire ability animation"
+                                class="piece-gif" onerror="this.style.display='none'">
+                            <p style="font-size: 0.85em; color: #999; margin: 0.5em 0 0 0;">Creation & gunfire attack
+                            </p>
+                        </div>
+                        <div class="piece-description">
+                            <dl style="margin: 0; padding: 0;">
+                                <dt><strong>Pattern</strong></dt>
+                                <dd>Three pieces in a straight line (horizontal or vertical)</dd>
+                                <dt><strong>Movement</strong></dt>
+                                <dd>Slides in the direction it's oriented</dd>
+                                <dt><strong>Special Ability</strong></dt>
+                                <dd><strong>Gunfire</strong> — Shoots bullets in both directions, destroying up to 2
+                                    pieces per activation</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </details>
+
+                <details
+                    style="margin-bottom: 1em; padding: 0.75em; background-color: white; border-radius: 4px; border-left: 4px solid #FF9800;">
+                    <summary style="cursor: pointer; font-weight: bold; user-select: none;">
+                        Queen (◊)
+                    </summary>
+                    <div class="piece-showcase">
+                        <div class="piece-gif-container">
+                            <img src="gifs/piece_queen.gif" alt="Queen piece creation and burst ability animation"
+                                class="piece-gif" onerror="this.style.display='none'">
+                            <p style="font-size: 0.85em; color: #999; margin: 0.5em 0 0 0;">Creation & burst attack</p>
+                        </div>
+                        <div class="piece-description">
+                            <dl style="margin: 0; padding: 0;">
+                                <dt><strong>Pattern</strong></dt>
+                                <dd>A diamond: 8 pieces arranged in a rotated square</dd>
+                                <dt><strong>Movement</strong></dt>
+                                <dd>Slides any direction (horizontal, vertical, or diagonal)</dd>
+                                <dt><strong>Special Ability</strong></dt>
+                                <dd><strong>Burst</strong> — Destroys all adjacent enemy pieces</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </details>
+
+                <details
+                    style="margin-bottom: 1em; padding: 0.75em; background-color: white; border-radius: 4px; border-left: 4px solid #9C27B0;">
+                    <summary style="cursor: pointer; font-weight: bold; user-select: none;">
+                        Sniper (X)
+                    </summary>
+                    <div class="piece-showcase">
+                        <div class="piece-gif-container">
+                            <img src="gifs/piece_sniper.gif" alt="Sniper piece creation and long-range shot animation"
+                                class="piece-gif" onerror="this.style.display='none'">
+                            <p style="font-size: 0.85em; color: #999; margin: 0.5em 0 0 0;">Creation & long-range shot
+                            </p>
+                        </div>
+                        <div class="piece-description">
+                            <dl style="margin: 0; padding: 0;">
+                                <dt><strong>Pattern</strong></dt>
+                                <dd>An X: 5 pieces arranged diagonally</dd>
+                                <dt><strong>Movement</strong></dt>
+                                <dd>Stationary—it doesn't move</dd>
+                                <dt><strong>Special Ability</strong></dt>
+                                <dd><strong>Long Range Shot</strong> — Target and destroy <strong>any</strong> piece on
+                                    the board (once per turn)</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </details>
+
+                <details
+                    style="margin-bottom: 1em; padding: 0.75em; background-color: white; border-radius: 4px; border-left: 4px solid #E91E63;">
+                    <summary style="cursor: pointer; font-weight: bold; user-select: none;">
+                        Castle (◽)
+                    </summary>
+                    <div class="piece-showcase">
+                        <div class="piece-gif-container">
+                            <img src="gifs/piece_castle.gif"
+                                alt="Castle piece creation and protection ability animation" class="piece-gif"
+                                onerror="this.style.display='none'">
+                            <p style="font-size: 0.85em; color: #999; margin: 0.5em 0 0 0;">Creation & protection effect
+                            </p>
+                        </div>
+                        <div class="piece-description">
+                            <dl style="margin: 0; padding: 0;">
+                                <dt><strong>Pattern</strong></dt>
+                                <dd>A small diamond: 4 pieces in a rotated square</dd>
+                                <dt><strong>Movement</strong></dt>
+                                <dd>Stationary—it stays in place</dd>
+                                <dt><strong>Special Ability</strong></dt>
+                                <dd><strong>Protection</strong> — Any adjacent piece of yours is shielded from special
+                                    abilities</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </details>
+            </div>
+        </details>
+
+        <p style="color: #999; font-size: 0.9em; margin-top: 2em; padding-top: 1em; border-top: 1px solid #ddd;">
+            💡 New to the game? Start with <strong>Offline</strong> mode to learn at your own pace—you can play both
+            sides and experiment freely.
+        </p>
     </section>
 
     <!-- Minified and statically hosted version of https://github.com/not-fl3/macroquad/blob/master/js/mq_js_bundle.js -->

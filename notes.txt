@@ -34,7 +34,7 @@ Future TODOs
             * Cheating
                 => Empfänger überprüft ob ein Zug legal ist
             * Hacking
-                => Irgendetwas außer Cheating Möglich?
+                => "man in the middle" liest oder ändert Züge
             * DDOS
                 + Gegen Matchbox oder zugrundeliegenden Server
                 + Gegen P2P Verbindung?
