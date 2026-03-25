@@ -59,3 +59,25 @@ Append-only log for all agent sessions. Each agent's file (`.agents/AGENTS-*.age
 - Preserved heartlabs's original personal letter (Way of Working, Philosophy) verbatim in the collaborator agent file rather than paraphrasing it.
 - Updated SOUL.md with new Agent Structure section documenting the two-role system.
 - Fixed stale cross-references in SOUL.md and SESSION_LOG.md headers.
+
+## 2026-03-25: GitHub Copilot (GPT-5.3-Codex) -- Landing Piece GIFs Completed
+
+- Replaced stale `create-gifs.sh` paths and placeholder behavior with a sprite-based generator that outputs all required landing GIFs into `html/gifs/`.
+- Generator now uses in-game texture atlas `game-render/resources/sprites/insekten4.png` and piece crop coordinates aligned with `SpriteRender::piece_sprite_rect`.
+- Added built-in validation in script (`ffprobe`) to fail if any GIF has 1 or fewer frames.
+- Updated `create-gifs.js` to delegate to `create-gifs.sh` so both entrypoints run the same validated pipeline.
+- Verified outputs: `piece_basic.gif`, `piece_cross.gif`, `piece_bar.gif`, `piece_queen.gif`, `piece_sniper.gif`, `piece_castle.gif` all generated and animated (26 frames each).
+
+## 2026-03-25: GitHub Copilot (GPT-5.3-Codex) -- Script Move + New Playwright Screenshot Skill
+
+- Moved GIF helper scripts from repo root into `automation/` (`automation/create-gifs.sh` and `automation/create-gifs.js`).
+- Updated moved shell script path resolution to target repo root from inside `automation/`.
+- Deleted old root-level script files (`create-gifs.sh`, `create-gifs.js`) as cleanup.
+- Added new skill: `.agents/skills/bugchess-playwright-screenshots/SKILL.md` documenting build/serve/playwright-open/place-piece/screenshot workflow.
+- Validated moved script entrypoint by running `node automation/create-gifs.js` successfully.
+
+## 2026-03-25: GitHub Copilot (GPT-5.3-Codex) -- End-of-Day Handoff (GIF work paused)
+
+- User removed generated images/GIFs because current capture quality did not yet meet requirements.
+- Kept automation changes that matter for next session: `automation/playwright/capture-pieces-auto.js` updates, moved GIF scripts under `automation/`, and Playwright screenshot skill scaffold in `.agents/skills/bugchess-playwright-screenshots/`.
+- Next session should resume from screenshot-first validation of board-only framing and reliable `(2,2)`-anchored merge choreography before re-attempting final GIF assets.

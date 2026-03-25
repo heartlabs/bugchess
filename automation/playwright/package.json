@@ -6,7 +6,8 @@
   "scripts": {
     "start-game": "node start-game.js",
     "menu-layout-check": "node menu-layout-check.js",
-    "capture-pieces": "node capture-pieces.js"
+    "capture-pieces": "node capture-pieces.js",
+    "capture-pieces-auto": "node capture-pieces-auto.js"
   },
   "dependencies": {
     "playwright": "^1.53.0"
