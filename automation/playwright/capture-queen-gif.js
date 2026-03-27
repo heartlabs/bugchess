@@ -39,7 +39,7 @@ const END_TURN_WAIT_MS = 1500;   // wait for opponent turn to complete
 const EXTRA_SETTLE_MS = 1000;    // settle after end-turn accumulation
 const INITIAL_HOLD_MS = 100;
 const AFTER_PLACE_MS = 50;         // click fast — placement is the boring part
-const AFTER_MERGE_PLACE_MS = 6000; // Queen has 8 pieces merging — extra generous
+const AFTER_MERGE_PLACE_MS = 10000; // Queen has 8 pieces merging — needs generous time
 const FINAL_HOLD_MS = 1200;        // hold so viewer can see the finished piece
 
 function ensureCommand(cmd) {
@@ -134,11 +134,11 @@ async function main() {
     console.log('Accumulating 2 extra unused pieces via End Turn round trips...');
     for (let i = 0; i < 2; i++) {
       // End our turn
-      await canvas.click({ position: endTurnPos });
+      await page.mouse.click(endTurnPos.x, endTurnPos.y);
       await page.mouse.move(5, 5);
       await delay(END_TURN_WAIT_MS);
       // End opponent's turn (in offline mode, opponent does nothing)
-      await canvas.click({ position: endTurnPos });
+      await page.mouse.click(endTurnPos.x, endTurnPos.y);
       await page.mouse.move(5, 5);
       await delay(END_TURN_WAIT_MS);
       console.log(`  Round trip ${i+1}/2 complete`);
@@ -148,13 +148,14 @@ async function main() {
 
     // Mark trim start AFTER End Turn accumulation
     const trimStart = Number(process.hrtime.bigint() - t0) / 1e9;
-    const trimDuration = (INITIAL_HOLD_MS + 6 * AFTER_PLACE_MS + AFTER_MERGE_PLACE_MS + FINAL_HOLD_MS) / 1000;
+    const trimDuration = (INITIAL_HOLD_MS + AFTER_MERGE_PLACE_MS + FINAL_HOLD_MS) / 1000;
     console.log(`trim_start=${trimStart.toFixed(3)}s  duration=${trimDuration.toFixed(3)}s`);
 
     // Phase 1: Hold initial state
     await delay(INITIAL_HOLD_MS);
 
     // Place the 7 pieces. Order chosen to avoid accidental intermediate merges.
+    // Fast clicks via mouse API — no delay between non-merge placements.
     const placements = [
       [1, 3, 'top-inner-left'],
       [3, 3, 'top-inner-right'],
@@ -167,12 +168,12 @@ async function main() {
 
     for (let i = 0; i < placements.length; i++) {
       const [x, y, label] = placements[i];
-      const isFinal = i === placements.length - 1;
-      await canvas.click({ position: cellCenter(x, y) });
-      await page.mouse.move(5, 5);
+      const c = cellCenter(x, y);
+      await page.mouse.click(c.x, c.y);
       console.log(`  Placed (${x},${y}) — ${label}`);
-      await delay(isFinal ? AFTER_MERGE_PLACE_MS : AFTER_PLACE_MS);
     }
+    await page.mouse.move(5, 5);
+    await delay(AFTER_MERGE_PLACE_MS);
 
     // Hold final
     await delay(FINAL_HOLD_MS);

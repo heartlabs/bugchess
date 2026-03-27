@@ -112,19 +112,19 @@ async function main() {
     await delay(SETUP_SETTLE_MS);
 
     const trimStart = Number(process.hrtime.bigint() - t0) / 1e9;
-    const trimDuration = (INITIAL_HOLD_MS + AFTER_PLACE_MS + AFTER_MERGE_PLACE_MS + FINAL_HOLD_MS) / 1000;
+    const trimDuration = (INITIAL_HOLD_MS + AFTER_MERGE_PLACE_MS + FINAL_HOLD_MS) / 1000;
     console.log(`trim_start=${trimStart.toFixed(3)}s  duration=${trimDuration.toFixed(3)}s`);
 
     // Phase 1: Hold initial state
     await delay(INITIAL_HOLD_MS);
 
-    // Phase 2: Place (2,1) — top
-    await canvas.click({ position: cellCenter(2, 1) });
-    await page.mouse.move(5, 5);
-    await delay(AFTER_PLACE_MS);
+    // Phase 2: Place (2,1) — top — fast click via mouse API
+    const c21 = cellCenter(2, 1);
+    await page.mouse.click(c21.x, c21.y);
 
     // Phase 3: Place (2,3) — bottom → triggers merge
-    await canvas.click({ position: cellCenter(2, 3) });
+    const c23 = cellCenter(2, 3);
+    await page.mouse.click(c23.x, c23.y);
     await page.mouse.move(5, 5);
     await delay(AFTER_MERGE_PLACE_MS);
 

@@ -63,5 +63,5 @@ Animated merge GIFs for all 6 piece types live in `html/gifs/*-merge.gif` and ar
 
 **Key technical fact** (easy to forget): The game renders to an internal 900×800 Canvas2D that gets scaled/letterboxed to the viewport. All click + crop coordinates must be transformed at runtime — see the skill for details.
 
-**Capture scripts**: `automation/playwright/capture-*-gif.js` (one per piece). The horizontal bar script still uses an older approach and may need migration.
+**Capture scripts**: `automation/playwright/capture-*-gif.js` (one per piece). All use the same Canvas2D scaling approach and `page.mouse.click()` for instant clicks.
 
