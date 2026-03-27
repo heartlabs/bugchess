@@ -255,3 +255,22 @@ Output: `html/gifs/queen-merge.gif`
 - Castle merge animation needs ~3.5s after final placement (not 2.5s like horizontal bar); 4 pieces merging takes longer than 3.
 - Updated `capture-castle-gif.js` as the new reference implementation (dynamic scaling). Old `capture-horizontal-bar-gif.js` still uses hardcoded CROP_ADJUST values.
 - Updated SOUL.md: added Canvas2D Scaling section, updated completed GIFs, noted horizontal bar may need recapture.
+
+## 2026-03-27: Claude Opus 4.6 — All Remaining Merge GIFs Created
+
+- Created GIF capture scripts and produced GIFs for all remaining pieces:
+  - `vertical-bar-merge.gif` — 267×267, 125 frames, 2 placements at (2,1), (2,3)
+  - `cross-merge.gif` — 267×267, 135 frames, 4 placements at (2,1), (1,2), (3,2), (2,3)
+  - `sniper-merge.gif` — 267×267, 135 frames, 4 placements at (1,1), (3,1), (1,3), (3,3)
+  - `queen-merge.gif` — 445×445, 163 frames, 7 placements + 2 End Turn round trips for extra pieces
+- All scripts use the corrected Canvas2D scaling approach from castle script (dynamic scale/padding from boundingBox).
+- Queen required End Turn accumulation to get 7 unused pieces (starts with 5). Pattern anchored at (0,2), crop 5×5 centered on (2,4).
+- All GIFs pending visual approval from heartlabs.
+- Updated SOUL.md with complete GIF status.
+
+## 2026-03-27: Claude Opus 4.6 — Timing Fix, index.htm Update, Screencast Skill
+
+- **Timing fix**: Reduced inter-click delay from 200ms to 50ms (placements are the "boring" part); increased post-merge wait to 5000ms (3×3) / 6000ms (Queen) so the merged piece is fully visible; kept 1200ms final hold. Re-captured all 5 GIFs (castle, vertical bar, cross, sniper, queen).
+- **index.htm**: Updated `<img src>` attributes for Cross, Bar, Queen, Sniper, and Castle to reference the actual `*-merge.gif` files.
+- **New skill**: Created `.agents/skills/bugchess-playwright-screencasts/SKILL.md` — documents the full capture workflow (coordinate mapping, timing, cropping, ffmpeg conversion). Flexible and not hardcoded to specific piece patterns.
+- **SOUL.md slimmed**: Replaced the ~90-line GIF Pipeline section with a compact 8-line pointer to the skill + key technical fact (Canvas2D scaling). Went from detailed implementation notes to "here's where to find it".

@@ -43,11 +43,10 @@ const CROP_BORDER_PX = 2; // small aesthetic border around the cells
 
 // Timing plan (all values in ms)
 const SETUP_SETTLE_MS = 4000;
-const INITIAL_HOLD_MS = 100;        // briefly show board with single piece at (2,2)
-const AFTER_FIRST_PLACE_MS = 200;   // place at (1,3)
-const AFTER_SECOND_PLACE_MS = 200;  // place at (3,3)
-const AFTER_THIRD_PLACE_MS = 3500;  // place at (2,4) → triggers merge (castle merge anim is longer than bar)
-const FINAL_HOLD_MS = 1200;         // hold the finished castle
+const INITIAL_HOLD_MS = 100;
+const AFTER_PLACE_MS = 50;         // click fast — placement is the boring part
+const AFTER_MERGE_PLACE_MS = 5000; // final placement triggers merge — wait generously
+const FINAL_HOLD_MS = 1200;        // hold so viewer can see the finished piece
 
 function ensureCommand(cmd) {
   const check = spawnSync('bash', ['-lc', `command -v ${cmd}`], { encoding: 'utf8' });
@@ -170,7 +169,7 @@ async function main() {
     // Mark trim start
     const trimStartSeconds = Number(process.hrtime.bigint() - recordingStartedAt) / 1_000_000_000;
     const trimDurationSeconds =
-      (INITIAL_HOLD_MS + AFTER_FIRST_PLACE_MS + AFTER_SECOND_PLACE_MS + AFTER_THIRD_PLACE_MS + FINAL_HOLD_MS) / 1000;
+      (INITIAL_HOLD_MS + 2 * AFTER_PLACE_MS + AFTER_MERGE_PLACE_MS + FINAL_HOLD_MS) / 1000;
 
     // Log click positions for debugging
     const cc13 = cellCenter(1, 3);
@@ -184,9 +183,9 @@ async function main() {
     console.log(`\nPlan:`);
     console.log(`  trim_start=${trimStartSeconds.toFixed(3)}s  clip_duration=${trimDurationSeconds.toFixed(3)}s`);
     console.log(`  Action 1: hold initial state for ${INITIAL_HOLD_MS}ms`);
-    console.log(`  Action 2: click (1,3) to place left-center, wait ${AFTER_FIRST_PLACE_MS}ms`);
-    console.log(`  Action 3: click (3,3) to place right-center, wait ${AFTER_SECOND_PLACE_MS}ms`);
-    console.log(`  Action 4: click (2,4) to place bottom (triggers merge), wait ${AFTER_THIRD_PLACE_MS}ms`);
+    console.log(`  Action 2: click (1,3) to place left-center, wait ${AFTER_PLACE_MS}ms`);
+    console.log(`  Action 3: click (3,3) to place right-center, wait ${AFTER_PLACE_MS}ms`);
+    console.log(`  Action 4: click (2,4) to place bottom (triggers merge), wait ${AFTER_MERGE_PLACE_MS}ms`);
     console.log(`  Action 5: hold final merged state for ${FINAL_HOLD_MS}ms`);
 
     // Phase 1: Show initial state
@@ -195,19 +194,19 @@ async function main() {
     // Phase 2: Place piece at (1,3)
     await canvas.click({ position: cellCenter(1, 3) });
     await page.mouse.move(5, 5);
-    await delay(AFTER_FIRST_PLACE_MS);
+    await delay(AFTER_PLACE_MS);
 
     // Phase 3: Place piece at (3,3)
     await canvas.click({ position: cellCenter(3, 3) });
     await page.mouse.move(5, 5);
-    await delay(AFTER_SECOND_PLACE_MS);
+    await delay(AFTER_PLACE_MS);
 
     // Phase 4: Place piece at (2,4) → triggers merge
     await canvas.click({ position: cellCenter(2, 4) });
     await page.mouse.move(5, 5);
 
     // Phase 5: Wait for merge animation
-    await delay(AFTER_THIRD_PLACE_MS);
+    await delay(AFTER_MERGE_PLACE_MS);
 
     // Phase 6: Hold final frame
     await delay(FINAL_HOLD_MS);
