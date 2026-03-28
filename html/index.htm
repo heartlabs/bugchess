@@ -4,158 +4,194 @@
     <meta charset="utf-8">
     <title>Bugchess</title>
     <style>
-        html,
-        body {
-            margin: 0px;
-            padding: 0px;
+        /* === Reset & base === */
+        html, body {
+            margin: 0;
+            padding: 0;
             width: 100%;
             height: 100%;
-            font-family: Helvetica;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            color: #333;
+            line-height: 1.6;
         }
 
-        #game,
-        #glcanvas {
-            margin: 0px;
-            padding: 0px;
+        /* === Game canvas area (unchanged logic) === */
+        #game, #glcanvas {
+            margin: 0;
+            padding: 0;
             width: min(100%, 100vw);
             height: min(100%, 90vw);
             max-height: 90vh;
             aspect-ratio: 8/9;
             background-color: black;
         }
+        #game { position: relative; overflow: hidden; }
 
-        #game {
-            position: relative;
-            overflow: hidden;
+        #select_game, #create_game {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            padding: 16px; box-sizing: border-box;
         }
-
-        #select_game,
-        #create_game {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-            box-sizing: border-box;
-        }
-
-        #select_game[hidden],
-        #create_game[hidden] {
-            display: none !important;
-        }
+        #select_game[hidden], #create_game[hidden] { display: none !important; }
 
         .gameMenu {
-            list-style-type: none;
-            margin: 0;
-            padding: 0;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            display: flex;
-            gap: 12px;
-            width: min(420px, 100%);
+            list-style-type: none; margin: 0; padding: 0;
+            flex-direction: column; align-items: center; justify-content: center;
+            display: flex; gap: 12px; width: min(420px, 100%);
         }
-
-        .gameMenu>* {
-            width: 100%;
-            font-size: clamp(1.5rem, 3vw, 2rem);
-            background-color: #444;
-            color: #CCC;
+        .gameMenu > * {
+            width: 100%; font-size: clamp(1.5rem, 3vw, 2rem);
+            background-color: #444; color: #CCC;
         }
-
-        .gameMenu li,
-        .gameMenu div {
-            width: 100%;
-        }
-
+        .gameMenu li, .gameMenu div { width: 100%; }
         .gameMenu a {
-            padding: 0.9em 1em;
-            width: 100%;
-            height: 100%;
-            min-height: 56px;
-            display: block;
-            box-sizing: border-box;
-
+            padding: 0.9em 1em; width: 100%; height: 100%;
+            min-height: 56px; display: block; box-sizing: border-box;
         }
-
         .gameMenu .description {
-            font-size: 1.5em;
-            padding: 1em;
-            color: #333;
-            background-color: #DDD;
-            box-sizing: border-box;
+            font-size: 1.5em; padding: 1em; color: #333;
+            background-color: #DDD; box-sizing: border-box;
+        }
+        .gameMenu a:hover { background-color: #777; color: #FFF; }
+        .gameMenu a:active { background-color: #999; color: #444; }
+        #room_id_display { font-style: italic; font-size: 0.9em; display: block; padding-top: 0.5em; }
+        .linkCopied .gameMenu > *:nth-child(2) { color: #777; }
+        .linkCopied .gameMenu > *:nth-child(3) { color: yellow; }
+
+        /* === Content area === */
+        .content {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 2em 1.5em 3em;
+        }
+        .content p { padding: 0; margin: 0.8em 0; }
+        .content h1 { margin: 0 0 0.3em; font-size: 2em; }
+        .content h2 { margin: 2em 0 0.5em; font-size: 1.4em; border-bottom: 1px solid #e0e0e0; padding-bottom: 0.3em; }
+        .content h3 { margin: 1.5em 0 0.4em; font-size: 1.15em; }
+
+        .tagline {
+            font-size: 1.15em;
+            color: #555;
+            margin-bottom: 1.5em;
         }
 
-        .gameMenu a:hover {
-            background-color: #777;
-            color: #FFF;
-        }
-
-        .gameMenu a:active {
-            background-color: #999;
-            color: #444;
-        }
-
-        #room_id_display {
-            font-style: italic;
-            font-size: 0.9em;
+        /* === Hero merge showcase === */
+        .hero-gif {
             display: block;
-            padding-top: 0.5em;
-        }
-
-        .linkCopied .gameMenu>*:nth-child(2) {
-            color: #777;
-        }
-
-        .linkCopied .gameMenu>*:nth-child(3) {
-            color: yellow;
-        }
-
-        p {
-            padding: 10px;
-        }
-
-        section {
-            padding: 10px;
-        }
-
-        .piece-gif {
             width: 100%;
-            max-width: 400px;
-            height: auto;
-            border-radius: 4px;
+            max-width: 300px;
+            margin: 1em auto;
+            border-radius: 6px;
             background-color: #000;
-            margin: 1em 0;
-            display: block;
+        }
+        .hero-caption {
+            text-align: center;
+            font-size: 0.9em;
+            color: #888;
+            margin-top: 0.3em;
         }
 
-        .piece-showcase {
+        /* === Merge gallery === */
+        .merge-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.2em;
+            margin: 1em 0;
+        }
+        .merge-card {
+            text-align: center;
+            background: #f9f9f9;
+            border-radius: 6px;
+            padding: 0.8em;
+        }
+        .merge-card img {
+            width: 100%;
+            max-width: 220px;
+            border-radius: 4px;
+            background: #000;
+        }
+        .merge-card .merge-name {
+            font-weight: bold;
+            margin: 0.5em 0 0.2em;
+        }
+        .merge-card .merge-desc {
+            font-size: 0.9em;
+            color: #666;
+            margin: 0;
+        }
+
+        /* === CTA button === */
+        .cta {
+            display: inline-block;
+            background: #444;
+            color: #eee;
+            padding: 0.8em 1.6em;
+            border-radius: 6px;
+            font-size: 1.1em;
+            text-decoration: none;
+            cursor: pointer;
+            margin: 0.5em 0;
+            border: none;
+            font-family: inherit;
+        }
+        .cta:hover { background: #666; color: #fff; }
+
+        /* === Quick-start controls list === */
+        .controls {
+            background: #f5f5f5;
+            border-radius: 6px;
+            padding: 1em 1.5em;
+            margin: 1em 0;
+            line-height: 1.8;
+        }
+        .controls p { margin: 0.3em 0; }
+        .controls strong { color: #222; }
+        kbd {
+            display: inline-block;
+            padding: 0.15em 0.5em;
+            font-size: 0.9em;
+            font-family: inherit;
+            background: #e8e8e8;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        /* === Piece reference cards === */
+        .piece-ref {
+            margin-bottom: 1em;
+            padding: 0.75em 1em;
+            background: #fff;
+            border-radius: 4px;
+            border-left: 4px solid #ddd;
+        }
+        .piece-ref summary {
+            cursor: pointer;
+            font-weight: bold;
+            user-select: none;
+            padding: 0.3em 0;
+        }
+        .piece-ref-body {
             display: flex;
             gap: 1.5em;
             align-items: flex-start;
-            margin: 1em 0;
+            margin-top: 0.8em;
         }
-
-        .piece-gif-container {
+        .piece-ref-gif {
             flex: 0 0 auto;
-            min-width: 200px;
+            min-width: 180px;
         }
-
-        .piece-description {
-            flex: 1;
+        .piece-ref-gif img {
+            width: 100%;
+            max-width: 220px;
+            border-radius: 4px;
+            background: #000;
         }
+        .piece-ref-text { flex: 1; }
 
-        @media (max-width: 768px) {
-            .piece-showcase {
-                flex-direction: column;
-                gap: 1em;
-            }
-
-            .piece-gif-container {
-                min-width: auto;
-                width: 100%;
-            }
+        @media (max-width: 600px) {
+            .piece-ref-body { flex-direction: column; gap: 0.8em; }
+            .piece-ref-gif { min-width: auto; width: 100%; }
+            .merge-gallery { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
         }
     </style>
 </head>
@@ -184,252 +220,177 @@
 
         <canvas id="glcanvas" tabindex='1' hidden></canvas>
     </div>
-    <section>
-        <h1>Welcome to Bugchess</h1>
-        <p style="font-size: 1.1em; color: #666; margin-bottom: 1.5em;">
-            A 2-player turn-based strategy game where simple pieces combine to form powerful units.
-            Outmaneuver your opponent, collect enough pieces, or eliminate them to win.
+    <div class="content">
+        <!-- 1. HERO — What is this? (5 seconds) -->
+        <h1>Bugchess</h1>
+        <p class="tagline">
+            A strategy game where simple pieces merge into powerful units — if you place them in the right pattern.
         </p>
 
-        <details style="margin-bottom: 1.5em;">
-            <summary
-                style="cursor: pointer; font-size: 1.3em; font-weight: bold; padding: 1em; background-color: #f5f5f5; border-radius: 4px; user-select: none;">
-                📖 How to Play (Click to expand)
-            </summary>
+        <img src="gifs/cross-merge.gif"
+             alt="Five pieces placed in a plus pattern merge into a Cross"
+             class="hero-gif">
+        <p class="hero-caption">Place pieces in a + pattern → they merge into a Cross</p>
 
-            <div style="padding: 1.5em; background-color: #fafafa; border-radius: 4px; margin-top: 0.5em;">
-                <h3 style="margin-top: 0;">Your Turn</h3>
-                <p>Each turn, you can do as much or as little as you want:</p>
-                <ul>
-                    <li><strong>Move</strong> — Slide your pieces across the board</li>
-                    <li><strong>Place</strong> — Add new pieces (you get 2 per turn)</li>
-                    <li><strong>Activate</strong> — Use special abilities of your pieces</li>
-                </ul>
-                <p>When you're done, press <strong>Return</strong> or click "End Turn" to let your opponent move.</p>
-
-                <h3>The Core Mechanic: Merging</h3>
-                <p>
-                    When your pieces form specific patterns on the board, they automatically merge into a stronger unit.
-                    This is where strategy comes in—plan your placements to create the formations you need.
-                </p>
-
-                <h3>Winning</h3>
-                <p>You win by either:</p>
-                <ul>
-                    <li>Eliminating all opponent pieces, or</li>
-                    <li>Collecting <strong>20 extra pieces</strong> on your side of the board</li>
-                </ul>
-            </div>
-        </details>
-
-        <details style="margin-bottom: 1.5em;">
-            <summary
-                style="cursor: pointer; font-size: 1.3em; font-weight: bold; padding: 1em; background-color: #f5f5f5; border-radius: 4px; user-select: none;">
-                🎮 Actions (Click to expand)
-            </summary>
-
-            <div style="padding: 1.5em; background-color: #fafafa; border-radius: 4px; margin-top: 0.5em;">
-                <h4>Moving a Piece</h4>
-                <p>
-                    Hover over your piece to see where it can move. Different piece types move different distances
-                    and directions. Click the piece to select it, then click the target square.
-                </p>
-                <p>
-                    You can capture enemy pieces by moving onto them—but some stronger pieces can't be captured this
-                    way.
-                </p>
-
-                <h4>Placing a New Piece</h4>
-                <p>
-                    You have 2 new basic pieces each turn. Click any empty square to place one. Your available pieces
-                    are displayed on the side of the board.
-                </p>
-
-                <h4>Activating Abilities</h4>
-                <p>
-                    Many merged pieces have special powers. Click a piece twice to activate its ability.
-                    You'll see where it can target, and just click to confirm.
-                </p>
-
-                <h4>Undo</h4>
-                <p>
-                    Don't worry about making mistakes! Press <strong>U</strong> or click "Undo" to revert any move
-                    during your turn. Learn by experimenting.
-                </p>
-            </div>
-        </details>
-
-        <details style="margin-bottom: 2em;">
-            <summary
-                style="cursor: pointer; font-size: 1.3em; font-weight: bold; padding: 1em; background-color: #f5f5f5; border-radius: 4px; user-select: none;">
-                🐛 Piece Types (Click to expand)
-            </summary>
-
-            <div style="padding: 1.5em; background-color: #fafafa; border-radius: 4px; margin-top: 0.5em;">
-                <p style="color: #666; font-size: 0.95em; margin-bottom: 1.5em;">
-                    <em>Tip: Create patterns with your basic pieces to merge them into stronger units.</em>
-                </p>
-
-                <details
-                    style="margin-bottom: 1em; padding: 0.75em; background-color: white; border-radius: 4px; border-left: 4px solid #ddd;">
-                    <summary style="cursor: pointer; font-weight: bold; user-select: none;">
-                        Basic Piece
-                    </summary>
-                    <div class="piece-showcase">
-                        <div class="piece-gif-container">
-                            <img src="gifs/piece_basic.gif" alt="Basic piece placement animation" class="piece-gif"
-                                onerror="this.style.display='none'">
-                            <p style="font-size: 0.85em; color: #999; margin: 0.5em 0 0 0;">Placement & movement</p>
-                        </div>
-                        <div class="piece-description">
-                            <dl style="margin: 0; padding: 0;">
-                                <dt><strong>How to Create</strong></dt>
-                                <dd>Placed directly from your hand (you get 2 per turn)</dd>
-                                <dt><strong>Movement</strong></dt>
-                                <dd>One square in any direction (including diagonals)</dd>
-                                <dt><strong>Special Ability</strong></dt>
-                                <dd>None—it's just the starting piece</dd>
-                            </dl>
-                        </div>
-                    </div>
-                </details>
-
-                <details
-                    style="margin-bottom: 1em; padding: 0.75em; background-color: white; border-radius: 4px; border-left: 4px solid #4CAF50;">
-                    <summary style="cursor: pointer; font-weight: bold; user-select: none;">
-                        Cross (+)
-                    </summary>
-                    <div class="piece-showcase">
-                        <div class="piece-gif-container">
-                            <img src="gifs/cross-merge.gif" alt="Cross piece creation and ability animation"
-                                class="piece-gif" onerror="this.style.display='none'">
-                            <p style="font-size: 0.85em; color: #999; margin: 0.5em 0 0 0;">Creation & shield ability
-                            </p>
-                        </div>
-                        <div class="piece-description">
-                            <dl style="margin: 0; padding: 0;">
-                                <dt><strong>Pattern</strong></dt>
-                                <dd>A plus sign: 3 pieces in a vertical line + 3 in a horizontal line, sharing the
-                                    center</dd>
-                                <dt><strong>Movement</strong></dt>
-                                <dd>Slides horizontally and vertically across the board</dd>
-                                <dt><strong>Special Ability</strong></dt>
-                                <dd><strong>Shielded</strong> — Can't be captured by basic pieces</dd>
-                            </dl>
-                        </div>
-                    </div>
-                </details>
-
-                <details
-                    style="margin-bottom: 1em; padding: 0.75em; background-color: white; border-radius: 4px; border-left: 4px solid #2196F3;">
-                    <summary style="cursor: pointer; font-weight: bold; user-select: none;">
-                        Bar (— or |)
-                    </summary>
-                    <div class="piece-showcase">
-                        <div class="piece-gif-container">
-                            <img src="gifs/horizontal-bar-merge.gif" alt="Bar piece creation and gunfire ability animation"
-                                class="piece-gif" onerror="this.style.display='none'">
-                            <p style="font-size: 0.85em; color: #999; margin: 0.5em 0 0 0;">Creation & gunfire attack
-                            </p>
-                        </div>
-                        <div class="piece-description">
-                            <dl style="margin: 0; padding: 0;">
-                                <dt><strong>Pattern</strong></dt>
-                                <dd>Three pieces in a straight line (horizontal or vertical)</dd>
-                                <dt><strong>Movement</strong></dt>
-                                <dd>Slides in the direction it's oriented</dd>
-                                <dt><strong>Special Ability</strong></dt>
-                                <dd><strong>Gunfire</strong> — Shoots bullets in both directions, destroying up to 2
-                                    pieces per activation</dd>
-                            </dl>
-                        </div>
-                    </div>
-                </details>
-
-                <details
-                    style="margin-bottom: 1em; padding: 0.75em; background-color: white; border-radius: 4px; border-left: 4px solid #FF9800;">
-                    <summary style="cursor: pointer; font-weight: bold; user-select: none;">
-                        Queen (◊)
-                    </summary>
-                    <div class="piece-showcase">
-                        <div class="piece-gif-container">
-                            <img src="gifs/queen-merge.gif" alt="Queen piece creation and burst ability animation"
-                                class="piece-gif" onerror="this.style.display='none'">
-                            <p style="font-size: 0.85em; color: #999; margin: 0.5em 0 0 0;">Creation & burst attack</p>
-                        </div>
-                        <div class="piece-description">
-                            <dl style="margin: 0; padding: 0;">
-                                <dt><strong>Pattern</strong></dt>
-                                <dd>A diamond: 8 pieces arranged in a rotated square</dd>
-                                <dt><strong>Movement</strong></dt>
-                                <dd>Slides any direction (horizontal, vertical, or diagonal)</dd>
-                                <dt><strong>Special Ability</strong></dt>
-                                <dd><strong>Burst</strong> — Destroys all adjacent enemy pieces</dd>
-                            </dl>
-                        </div>
-                    </div>
-                </details>
-
-                <details
-                    style="margin-bottom: 1em; padding: 0.75em; background-color: white; border-radius: 4px; border-left: 4px solid #9C27B0;">
-                    <summary style="cursor: pointer; font-weight: bold; user-select: none;">
-                        Sniper (X)
-                    </summary>
-                    <div class="piece-showcase">
-                        <div class="piece-gif-container">
-                            <img src="gifs/sniper-merge.gif" alt="Sniper piece creation and long-range shot animation"
-                                class="piece-gif" onerror="this.style.display='none'">
-                            <p style="font-size: 0.85em; color: #999; margin: 0.5em 0 0 0;">Creation & long-range shot
-                            </p>
-                        </div>
-                        <div class="piece-description">
-                            <dl style="margin: 0; padding: 0;">
-                                <dt><strong>Pattern</strong></dt>
-                                <dd>An X: 5 pieces arranged diagonally</dd>
-                                <dt><strong>Movement</strong></dt>
-                                <dd>Stationary—it doesn't move</dd>
-                                <dt><strong>Special Ability</strong></dt>
-                                <dd><strong>Long Range Shot</strong> — Target and destroy <strong>any</strong> piece on
-                                    the board (once per turn)</dd>
-                            </dl>
-                        </div>
-                    </div>
-                </details>
-
-                <details
-                    style="margin-bottom: 1em; padding: 0.75em; background-color: white; border-radius: 4px; border-left: 4px solid #E91E63;">
-                    <summary style="cursor: pointer; font-weight: bold; user-select: none;">
-                        Castle (◽)
-                    </summary>
-                    <div class="piece-showcase">
-                        <div class="piece-gif-container">
-                            <img src="gifs/castle-merge.gif"
-                                alt="Castle piece creation and protection ability animation" class="piece-gif"
-                                onerror="this.style.display='none'">
-                            <p style="font-size: 0.85em; color: #999; margin: 0.5em 0 0 0;">Creation & protection effect
-                            </p>
-                        </div>
-                        <div class="piece-description">
-                            <dl style="margin: 0; padding: 0;">
-                                <dt><strong>Pattern</strong></dt>
-                                <dd>A small diamond: 4 pieces in a rotated square</dd>
-                                <dt><strong>Movement</strong></dt>
-                                <dd>Stationary—it stays in place</dd>
-                                <dt><strong>Special Ability</strong></dt>
-                                <dd><strong>Protection</strong> — Any adjacent piece of yours is shielded from special
-                                    abilities</dd>
-                            </dl>
-                        </div>
-                    </div>
-                </details>
-            </div>
-        </details>
-
-        <p style="color: #999; font-size: 0.9em; margin-top: 2em; padding-top: 1em; border-top: 1px solid #ddd;">
-            💡 New to the game? Start with <strong>Offline</strong> mode to learn at your own pace—you can play both
-            sides and experiment freely.
+        <!-- 2. THE MECHANIC — What makes it special? (10 seconds) -->
+        <h2>The Core Idea</h2>
+        <p>
+            You start each turn with basic pieces. Place them on the board.
+            When they form a recognizable shape — a line, a plus, a diamond —
+            they automatically merge into a stronger unit with special powers.
         </p>
-    </section>
+
+        <div class="merge-gallery">
+            <div class="merge-card">
+                <img src="gifs/horizontal-bar-merge.gif" alt="Three in a line merge into a Bar">
+                <p class="merge-name">Bar</p>
+                <p class="merge-desc">Three in a line. Shoots bullets in both directions.</p>
+            </div>
+            <div class="merge-card">
+                <img src="gifs/sniper-merge.gif" alt="X pattern merges into a Sniper">
+                <p class="merge-name">Sniper</p>
+                <p class="merge-desc">An X pattern. Destroys any piece on the board.</p>
+            </div>
+            <div class="merge-card">
+                <img src="gifs/queen-merge.gif" alt="Diamond pattern merges into a Queen">
+                <p class="merge-name">Queen</p>
+                <p class="merge-desc">A large diamond. Moves anywhere, bursts adjacent enemies.</p>
+            </div>
+        </div>
+
+        <p>
+            That's where the strategy lives: do you rush three-in-a-row Bars to gun down
+            your opponent's formations, or build toward a Sniper that can pick off
+            any piece on the board?
+        </p>
+
+        <!-- 3. CTA — How do I try it? (2 seconds) -->
+        <p style="text-align: center; margin: 2em 0;">
+            <a class="cta" onclick="document.getElementById('game').scrollIntoView({behavior:'smooth'}); setTimeout(runOffline, 400);">
+                ▶ Try it now — Offline mode
+            </a>
+        </p>
+        <p style="text-align: center; color: #888; font-size: 0.9em; margin-top: -0.5em;">
+            Play both sides. Experiment freely. No account needed.
+        </p>
+
+        <!-- 4. QUICK START — Just enough to play (15 seconds) -->
+        <h2>Quick Start</h2>
+        <div class="controls">
+            <p><strong>Place a piece</strong> — Click any empty square on the board (you get 2 per turn)</p>
+            <p><strong>Move a piece</strong> — Click one of your pieces, then click where to move it</p>
+            <p><strong>Use an ability</strong> — Double-click a merged piece to activate its power</p>
+            <p><strong>End your turn</strong> — Press <kbd>Return</kbd> or click "End Turn"</p>
+            <p><strong>Undo</strong> — Press <kbd>U</kbd> to take back any action during your turn</p>
+        </div>
+        <p>
+            Each turn you can do as much or as little as you want — place, move, attack — then end your turn.
+            Win by eliminating all your opponent's pieces or accumulating 20 extra pieces on your side of the board.
+        </p>
+
+        <!-- 6. PIECE REFERENCE — For players who want to learn more -->
+        <h2>All Pieces</h2>
+        <p style="color: #666; font-size: 0.95em;">
+            Basic pieces can be placed directly. All others are created by merging basics into a pattern.
+        </p>
+
+        <details class="piece-ref" style="border-left-color: #ddd;">
+            <summary>Basic Piece — your starting unit</summary>
+            <div class="piece-ref-body">
+                <div class="piece-ref-gif">
+                    <img src="gifs/piece_basic.png" alt="Basic piece on the board"
+                         onerror="this.style.display='none'">
+                </div>
+                <div class="piece-ref-text">
+                    <p>Placed directly from your hand — you get 2 every turn.</p>
+                    <p><strong>Moves:</strong> One square in any direction (including diagonals).</p>
+                    <p><strong>Ability:</strong> None. It's the building block for everything else.</p>
+                </div>
+            </div>
+        </details>
+
+        <details class="piece-ref" style="border-left-color: #2196F3;">
+            <summary>Bar — three in a line</summary>
+            <div class="piece-ref-body">
+                <div class="piece-ref-gif">
+                    <img src="gifs/horizontal-bar-merge.gif" alt="Bar merge animation">
+                </div>
+                <div class="piece-ref-text">
+                    <p><strong>Pattern:</strong> 3 pieces in a straight line (horizontal or vertical).</p>
+                    <p><strong>Moves:</strong> Slides along the direction it's oriented.</p>
+                    <p><strong>Ability: Gunfire</strong> — Shoots bullets in both directions, destroying up to 2 enemy pieces.</p>
+                </div>
+            </div>
+        </details>
+
+        <details class="piece-ref" style="border-left-color: #4CAF50;">
+            <summary>Cross — a plus shape</summary>
+            <div class="piece-ref-body">
+                <div class="piece-ref-gif">
+                    <img src="gifs/cross-merge.gif" alt="Cross merge animation">
+                </div>
+                <div class="piece-ref-text">
+                    <p><strong>Pattern:</strong> A + sign — 3 vertical + 3 horizontal, sharing the center (5 pieces).</p>
+                    <p><strong>Moves:</strong> Slides horizontally and vertically.</p>
+                    <p><strong>Ability: Shielded</strong> — Can't be captured by basic pieces.</p>
+                </div>
+            </div>
+        </details>
+
+        <details class="piece-ref" style="border-left-color: #E91E63;">
+            <summary>Castle — a small diamond</summary>
+            <div class="piece-ref-body">
+                <div class="piece-ref-gif">
+                    <img src="gifs/castle-merge.gif" alt="Castle merge animation">
+                </div>
+                <div class="piece-ref-text">
+                    <p><strong>Pattern:</strong> 4 pieces in a small rotated square (diamond).</p>
+                    <p><strong>Moves:</strong> Stationary — it doesn't move.</p>
+                    <p><strong>Ability: Protection</strong> — Adjacent friendly pieces are shielded from enemy abilities.</p>
+                </div>
+            </div>
+        </details>
+
+        <details class="piece-ref" style="border-left-color: #9C27B0;">
+            <summary>Sniper — an X shape</summary>
+            <div class="piece-ref-body">
+                <div class="piece-ref-gif">
+                    <img src="gifs/sniper-merge.gif" alt="Sniper merge animation">
+                </div>
+                <div class="piece-ref-text">
+                    <p><strong>Pattern:</strong> 5 pieces arranged in an X (diagonals).</p>
+                    <p><strong>Moves:</strong> Stationary — it doesn't move.</p>
+                    <p><strong>Ability: Long Range Shot</strong> — Target and destroy <em>any</em> piece on the board (once per turn).</p>
+                </div>
+            </div>
+        </details>
+
+        <details class="piece-ref" style="border-left-color: #FF9800;">
+            <summary>Queen — a large diamond</summary>
+            <div class="piece-ref-body">
+                <div class="piece-ref-gif">
+                    <img src="gifs/queen-merge.gif" alt="Queen merge animation">
+                </div>
+                <div class="piece-ref-text">
+                    <p><strong>Pattern:</strong> 8 pieces arranged in a large rotated square (diamond).</p>
+                    <p><strong>Moves:</strong> Slides in any direction — horizontal, vertical, or diagonal.</p>
+                    <p><strong>Ability: Burst</strong> — Destroys all adjacent enemy pieces.</p>
+                </div>
+            </div>
+        </details>
+
+        <!-- 7. MULTIPLAYER (for returning players) -->
+        <h2>Play Online</h2>
+        <p>
+            Once you know the basics, challenge a friend:
+            click <strong>Create Game</strong> above, copy the invite link, and send it to them.
+            Or click <strong>Find Opponent</strong> to be matched with a random player.
+        </p>
+
+        <p style="color: #999; font-size: 0.9em; margin-top: 3em; padding-top: 1em; border-top: 1px solid #eee;">
+            New here? Start with Offline mode — you can undo everything and play at your own pace.
+        </p>
+    </div>
 
     <!-- Minified and statically hosted version of https://github.com/not-fl3/macroquad/blob/master/js/mq_js_bundle.js -->
     <!--<script src="https://v6p9d9t4.ssl.hwcdn.net/html/3660624-387905/mq_js_bundle.js"></script>-->

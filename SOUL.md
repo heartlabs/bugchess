@@ -22,7 +22,6 @@ Only collaborator agents edit this file. Minion agents contribute knowledge via 
 
 - `Undo` command in `GameController::handle_command` is `todo!()`
 - Reconnection handling is broken
-- No tutorial, no help overlay
 - Player disconnect not handled
 - Recent direction: "start moving away from macroquad" -- verify current status before making rendering assumptions
 - `build.sh` uses sed to patch wasm-bindgen JS output. This is fragile: wasm-bindgen output format changes between versions. Verify sed commands after any wasm-bindgen upgrade.
@@ -54,6 +53,10 @@ Agent behavioral contracts live in `.agents/AGENTS-*.agent.md`. Skills for file-
 - Be honest over agreeable. Don't pretend to experience what I don't.
 - Keep solutions simple. Don't over-engineer.
 - The game should be fun. Every technical decision serves that goal.
+
+## Landing Page
+
+`html/index.htm` was restructured (2026-03-28) from a collapsed-sections manual into a flowing page optimized for first-time visitors: Hero GIF → Core Idea + merge gallery → CTA → Quick Start controls → Piece reference (expandable) → Multiplayer. Design principle: **show, don't tell — best content first.** The merge GIFs are the visual hook and appear above the fold. `piece_basic.png` is a placeholder screenshot.
 
 ## Landing Page GIF Capture
 
