@@ -1,7 +1,7 @@
 ---
 name: bugchess-playwright-screenshots
 description: Use this skill to build and serve Bugchess locally, open it with Playwright, interact until pieces can be placed on the board, and capture screenshots for further workflows.
-user-invocable: true
+user-invokable: true
 disable-model-invocation: false
 ---
 
