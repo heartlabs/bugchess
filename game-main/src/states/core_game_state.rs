@@ -326,7 +326,7 @@ fn handle_player_input(
     }
 }
 
-const EXPORTED_GAMES_DIR: &str = "game-main/tests/exported_games";
+const EXPORTED_GAMES_DIR: &str = "game-core/tests/exported_games";
 
 fn export_to_file(message: &str, content: &Vec<GameCommand>) -> Result<(), std::io::Error> {
     let num_games = std::fs::read_dir(EXPORTED_GAMES_DIR)?.count();

@@ -29,17 +29,12 @@ uuid = { version = "1.21.0", features = ["v4", "js"] }
 # tokio-tungstenite = "0.17.2"
 async-trait = "0.1.89"
 futures-util = "0.3.32"
-json_comments = "0.2.2"
 reqwest = { version = "0.11", features = ["blocking"] }
 
 game-model = { path = "../game-model" }
 game-events = { path = "../game-events" }
 game-render = { path = "../game-render" }
 game-core = { path = "../game-core" }
-
-[dev-dependencies]
-anyhow = "1.0.102"
-insta = "1.46.3"
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 sapp-jsutils = "0.1.7"

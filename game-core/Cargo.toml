@@ -12,3 +12,8 @@ log = "0.4"
 indexmap = "2.13.0"
 nanoserde = "0.2.1"
 quad-rand = "0.2.3"
+
+[dev-dependencies]
+anyhow = "1.0.102"
+insta = "1.46.3"
+json_comments = "0.2.2"

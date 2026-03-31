@@ -478,7 +478,6 @@ dependencies = [
 name = "bugchess"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "async-executor",
  "async-trait",
  "console_log",
@@ -490,9 +489,7 @@ dependencies = [
  "game-events",
  "game-model",
  "game-render",
- "insta",
  "instant",
- "json_comments",
  "log",
  "macroquad",
  "macroquad-canvas",
@@ -1461,9 +1458,12 @@ dependencies = [
 name = "game-core"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "game-events",
  "game-model",
  "indexmap",
+ "insta",
+ "json_comments",
  "log",
  "nanoserde",
  "quad-rand",

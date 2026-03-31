@@ -1,7 +1,6 @@
 [workspace]
 resolver = "3"
 members = ["game-model", "game-events", "game-core", "game-main", "game-render"]
-default-members = ["game-main"]
 exclude = ["game-server"]
 
 [profile.release]
