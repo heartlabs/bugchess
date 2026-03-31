@@ -10,13 +10,12 @@ use crate::{
     game_events::{Event, GameEventObject, PlayerAction},
     multiplayer_connector::MultiplayerConector,
 };
-use game_events::event_broker::EventBroker;
+use game_events::{event_broker::EventBroker, undo_manager::UndoManager};
 use game_model::game::Game;
 
 pub struct CommandHandler {
-    start_of_turn: usize,
-    past_commands: Vec<GameCommand>,
-    past_commands_for_error_export: Arc<Mutex<Vec<GameCommand>>>,
+    past_commands: Arc<Mutex<Vec<GameCommand>>>,
+    undo_manager: UndoManager,
     event_broker: EventBroker,
     pub multiplayer_connector: Option<Rc<RefCell<MultiplayerConector>>>,
 }
@@ -24,12 +23,11 @@ pub struct CommandHandler {
 impl CommandHandler {
     pub fn new(
         event_broker: EventBroker,
-        past_commands_for_error_export: Arc<Mutex<Vec<GameCommand>>>,
+        past_commands: Arc<Mutex<Vec<GameCommand>>>,
     ) -> Self {
         CommandHandler {
-            start_of_turn: 0,
-            past_commands: vec![],
-            past_commands_for_error_export,
+            past_commands,
+            undo_manager: UndoManager::new(),
             event_broker,
             multiplayer_connector: None,
         }
@@ -43,8 +41,8 @@ impl CommandHandler {
         }
     }
 
-    pub fn get_past_commands(&self) -> &Vec<GameCommand> {
-        &self.past_commands
+    pub fn get_past_commands(&self) -> Vec<GameCommand> {
+        self.past_commands.lock().unwrap_or_else(|e| e.into_inner()).to_vec()
     }
 
     pub fn handle_remote_command(&mut self, game: Game, event_object: &GameEventObject) {
@@ -62,29 +60,31 @@ impl CommandHandler {
         }
     }
 
-    fn handle_command_internal(&mut self, game: Game, command: &GameCommand) {
-        self.past_commands.push(*command);
-        if let Ok(mut v) = (*self.past_commands_for_error_export).lock() {
+    fn log_command(&self, command: &GameCommand) {
+        if let Ok(mut v) = self.past_commands.lock() {
             v.push(*command);
         } else {
-            error!("Could not export command to error queue")
+            error!("Could not log command to past_commands")
         }
+    }
+
+    fn handle_command_internal(&mut self, game: Game, command: &GameCommand) {
+        self.log_command(command);
 
         if let GameCommand::Undo = command {
-            if self.past_commands.len() - 1 <= self.start_of_turn {
-                return;
+            if let Some(anti_event) = self.undo_manager.undo() {
+                self.event_broker.dispatch(&anti_event);
             }
-
-            self.event_broker.undo();
         } else {
             let action = GameController::handle_command(game, command)
                 .unwrap_or_else(|_| panic!("Could not handle command {:?}", command));
 
-            self.event_broker.handle_new_event(&action);
-        }
+            self.undo_manager.push(action.clone());
+            self.event_broker.dispatch(&action);
 
-        if let GameCommand::NextTurn = command {
-            self.start_of_turn = self.past_commands.len();
+            if let GameCommand::NextTurn = command {
+                self.undo_manager.mark_turn_boundary();
+            }
         }
     }
 }

@@ -14,13 +14,17 @@ Only collaborator agents edit this file. Minion agents contribute knowledge via 
 
 - **Language:** Rust (edition 2024)
 - **Architecture:** Event-sourced, layered: game-model -> game-events -> game-core -> game-render -> game-main
+  - **CommandHandler** (game-core): orchestrates commands, delegates to GameController, owns UndoManager
+  - **UndoManager** (game-events): owns event history + turn boundaries, enforces undo policy
+  - **EventBroker** (game-events): stateless event dispatch to subscribers
 - **Rendering:** macroquad (migration away from it may be in progress -- check recent commits)
 - **Multiplayer:** Peer-to-peer via WebRTC (matchbox_socket 0.14.0)
 - **Deployment:** WASM to <https://heartlabs.eu>, CI/CD via GitHub Actions, Docker infrastructure
 
 ## Technical Debt & Known Issues
 
-- `Undo` command in `GameController::handle_command` is `todo!()`
+- `Undo` command in `GameController::handle_command` is `todo!()` — the Undo pathway is handled by `UndoManager` + `CommandHandler`, bypassing `GameController` entirely.
+- `AtomicEvent::NextTurn::anti_event()` panics — intentional hard stop. Future work: make it reversible for replay/analysis mode.
 - Reconnection handling is broken
 - Player disconnect not handled
 - Recent direction: "start moving away from macroquad" -- verify current status before making rendering assumptions

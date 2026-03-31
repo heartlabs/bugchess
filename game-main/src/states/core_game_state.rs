@@ -302,7 +302,7 @@ fn handle_player_input(
         let game_clone = (**game).borrow().clone();
         command_handler.handle_new_command(game_clone, &GameCommand::Undo);
     } else if is_key_pressed(KeyCode::D) {
-        if let Err(e) = export_to_file("exported_game", command_handler.get_past_commands()) {
+        if let Err(e) = export_to_file("exported_game", &command_handler.get_past_commands()) {
             error!("Could not export game to file: {:?}", e);
         }
     } else if is_key_pressed(KeyCode::Enter)

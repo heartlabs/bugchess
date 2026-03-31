@@ -1,6 +1,5 @@
 ---
 source: game-main/tests/snapshots.rs
-assertion_line: 41
 expression: game
 ---
 * 0: 7
