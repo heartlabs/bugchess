@@ -20,15 +20,24 @@ jobs:
     runs-on: ubuntu-latest
     environment: heartlabs.tech
     steps:
+    - uses: actions/checkout@v4
     - name: Install prerequisites
       run: sudo apt-get update --fix-missing && sudo apt-get -y install libasound2-dev libgl1-mesa-dev xorg-dev binaryen wabt
-    - name: Setup Rust environment
-      uses: raftario/setup-rust-action@v1.0.0
+    - name: Setup Rust stable
+      uses: dtolnay/rust-toolchain@stable
       with:
-        rust-target: wasm32-unknown-unknown  
+        targets: wasm32-unknown-unknown
+        components: clippy
+    - name: Setup nightly rustfmt
+      run: rustup toolchain install nightly --component rustfmt --profile minimal
+    - name: Cache Rust
+      uses: Swatinem/rust-cache@v2
     - name: Setup wasm-bindgen
       run: cargo install -f wasm-bindgen-cli
-    - uses: actions/checkout@v2
+    - name: Format check
+      run: cargo +nightly fmt --check
+    - name: Clippy
+      run: cargo clippy --workspace -- -D warnings
     - name: Test
       run: cargo test --workspace
     - name: Build
