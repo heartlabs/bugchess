@@ -21,10 +21,7 @@ pub struct CommandHandler {
 }
 
 impl CommandHandler {
-    pub fn new(
-        event_broker: EventBroker,
-        past_commands: Arc<Mutex<Vec<GameCommand>>>,
-    ) -> Self {
+    pub fn new(event_broker: EventBroker, past_commands: Arc<Mutex<Vec<GameCommand>>>) -> Self {
         CommandHandler {
             past_commands,
             undo_manager: UndoManager::new(),
@@ -42,7 +39,10 @@ impl CommandHandler {
     }
 
     pub fn get_past_commands(&self) -> Vec<GameCommand> {
-        self.past_commands.lock().unwrap_or_else(|e| e.into_inner()).to_vec()
+        self.past_commands
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .to_vec()
     }
 
     pub fn handle_remote_command(&mut self, game: Game, event_object: &GameEventObject) {

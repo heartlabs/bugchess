@@ -1,4 +1,4 @@
-use crate::{board::Board, piece::PieceKind, Point2};
+use crate::{Point2, board::Board, piece::PieceKind};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum PatternComponent {

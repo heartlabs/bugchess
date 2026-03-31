@@ -1,9 +1,9 @@
-use crate::{animation::*, constants::*, CustomRenderContext};
-use game_model::{piece::*, Point2};
+use crate::{CustomRenderContext, animation::*, constants::*};
+use game_model::{Point2, piece::*};
 use instant::{Duration, Instant};
 use macroquad::{
     prelude::{Color, Rect, Vec2, WHITE},
-    texture::{draw_texture_ex, DrawTextureParams},
+    texture::{DrawTextureParams, draw_texture_ex},
 };
 
 #[derive(Clone, Copy, Debug)]

@@ -9,8 +9,8 @@ use crate::{
 };
 use derive_getters::Getters;
 use game_model::{
-    piece::{EffectKind, Piece},
     Point2,
+    piece::{EffectKind, Piece},
 };
 use nanoserde::{DeJson, SerJson};
 

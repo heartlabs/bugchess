@@ -1,7 +1,13 @@
+//! Entry point for the Bugchess application — wires together model, events, core, and rendering.
+//!
+//! Configures the macroquad window, initialises logging, and runs the main loop driven by
+//! a [`states::GameState`] state machine (loading → playing). Supports both native and WASM
+//! targets, with multiplayer via the [`matchbox`] WebRTC signaling client.
+//!
+//! Top of the architecture stack: depends on all other crates.
+
 mod constants;
 mod matchbox;
-//mod nakama;
-//mod custom_client;
 mod states;
 
 use crate::{
@@ -18,7 +24,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 
 fn window_conf() -> Conf {
     Conf {
-        window_title: "Makrochess".to_owned(),
+        window_title: "Bugchess".to_owned(),
         window_width: WINDOW_WIDTH,
         window_height: WINDOW_HEIGHT,
         platform: miniquad::conf::Platform {

@@ -1,11 +1,11 @@
 use crate::{animation::*, constants::*, sprite::*, ui::Button};
 use game_core::core_game::CoreGameSubstate;
-use game_model::{board::*, game::*, piece::*, ranges::*, Point2};
+use game_model::{Point2, board::*, game::*, piece::*, ranges::*};
 use instant::{Duration, Instant};
 use macroquad::{
     prelude::{Color, Vec2, WHITE},
     shapes::{draw_rectangle, draw_rectangle_lines},
-    texture::{draw_texture_ex, DrawTextureParams, Texture2D},
+    texture::{DrawTextureParams, Texture2D, draw_texture_ex},
 };
 use macroquad_canvas::Canvas2D;
 use std::collections::{HashMap, VecDeque};
@@ -151,13 +151,14 @@ impl BoardRender {
         self.current_animations.append(&mut new_animations);
 
         if self.current_animations.is_empty()
-            && let Some(mut animations) = self.next_animations.pop_front() {
-                for animation in animations.iter_mut() {
-                    animation.start(self, animation_speed_factor);
-                }
-
-                self.current_animations = animations;
+            && let Some(mut animations) = self.next_animations.pop_front()
+        {
+            for animation in animations.iter_mut() {
+                animation.start(self, animation_speed_factor);
             }
+
+            self.current_animations = animations;
+        }
     }
 
     fn calculate_animation_speed_factor(&mut self) -> f32 {
@@ -268,38 +269,41 @@ impl BoardRender {
 
         if let CoreGameSubstate::Move(selected_point) | CoreGameSubstate::Activate(selected_point) =
             render_context.game_state
-            && let Some(selected_piece) = board.get_piece_at(&selected_point) {
-                let range_contexts = match render_context.game_state {
-                    CoreGameSubstate::Move(_) => {
-                        let mut highlights = vec![];
+            && let Some(selected_piece) = board.get_piece_at(&selected_point)
+        {
+            let range_contexts = match render_context.game_state {
+                CoreGameSubstate::Move(_) => {
+                    let mut highlights = vec![];
 
-                        if let Some(movement) = selected_piece.movement
-                            && selected_piece.can_move() {
-                                highlights.push(movement.range);
-                            }
-
-                        if let Some(activatable) = selected_piece.activatable
-                            && selected_piece.can_use_special() {
-                                highlights.push(activatable.range);
-                            }
-
-                        highlights
+                    if let Some(movement) = selected_piece.movement
+                        && selected_piece.can_move()
+                    {
+                        highlights.push(movement.range);
                     }
-                    CoreGameSubstate::Activate(_) => {
-                        vec![selected_piece.activatable.unwrap().range]
-                    }
-                    _ => panic!("Unexpected game state"),
-                };
 
-                for range in range_contexts {
-                    Self::highlight_range(
-                        board,
-                        &selected_point,
-                        &range,
-                        Colour::new(0., 0.6, 0., 0.6),
-                    )
+                    if let Some(activatable) = selected_piece.activatable
+                        && selected_piece.can_use_special()
+                    {
+                        highlights.push(activatable.range);
+                    }
+
+                    highlights
                 }
+                CoreGameSubstate::Activate(_) => {
+                    vec![selected_piece.activatable.unwrap().range]
+                }
+                _ => panic!("Unexpected game state"),
+            };
+
+            for range in range_contexts {
+                Self::highlight_range(
+                    board,
+                    &selected_point,
+                    &range,
+                    Colour::new(0., 0.6, 0., 0.6),
+                )
             }
+        }
     }
 
     fn highlight_range(board: &Board, source_point: &Point2, range: &Range, color: Colour) {

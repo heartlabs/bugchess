@@ -1,6 +1,6 @@
 use crate::constants::*;
 use macroquad::{
-    prelude::{is_mouse_button_pressed, MouseButton, DARKGREEN, WHITE},
+    prelude::{DARKGREEN, MouseButton, WHITE, is_mouse_button_pressed},
     shapes::draw_rectangle,
     text::draw_text,
 };

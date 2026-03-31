@@ -5,6 +5,12 @@ pub struct UndoManager {
     turn_boundary: usize,
 }
 
+impl Default for UndoManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl UndoManager {
     pub fn new() -> Self {
         UndoManager {

@@ -9,7 +9,7 @@ use crate::{
     },
     atomic_events::AtomicEvent,
 };
-use game_model::{piece::Piece, Point2};
+use game_model::{Point2, piece::Piece};
 use nanoserde::{DeJson, SerJson};
 use std::fmt::{Debug, Display};
 

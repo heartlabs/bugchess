@@ -1,6 +1,6 @@
 use crate::{
     matchbox::MatchboxClient,
-    states::{core_game_state::CoreGameState, GameState},
+    states::{GameState, core_game_state::CoreGameState},
 };
 use egui_macroquad::{
     egui,
@@ -10,11 +10,11 @@ use egui_macroquad::{
 };
 use game_core::{core_game::CoreGameSubstate, multiplayer_connector::MultiplayerConector};
 
-use game_model::{game::*, Point2};
+use game_model::{Point2, game::*};
 use game_render::{
+    BoardRender,
     constants::{BOARD_HEIGHT, BOARD_WIDTH},
     render_events::RenderEventConsumer,
-    BoardRender,
 };
 use std::{
     cell::RefCell,
@@ -131,10 +131,8 @@ impl LoadingState {
                 let menu_width = 400.0;
                 let menu_height = 220.0;
                 let center = ui.max_rect().center();
-                let menu_rect = egui::Rect::from_center_size(
-                    center,
-                    egui::vec2(menu_width, menu_height),
-                );
+                let menu_rect =
+                    egui::Rect::from_center_size(center, egui::vec2(menu_width, menu_height));
                 let mut child_ui = ui.new_child(
                     egui::UiBuilder::new()
                         .max_rect(menu_rect)
@@ -143,11 +141,7 @@ impl LoadingState {
 
                 // Title with smaller font and spacing
                 child_ui.add_space(10.0);
-                child_ui.label(
-                    egui::RichText::new("Select game mode")
-                        .heading()
-                        .size(32.0),
-                );
+                child_ui.label(egui::RichText::new("Select game mode").heading().size(32.0));
                 child_ui.add_space(30.0);
 
                 if child_ui
@@ -340,8 +334,8 @@ fn egui_setup_fonts(egui_ctx: &egui::Context) {
     let mut font_definitions = FontDefinitions::default();
     let mut font_data =
         FontData::from_static(include_bytes!("../../resources/fonts/Koulen-Regular.ttf"));
-        font_data.tweak = FontTweak::default();
-        font_data.tweak.scale = 1.;
+    font_data.tweak = FontTweak::default();
+    font_data.tweak.scale = 1.;
     font_definitions
         .font_data
         .insert("bugchess".to_owned(), Arc::new(font_data));

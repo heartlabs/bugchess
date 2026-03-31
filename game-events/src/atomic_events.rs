@@ -1,7 +1,7 @@
 use crate::atomic_events::AtomicEvent::*;
 use game_model::{
-    piece::{EffectKind, Exhaustion, Piece},
     Point2,
+    piece::{EffectKind, Exhaustion, Piece},
 };
 use nanoserde::{DeJson, SerJson};
 

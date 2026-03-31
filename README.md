@@ -1,33 +1,34 @@
 # Bugchess
-A turn based strategy game on a chess-like board. Be the first to destroy all of your opponent's pieces to win. 
-Each turn the player can place new pieces and arrange them in patterns to create stronger ones with special powers and longer range.
 
-*The game is still in an experimental pre-alpha phase*
+A two-player turn-based strategy game on a chess-like board. Place pieces in spatial patterns to merge them into stronger types with special powers and longer range. Destroy all of your opponent's pieces to win.
 
-## Technologies
-* Programming language: **Rust**
-* Game engine: **macroquad**
-* Networking: **matchbox**
- 
-## Screencasts
-TODO...
-### Merge simple pieces into stronger ones
-![merge pieces](resources/readme/merge.gif)
+*The game is in an experimental pre-alpha phase.*
 
-### Beware of Superpowers 
-![superpowers](resources/readme/queen.gif)
+## Merge Pieces
 
-### Fierce Fights between Opponents
-![fight scene](resources/readme/fight.gif)
+Place simple pieces in patterns to create powerful units:
+
+| Queen | Castle | Cross |
+|:---:|:---:|:---:|
+| ![queen merge](html/gifs/queen-merge.gif) | ![castle merge](html/gifs/castle-merge.gif) | ![cross merge](html/gifs/cross-merge.gif) |
+
+| Sniper | Horizontal Bar | Vertical Bar |
+|:---:|:---:|:---:|
+| ![sniper merge](html/gifs/sniper-merge.gif) | ![horizontal bar merge](html/gifs/horizontal-bar-merge.gif) | ![vertical bar merge](html/gifs/vertical-bar-merge.gif) |
 
 ## Play
 
-You can play the game online or offline (hot-seat) at https://heartlabs.eu.
+Play online or offline (hot-seat) at **<https://heartlabs.eu>**.
 
-You can also compile and run the game locally with Rust's *[cargo](https://doc.rust-lang.org/cargo/)* command in the root directory of the checked-out sources.
+Or compile and run locally:
 
-    cargo run
+```sh
+cargo run
+```
 
+## Tech Stack
 
-## How to Play?
-Coming soon...  
+- **Language:** Rust
+- **Rendering:** macroquad
+- **Multiplayer:** matchbox (WebRTC peer-to-peer)
+- **Deployment:** WASM → GitHub Actions → heartlabs.eu

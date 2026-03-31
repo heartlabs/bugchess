@@ -5,10 +5,10 @@ use std::{
 };
 
 use game_model::{
+    Point2,
     board::Board,
     game::Game,
     piece::{Piece, PieceKind},
-    Point2,
 };
 
 use crate::board_event_consumer::BoardEventConsumer;

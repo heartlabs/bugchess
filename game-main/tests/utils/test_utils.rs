@@ -19,7 +19,7 @@ use game_model::{
     game::{Game, Team},
     piece::PieceKind,
 };
-use game_render::{render_events::RenderEventConsumer, BoardRender};
+use game_render::{BoardRender, render_events::RenderEventConsumer};
 
 pub struct TestGame {
     pub logs: Rc<RefCell<VecDeque<GameAction>>>,

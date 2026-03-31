@@ -15,18 +15,13 @@ macroquad = "0.4.14"
 egui-macroquad = "0.17.3"
 macroquad-canvas = "0.4.1"
 urlencoding = "2.1.3"
-# nakama-rs = "*"
 url = "2.5.8"
-# matchbox_socket = { path = "../../matchbox/matchbox_socket" }
-# matchbox_socket = { git = "https://github.com/johanhelsing/matchbox" }
-# matchbox_socket = { git = "https://github.com/heartlabs/matchbox", branch = "feature/reliable-channel2"}
 matchbox_socket = "0.14.0"
 async-executor = "1.14.0"
 nanoserde = "0.2.1"
 futures = "0.3.32"
 instant = { version = "0.1.13", features = ["wasm-bindgen"] }
 uuid = { version = "1.21.0", features = ["v4", "js"] }
-# tokio-tungstenite = "0.17.2"
 async-trait = "0.1.89"
 futures-util = "0.3.32"
 reqwest = { version = "0.11", features = ["blocking"] }

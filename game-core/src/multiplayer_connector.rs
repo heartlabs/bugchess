@@ -24,8 +24,6 @@ pub struct MultiplayerConector {
 
 impl MultiplayerConector {
     pub fn new(client: Box<dyn MultiplayerClient>) -> Self {
-        
-
         MultiplayerConector {
             registered_events: IndexMap::new(),
             client,
@@ -53,13 +51,14 @@ impl MultiplayerConector {
         }
 
         if let Some(opponent_id) = self.opponent_id.as_ref()
-            && let Some(own_player_id) = &self.client.own_player_id() {
-                if opponent_id < own_player_id {
-                    return Some(1);
-                }
-
-                return Some(0);
+            && let Some(own_player_id) = &self.client.own_player_id()
+        {
+            if opponent_id < own_player_id {
+                return Some(1);
             }
+
+            return Some(0);
+        }
 
         None
     }

@@ -3,13 +3,13 @@ use game_events::{
     atomic_events::AtomicEvent,
 };
 use game_model::{
-    piece::{EffectKind, PieceKind},
     Point2,
+    piece::{EffectKind, PieceKind},
 };
 
 use crate::{
-    animation::{Animation, PlacePieceAnimation},
     BoardRender,
+    animation::{Animation, PlacePieceAnimation},
 };
 use game_events::{
     actions::{attack::AttackCompoundEvent, moving::MoveCompoundEvent, place::PlaceCompoundEvent},

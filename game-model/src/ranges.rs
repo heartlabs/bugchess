@@ -2,7 +2,7 @@ use indexmap::IndexSet;
 use nanoserde::{DeJson, SerJson};
 use std::iter::successors;
 
-use crate::{board::*, piece::*, Point2};
+use crate::{Point2, board::*, piece::*};
 
 type PathFn = Box<dyn Fn((i16, i16)) -> (i16, i16)>;
 

@@ -10,8 +10,8 @@ use crate::{
 };
 use derive_getters::Getters;
 use game_model::{
-    piece::{EffectKind, Exhaustion, Piece, PieceKind},
     Point2,
+    piece::{EffectKind, Exhaustion, Piece, PieceKind},
 };
 use nanoserde::{DeJson, SerJson};
 
@@ -127,9 +127,10 @@ impl Display for AttackCompoundEvent {
         write!(f, "{} Attacks {:?}", self.attacking_piece_pos(), targets)?;
 
         if let Some(merge) = &self.merge_events
-            && !merge.placed_pieces().is_empty() {
-                write!(f, " with {}", merge)?;
-            }
+            && !merge.placed_pieces().is_empty()
+        {
+            write!(f, " with {}", merge)?;
+        }
 
         Ok(())
     }

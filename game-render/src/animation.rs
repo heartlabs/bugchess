@@ -4,8 +4,8 @@ use crate::{
     sprite::*,
 };
 use game_model::{
-    piece::{EffectKind, Exhaustion, PieceKind},
     Point2,
+    piece::{EffectKind, Exhaustion, PieceKind},
 };
 use instant::{Duration, Instant};
 use log::info;
@@ -26,8 +26,6 @@ pub struct AnimationPoint {
 impl AnimationPoint {
     pub fn interpolate(&self, towards: &AnimationPoint, at_instant: Instant) -> AnimationPoint {
         let progress = Self::calculate_progress(&self.instant, &towards.instant, &at_instant);
-
-        
 
         AnimationPoint {
             x_pos: Self::interpolate_value(self.x_pos, towards.x_pos, progress),
@@ -102,7 +100,10 @@ impl Animation {
             duration: Duration::from_millis(0),
             finished_at: Instant::now(),
             next_animations: vec![],
-            expert: Box::new(AddEffectAnimation { _effect: effect, at }),
+            expert: Box::new(AddEffectAnimation {
+                _effect: effect,
+                at,
+            }),
         }
     }
 
@@ -111,7 +112,10 @@ impl Animation {
             duration: Duration::from_millis(0),
             finished_at: Instant::now(),
             next_animations: vec![],
-            expert: Box::new(RemoveEffectAnimation { _effect: effect, at }),
+            expert: Box::new(RemoveEffectAnimation {
+                _effect: effect,
+                at,
+            }),
         }
     }
 
@@ -398,7 +402,11 @@ impl AnimationExpert for AddEffectAnimation {
 
         board_render.effects.entry(self.at).or_default();
 
-        board_render.effects.get_mut(&self.at).unwrap().push(EffectRender::new());
+        board_render
+            .effects
+            .get_mut(&self.at)
+            .unwrap()
+            .push(EffectRender::new());
     }
 }
 
@@ -407,8 +415,12 @@ impl AnimationExpert for RemoveEffectAnimation {
         board_render
             .effects
             .get_mut(&self.at)
-            .unwrap_or_else(|| panic!("Can't remove effect at {:?} because that position doesn't exist",
-                    self.at))
+            .unwrap_or_else(|| {
+                panic!(
+                    "Can't remove effect at {:?} because that position doesn't exist",
+                    self.at
+                )
+            })
             .remove(0);
     }
 }

@@ -10,7 +10,7 @@ use std::{
 use game_core::{core_game::CoreGameSubstate, multiplayer_connector::MultiplayerConector};
 use game_model::game::Game;
 
-use game_render::{constants::cell_hovered, sprite::Colour, BoardRender, CustomRenderContext};
+use game_render::{BoardRender, CustomRenderContext, constants::cell_hovered, sprite::Colour};
 
 use crate::states::GameState;
 use game_core::{command_handler::CommandHandler, game_controller::GameCommand};

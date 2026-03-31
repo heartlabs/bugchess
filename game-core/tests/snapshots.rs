@@ -3,20 +3,31 @@ use nanoserde::DeJson;
 use std::{ffi::OsStr, io::Read, path::PathBuf};
 
 use game_core::{
-    board_event_consumer::BoardEventConsumer,
-    command_handler::CommandHandler,
+    board_event_consumer::BoardEventConsumer, command_handler::CommandHandler,
     game_controller::GameCommand,
 };
 use game_events::event_broker::EventBroker;
 use game_model::game::{Game, Team};
-use std::{cell::RefCell, rc::Rc, sync::{Arc, Mutex}};
+use std::{
+    cell::RefCell,
+    rc::Rc,
+    sync::{Arc, Mutex},
+};
 
 fn create_test_game() -> (CommandHandler, Rc<RefCell<Game>>) {
     let mut event_broker = EventBroker::new();
     let game = Rc::new(RefCell::new(Game::new(
         vec![
-            Team { id: 0, lost: false, unused_pieces: 0 },
-            Team { id: 1, lost: false, unused_pieces: 0 },
+            Team {
+                id: 0,
+                lost: false,
+                unused_pieces: 0,
+            },
+            Team {
+                id: 1,
+                lost: false,
+                unused_pieces: 0,
+            },
         ],
         8,
         8,

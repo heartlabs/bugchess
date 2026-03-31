@@ -3,7 +3,7 @@ use game_events::{
     atomic_events::AtomicEvent,
     event_broker::EventConsumer,
 };
-use game_model::{game::Game, GameError, GameResult};
+use game_model::{GameError, GameResult, game::Game};
 use log::{debug, warn};
 use std::{cell::RefCell, rc::Rc};
 

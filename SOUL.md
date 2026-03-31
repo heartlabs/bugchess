@@ -20,15 +20,20 @@ Only collaborator agents edit this file. Minion agents contribute knowledge via 
 - **Rendering:** macroquad (migration away from it may be in progress -- check recent commits)
 - **Multiplayer:** Peer-to-peer via WebRTC (matchbox_socket 0.14.0)
 - **Deployment:** WASM to <https://heartlabs.eu>, CI/CD via GitHub Actions, Docker infrastructure
+- **CI Quality Gates:** `cargo +nightly fmt --check`, `cargo clippy --workspace -- -D warnings`, `cargo test --workspace` (all enforced in `game-wasm.yml`)
+- **Task Runner:** `Justfile` — run `just --list` for all recipes (`just test`, `just lint`, `just fmt`, etc.)
+- **Testing:** Snapshot tests (game logic replay) live in `game-core/tests/`. Integration tests (rendering, multiplayer) in `game-main/tests/`. Exported game files go to `game-core/tests/exported_games/`. `cargo test` runs all workspace crates.
 
 ## Technical Debt & Known Issues
 
 - `Undo` command in `GameController::handle_command` is `todo!()` — the Undo pathway is handled by `UndoManager` + `CommandHandler`, bypassing `GameController` entirely.
 - `AtomicEvent::NextTurn::anti_event()` panics — intentional hard stop. Future work: make it reversible for replay/analysis mode.
+- `InitPlayer` emits a `FinishTurn` event (which includes `NextTurn`). This means init silently advances the turn — hidden coupling worth revisiting.
 - Reconnection handling is broken
 - Player disconnect not handled
 - Recent direction: "start moving away from macroquad" -- verify current status before making rendering assumptions
 - `build.sh` uses sed to patch wasm-bindgen JS output. This is fragile: wasm-bindgen output format changes between versions. Verify sed commands after any wasm-bindgen upgrade.
+- **Test coverage is thin** — only 5 snapshot files and a few integration tests. More game recordings needed (undo edge cases, blast, protection, win conditions).
 - **Verifying WebRTC / game start:** Run `WAIT_MS=45000 node automation/playwright/webrtc-probe.js` from the repo root (requires the WASM build to be served on port 4001). Success indicators: `dc:open matchbox_socket_0`, `data channels ready`, and `NEXT TURN` in the output. The script instruments two headless Chromium browsers — one creates a game, one joins — and logs all WebRTC lifecycle events.
 
 ## The Owner

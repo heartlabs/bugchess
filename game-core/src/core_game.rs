@@ -1,7 +1,7 @@
 use game_model::{
+    Point2,
     game::Game,
     piece::{Piece, Power},
-    Point2,
 };
 
 use crate::{
@@ -56,25 +56,26 @@ impl CoreGameSubstate {
             }
             CoreGameSubstate::Move(itself) => {
                 if let Some(target_piece) = board.get_piece_at(target_point) {
-                    if *itself == *target_point && target_piece.can_use_special()
-                        && let Some(activatable) = target_piece.activatable {
-                            return match activatable.kind {
-                                Power::Blast => {
-                                    let blast_command = GameCommand::Blast(*target_point);
+                    if *itself == *target_point
+                        && target_piece.can_use_special()
+                        && let Some(activatable) = target_piece.activatable
+                    {
+                        return match activatable.kind {
+                            Power::Blast => {
+                                let blast_command = GameCommand::Blast(*target_point);
 
-                                    if let Ok(_game_action) = GameController::handle_command(
-                                        game_clone.clone(),
-                                        &blast_command,
-                                    ) {
-                                        command_handler
-                                            .handle_new_command(game_clone, &blast_command);
-                                    }
-
-                                    CoreGameSubstate::Place
+                                if let Ok(_game_action) = GameController::handle_command(
+                                    game_clone.clone(),
+                                    &blast_command,
+                                ) {
+                                    command_handler.handle_new_command(game_clone, &blast_command);
                                 }
-                                Power::TargetedShoot => CoreGameSubstate::Activate(*target_point),
-                            };
-                        }
+
+                                CoreGameSubstate::Place
+                            }
+                            Power::TargetedShoot => CoreGameSubstate::Activate(*target_point),
+                        };
+                    }
                     if target_piece.team_id == game_clone.current_team_index
                         && target_piece.can_move()
                     {

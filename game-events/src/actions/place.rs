@@ -9,8 +9,8 @@ use crate::{
 };
 use derive_getters::Getters;
 use game_model::{
-    piece::{EffectKind, Piece},
     Point2,
+    piece::{EffectKind, Piece},
 };
 use nanoserde::{DeJson, SerJson};
 
@@ -99,9 +99,10 @@ impl Display for PlaceCompoundEvent {
         write!(f, "Placing {} at {}", self.piece(), self.at())?;
 
         if let Some(merge) = &self.merge_events
-            && !merge.placed_pieces().is_empty() {
-                write!(f, " with {}", merge)?;
-            }
+            && !merge.placed_pieces().is_empty()
+        {
+            write!(f, " with {}", merge)?;
+        }
 
         Ok(())
     }

@@ -1,3 +1,11 @@
+//! Pure data model for Bugchess — no logic, no side effects.
+//!
+//! Defines the core types: [`board::Board`] and [`board::Cell`] grid, [`piece::Piece`] with
+//! movement [`ranges::Range`]s and [`piece::Power`]s, [`game::Game`] and [`game::Team`] state,
+//! and [`pattern::Pattern`] for piece-merge recipes.
+//!
+//! This is the foundational layer; all other crates depend on it.
+
 #![allow(clippy::question_mark)]
 
 use nanoserde::{DeJson, SerJson};
@@ -18,7 +26,9 @@ pub struct GameError {
 
 impl GameError {
     pub fn new(description: String) -> Self {
-        Self { _description: description }
+        Self {
+            _description: description,
+        }
     }
 }
 
