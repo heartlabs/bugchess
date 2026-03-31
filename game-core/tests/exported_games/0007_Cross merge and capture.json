@@ -1,0 +1,15 @@
+// Cross merge and capture
+// Team 0 places 5 pieces in a cross -> merge into Cross -> move to capture enemy piece
+[
+    {"InitPlayer": [6]},
+    {"InitPlayer": [6]},
+    {"PlacePiece": [{"x": 3, "y": 2}]},
+    {"PlacePiece": [{"x": 2, "y": 3}]},
+    {"PlacePiece": [{"x": 3, "y": 3}]},
+    {"PlacePiece": [{"x": 4, "y": 3}]},
+    {"PlacePiece": [{"x": 3, "y": 4}]},
+    "NextTurn",
+    {"PlacePiece": [{"x": 3, "y": 0}]},
+    "NextTurn",
+    {"MovePiece": [{"x": 3, "y": 3}, {"x": 3, "y": 0}]}
+]

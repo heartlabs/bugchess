@@ -33,7 +33,7 @@ Only collaborator agents edit this file. Minion agents contribute knowledge via 
 - Player disconnect not handled
 - Recent direction: "start moving away from macroquad" -- verify current status before making rendering assumptions
 - `build.sh` uses sed to patch wasm-bindgen JS output. This is fragile: wasm-bindgen output format changes between versions. Verify sed commands after any wasm-bindgen upgrade.
-- **Test coverage is thin** — only 5 snapshot files and a few integration tests. More game recordings needed (undo edge cases, blast, protection, win conditions).
+- **Test coverage improving** — 7 snapshot files, 2 unit tests for exhaustion checks, plus integration tests. Still need coverage for: protection mechanics, Sniper TargetedShoot, Castle effect add/remove on destroy, win conditions, chain merges.
 - **Verifying WebRTC / game start:** Run `WAIT_MS=45000 node automation/playwright/webrtc-probe.js` from the repo root (requires the WASM build to be served on port 4001). Success indicators: `dc:open matchbox_socket_0`, `data channels ready`, and `NEXT TURN` in the output. The script instruments two headless Chromium browsers — one creates a game, one joins — and logs all WebRTC lifecycle events.
 
 ## The Owner
@@ -76,4 +76,35 @@ Animated merge GIFs for all 6 piece types live in `html/gifs/*-merge.gif` and ar
 **Key technical fact** (easy to forget): The game renders to an internal 900×800 Canvas2D that gets scaled/letterboxed to the viewport. All click + crop coordinates must be transformed at runtime — see the skill for details.
 
 **Capture scripts**: `automation/playwright/capture-*-gif.js` (one per piece). All use the same Canvas2D scaling approach and `page.mouse.click()` for instant clicks.
+
+## Game Mechanics Deep Knowledge
+
+Hard-won knowledge about how the game logic actually works. Future selves: this will save you hours.
+
+### Merge System
+
+Patterns are defined in `game-model/src/pattern.rs`. Six patterns: Queen (8 pieces, 5×5 diamond), Cross (5 pieces, + shape), HBar (3 horizontal), VBar (3 vertical), Sniper (5 diagonal), Castle (4 cardinal with free center). `match_board()` checks only piece presence — the caller (`merge_patterns` in `game_controller.rs`) verifies all matched pieces share the same `team_id`. Merged pieces retain the team of their components.
+
+Chain merges work: `flush_and_merge` loops until no more patterns match. Each cycle merges at most one pattern (early `return` in `merge_patterns`). A `dying` HashSet prevents the same piece from participating in multiple merges within one cycle.
+
+### Combat & Range System
+
+`RangeContext` is the key abstraction:
+- **Moving** — stops at any piece (friend or foe). Includes empty cells and enemy pieces (if not shielded, unless attacker has pierce). Used by movement AND HBar/VBar/Queen blast ranges.
+- **Special** — stops at pieces AND Protection effects. Only includes enemy pieces not under Protection. Used by Sniper's TargetedShoot.
+- **Area** — ignores everything, includes all cells. Used by Castle's Protection aura.
+
+Shield vs Protection: Shield is a piece property (Cross, Castle have it). Pierce is also a piece property (all pieces except Simple have it). Protection is a cell effect placed by Castle's aura. Shield blocks movement-attacks from non-pierce pieces. Protection blocks Special-context abilities (Sniper shots).
+
+### Exhaustion System
+
+Pieces start exhausted when created (`Exhaustion::new_exhausted`). `NextTurn` resets ALL pieces' exhaustion (both teams — harmless but wasteful). Strategies: Either (HBar, VBar, Simple — move XOR attack), Both (Queen — can move AND attack), Move (Castle — move only, no attack despite shield), Special (Sniper — attack only, no movement).
+
+**Fixed (2026-03-31):** `blast()` and `targeted_shoot()` in GameController now check `can_use_special()` before executing. Previously, the UI checked exhaustion but the controller didn't, meaning crafted multiplayer commands could bypass the check.
+
+### Event Architecture
+
+Actions flow: GameCommand → GameController (validates, builds CompoundEventBuilder) → flush_and_merge (applies to game state, checks for merges) → GameAction (the immutable event record). Anti-events enable undo by reversing all AtomicEvents. NextTurn anti-event panics intentionally — undo stops at turn boundaries via UndoManager.
+
+The `FinishTurnCompoundEvent` emits `NextTurn` as its FIRST atomic event, then adds unused pieces and resets exhaustion. This ordering matters for undo: the anti-events run in reverse, so exhaustion restores happen before the turn switch is (attempted to be) undone.
 

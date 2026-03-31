@@ -1,0 +1,13 @@
+// Horizontal bar merge and blast
+// Team 0 places 3 pieces in a row -> merge into HorizontalBar -> blast destroys enemy piece
+[
+    {"InitPlayer": [6]},
+    {"InitPlayer": [6]},
+    {"PlacePiece": [{"x": 3, "y": 3}]},
+    {"PlacePiece": [{"x": 4, "y": 3}]},
+    {"PlacePiece": [{"x": 5, "y": 3}]},
+    "NextTurn",
+    {"PlacePiece": [{"x": 1, "y": 3}]},
+    "NextTurn",
+    {"Blast": [{"x": 4, "y": 3}]}
+]

@@ -155,6 +155,10 @@ impl GameController {
             .get_piece_at(piece_pos)
             .ok_or(MoveError::NoPiecePresent)?;
 
+        if !attacking_piece.can_use_special() {
+            return MoveResult::Err(MoveError::IllegalMove);
+        }
+
         let activatable = attacking_piece
             .activatable
             .ok_or(MoveError::NotSupportedByPiece)?;
@@ -191,6 +195,10 @@ impl GameController {
             .get_piece_at(target_pos)
             .ok_or(MoveError::NoPiecePresent)?;
 
+        if !active_piece.can_use_special() {
+            return MoveResult::Err(MoveError::IllegalMove);
+        }
+
         if let Some(activatable) = active_piece.activatable {
             if !activatable
                 .range
@@ -202,9 +210,6 @@ impl GameController {
         } else {
             return MoveResult::Err(MoveError::NotSupportedByPiece);
         }
-
-        let mut exhaustion_clone = target_piece.exhaustion;
-        exhaustion_clone.on_attack();
 
         let mut attack_event = AttackBuilder::new(active_piece, *attacking_piece_pos);
         attack_event.remove_piece(*target_pos, *target_piece);
@@ -337,3 +342,76 @@ fn flush_and_merge(game: &mut Game, event_builder: Box<dyn CompoundEventBuilder>
         panic!("unreachable code")
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use game_model::game::Team;
+    use game_model::piece::PieceKind;
+
+    fn setup_game() -> Game {
+        Game::new(
+            vec![
+                Team {
+                    id: 0,
+                    lost: false,
+                    unused_pieces: 0,
+                },
+                Team {
+                    id: 1,
+                    lost: false,
+                    unused_pieces: 0,
+                },
+            ],
+            8,
+            8,
+        )
+    }
+
+    #[test]
+    fn blast_rejected_when_piece_is_exhausted() {
+        let mut game = setup_game();
+        // Place a HorizontalBar manually (already exhausted from creation)
+        let hbar = Piece::new(0, PieceKind::HorizontalBar);
+        assert!(!hbar.can_use_special(), "new piece should start exhausted");
+
+        game.board.place_piece_at(hbar, &Point2::new(4, 3)).unwrap();
+
+        // Place an enemy piece in blast range
+        let enemy = Piece::new(1, PieceKind::Simple);
+        game.board.place_piece_at(enemy, &Point2::new(1, 3)).unwrap();
+
+        let result = GameController::blast(&mut game, &Point2::new(4, 3));
+        assert!(
+            result.is_err(),
+            "blast should be rejected on an exhausted piece"
+        );
+    }
+
+    #[test]
+    fn targeted_shoot_rejected_when_piece_is_exhausted() {
+        let mut game = setup_game();
+        // Place a Sniper manually (already exhausted from creation)
+        let sniper = Piece::new(0, PieceKind::Sniper);
+        assert!(
+            !sniper.can_use_special(),
+            "new piece should start exhausted"
+        );
+
+        game.board
+            .place_piece_at(sniper, &Point2::new(4, 4))
+            .unwrap();
+
+        // Place an enemy piece
+        let enemy = Piece::new(1, PieceKind::Simple);
+        game.board.place_piece_at(enemy, &Point2::new(0, 0)).unwrap();
+
+        let result =
+            GameController::targeted_shoot(&mut game, &Point2::new(4, 4), &Point2::new(0, 0));
+        assert!(
+            result.is_err(),
+            "targeted shoot should be rejected on an exhausted piece"
+        );
+    }
+}
+
