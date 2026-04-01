@@ -15,9 +15,11 @@ use crate::{
     states::{GameState, loading::LoadingState},
 };
 
-use env_logger::Target;
 use macroquad::{prelude::*, rand::srand};
 use macroquad_canvas::Canvas2D;
+
+#[cfg(not(target_family = "wasm"))]
+use env_logger::Target;
 
 #[cfg(target_family = "wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -69,21 +71,6 @@ async fn main() {
 
         next_frame().await;
     }
-}
-
-#[cfg(target_family = "wasm")]
-fn get_url_param(key: &str) -> Option<String> {
-    web_sys::window()
-        .as_ref()
-        .and_then(web_sys::Window::document)
-        .and_then(|document| document.url().ok())
-        .and_then(|url| url::Url::parse(&url).ok())
-        .and_then(|url| {
-            url.query_pairs()
-                .filter(|q| q.0 == key)
-                .map(|(_k, v)| (*v).to_string())
-                .next()
-        })
 }
 
 #[cfg(target_family = "wasm")]

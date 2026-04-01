@@ -6,3 +6,8 @@ exclude = ["game-server"]
 [profile.release]
 lto = true
 opt-level = 's'
+
+[profile.ci-wasm]
+inherits = "release"
+lto = "thin"
+codegen-units = 16

@@ -77,7 +77,7 @@ impl CoreGameState {
                         .unwrap();
                     wasm_bindgen_futures::spawn_local(post_error_report(
                         error_report_url,
-                        format!("{}", panic_info),
+                        message.to_string(),
                         commands,
                     ))
                 }
@@ -347,14 +347,42 @@ fn export_to_file(message: &str, content: &Vec<GameCommand>) -> Result<(), std::
 
 #[cfg(target_family = "wasm")]
 async fn post_error_report(url: String, message: String, content: Vec<GameCommand>) {
-    let client = reqwest::Client::new();
-    if let Err(e) = client
-        .post(url + ":3030/error_report")
-        .body(format!("// {}\n\n{}", message, content.serialize_json()))
-        .send()
-        .await
+    use wasm_bindgen::JsValue;
+
+    let request_init = web_sys::RequestInit::new();
+    request_init.set_method("POST");
+    request_init.set_mode(web_sys::RequestMode::Cors);
+
+    let body = format!("// {}\n\n{}", message, content.serialize_json());
+    request_init.set_body(&JsValue::from_str(&body));
+
+    let request =
+        match web_sys::Request::new_with_str_and_init(&(url + ":3030/error_report"), &request_init)
+        {
+            Ok(request) => request,
+            Err(error) => {
+                println!("{:?}", error);
+                return;
+            }
+        };
+
+    if let Err(error) = request
+        .headers()
+        .set("Content-Type", "text/plain;charset=UTF-8")
     {
-        println!("{:?}", e);
+        println!("{:?}", error);
+        return;
+    }
+
+    let Some(window) = web_sys::window() else {
+        println!("window unavailable while posting error report");
+        return;
+    };
+
+    if let Err(error) =
+        wasm_bindgen_futures::JsFuture::from(window.fetch_with_request(&request)).await
+    {
+        println!("{:?}", error);
     }
 }
 

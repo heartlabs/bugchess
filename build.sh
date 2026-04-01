@@ -1,13 +1,14 @@
 set -euo pipefail
 
 PROJECT_NAME=bugchess
+BUILD_PROFILE="${BUILD_PROFILE:-release}"
 
 # Build
-cargo build --target wasm32-unknown-unknown --release
+cargo build --target wasm32-unknown-unknown --profile "$BUILD_PROFILE"
 
 # Generate bindgen outputs
 mkdir -p html
-wasm-bindgen target/wasm32-unknown-unknown/release/${PROJECT_NAME}.wasm --out-dir html --target web --no-typescript
+wasm-bindgen target/wasm32-unknown-unknown/${BUILD_PROFILE}/${PROJECT_NAME}.wasm --out-dir html --target web --no-typescript
 
 # Shim to tie wasm-bindgen output together with macroquad's gl.js loader
 # (see https://github.com/not-fl3/macroquad/issues/212)
