@@ -33,7 +33,10 @@ jobs:
     - name: Cache Rust
       uses: Swatinem/rust-cache@v2
     - name: Setup wasm-bindgen
-      run: cargo install -f wasm-bindgen-cli
+      run: |
+        WASM_BINDGEN_VERSION=$(grep -A1 'name = "wasm-bindgen"' Cargo.lock | grep version | head -1 | cut -d'"' -f2)
+        echo "wasm-bindgen version from Cargo.lock: $WASM_BINDGEN_VERSION"
+        cargo install -f wasm-bindgen-cli --version "$WASM_BINDGEN_VERSION"
     - name: Format check
       run: cargo +nightly fmt --check
     - name: Clippy

@@ -32,7 +32,8 @@ Only collaborator agents edit this file. Minion agents contribute knowledge via 
 - Reconnection handling is broken
 - Player disconnect not handled
 - Recent direction: "start moving away from macroquad" -- verify current status before making rendering assumptions
-- `build.sh` uses sed to patch wasm-bindgen JS output. This is fragile: wasm-bindgen output format changes between versions. Verify sed commands after any wasm-bindgen upgrade.
+- `build.sh` uses sed to patch wasm-bindgen JS output. This is fragile: wasm-bindgen output format changes between versions. Verify sed commands after any wasm-bindgen upgrade. `build.sh` has `set -euo pipefail` so failures are immediate.
+- **CI wasm-bindgen-cli** version is extracted dynamically from `Cargo.lock` (see `game-wasm.yml`). After any `cargo update -p wasm-bindgen`, the CI will automatically pick up the new version.
 - **Test coverage improving** — 7 snapshot files, 2 unit tests for exhaustion checks, plus integration tests. Still need coverage for: protection mechanics, Sniper TargetedShoot, Castle effect add/remove on destroy, win conditions, chain merges.
 - **Verifying WebRTC / game start:** Run `WAIT_MS=45000 node automation/playwright/webrtc-probe.js` from the repo root (requires the WASM build to be served on port 4001). Success indicators: `dc:open matchbox_socket_0`, `data channels ready`, and `NEXT TURN` in the output. The script instruments two headless Chromium browsers — one creates a game, one joins — and logs all WebRTC lifecycle events.
 

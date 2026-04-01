@@ -1,3 +1,5 @@
+set -euo pipefail
+
 PROJECT_NAME=bugchess
 
 # Build
