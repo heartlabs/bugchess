@@ -346,8 +346,7 @@ fn flush_and_merge(game: &mut Game, event_builder: Box<dyn CompoundEventBuilder>
 #[cfg(test)]
 mod tests {
     use super::*;
-    use game_model::game::Team;
-    use game_model::piece::PieceKind;
+    use game_model::{game::Team, piece::PieceKind};
 
     fn setup_game() -> Game {
         Game::new(
@@ -379,7 +378,9 @@ mod tests {
 
         // Place an enemy piece in blast range
         let enemy = Piece::new(1, PieceKind::Simple);
-        game.board.place_piece_at(enemy, &Point2::new(1, 3)).unwrap();
+        game.board
+            .place_piece_at(enemy, &Point2::new(1, 3))
+            .unwrap();
 
         let result = GameController::blast(&mut game, &Point2::new(4, 3));
         assert!(
@@ -404,7 +405,9 @@ mod tests {
 
         // Place an enemy piece
         let enemy = Piece::new(1, PieceKind::Simple);
-        game.board.place_piece_at(enemy, &Point2::new(0, 0)).unwrap();
+        game.board
+            .place_piece_at(enemy, &Point2::new(0, 0))
+            .unwrap();
 
         let result =
             GameController::targeted_shoot(&mut game, &Point2::new(4, 4), &Point2::new(0, 0));
@@ -414,4 +417,3 @@ mod tests {
         );
     }
 }
-
