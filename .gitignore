@@ -1,4 +1,7 @@
 # Unwanted files
+# Note: when running inside the sandbox container, cargo writes to a named
+# Docker volume (/cargo-target) instead of this directory, so target/ will
+# remain empty on the host. It is still gitignored to cover native builds.
 target
 *.pem
 *.cookie

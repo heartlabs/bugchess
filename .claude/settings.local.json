@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(just:*)",
+      "Bash(ls:*)",
+      "Bash(node -e ':*)",
+      "Read(//root/.cache/ms-playwright/**)",
+      "Bash(playwright --version)",
+      "Bash(node -e \"require\\('playwright'\\)\")"
+    ]
+  }
+}
