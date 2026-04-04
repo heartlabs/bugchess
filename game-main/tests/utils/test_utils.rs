@@ -62,6 +62,12 @@ impl TestGame {
             .handle_new_command(game, &GameCommand::NextTurn);
     }
 
+    pub fn signal_connect(&mut self) {
+        (*self.multiplayer_connector.as_ref().unwrap())
+            .borrow_mut()
+            .signal_connect();
+    }
+
     pub fn assert_has_game_state(&self, game_state: CoreGameSubstate) {
         assert_eq!(self.game_state, game_state);
     }
@@ -97,7 +103,7 @@ pub fn create_multiplayer_game() -> (TestGame, TestGame) {
     (test_game1, test_game2)
 }
 
-fn make_multiplayer(multiplayer_client1: Rc<RefCell<FakeboxClient>>, test_game: &mut TestGame) {
+pub fn make_multiplayer(multiplayer_client1: Rc<RefCell<FakeboxClient>>, test_game: &mut TestGame) {
     let mut multiplayer_connector = MultiplayerConector::new(Box::new(multiplayer_client1));
     multiplayer_connector.matchmaking();
     let multiplayer_connector = Rc::new(RefCell::new(multiplayer_connector));

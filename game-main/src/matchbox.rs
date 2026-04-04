@@ -8,20 +8,18 @@ use nanoserde::{DeJson, SerJson};
 use urlencoding::encode;
 
 fn connect(room_id: &str) -> MatchboxClient {
-    let (mut socket, loop_fut) = WebRtcSocket::builder(format!(
-        "wss://heartlabs.eu:3537/{}?next=2",
-        encode(room_id)
-    ))
-    .ice_server(RtcIceServerConfig {
-        urls: vec![
-            "stun:heartlabs.eu:3478".to_string(),
-            "turn:heartlabs.eu:3478".to_string(),
-        ],
-        username: Some("testuser".to_string()),
-        credential: Some("fyUTdD7dQjeSauYv".to_string()), // does it make sense to hide this better?
-    })
-    .add_reliable_channel()
-    .build();
+    let (mut socket, loop_fut) =
+        WebRtcSocket::builder(format!("wss://heartlabs.eu:3537/{}", encode(room_id)))
+            .ice_server(RtcIceServerConfig {
+                urls: vec![
+                    "stun:heartlabs.eu:3478".to_string(),
+                    "turn:heartlabs.eu:3478".to_string(),
+                ],
+                username: Some("testuser".to_string()),
+                credential: Some("fyUTdD7dQjeSauYv".to_string()), // does it make sense to hide this better?
+            })
+            .add_reliable_channel()
+            .build();
 
     info!("my id is {:?}", socket.id());
 
@@ -76,12 +74,6 @@ impl MultiplayerClient for MatchboxClient {
     }
 
     fn recieved_events(&mut self) -> Vec<GameEventObject> {
-        let new_connections = self.accept_new_connections(); // TODO: make sure this is necessary
-
-        if !new_connections.is_empty() {
-            debug!("New player connected: {:?}", new_connections);
-        }
-
         self.socket
             .channel_mut(0)
             .receive()

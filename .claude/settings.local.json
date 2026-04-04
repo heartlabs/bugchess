@@ -6,7 +6,8 @@
       "Bash(node -e ':*)",
       "Read(//root/.cache/ms-playwright/**)",
       "Bash(playwright --version)",
-      "Bash(node -e \"require\\('playwright'\\)\")"
+      "Bash(node -e \"require\\('playwright'\\)\")",
+      "Bash(cargo test:*)"
     ]
   }
 }

@@ -10,24 +10,35 @@ pub struct FakeboxClient {
 }
 
 impl FakeboxClient {
-    pub fn new_client_pair() -> (Rc<RefCell<Self>>, Rc<RefCell<Self>>) {
-        let client1 = FakeboxClient {
-            id: "1".to_string(),
+    pub fn new(id: &str) -> Self {
+        FakeboxClient {
+            id: id.to_string(),
             incoming_messages: VecDeque::new(),
             opponent_client: None,
-        };
+        }
+    }
+    pub fn new_client_pair() -> (Rc<RefCell<Self>>, Rc<RefCell<Self>>) {
+        let client1 = FakeboxClient::new("1");
         let client1 = Rc::new(RefCell::new(client1));
 
-        let client2 = FakeboxClient {
-            id: "2".to_string(),
-            incoming_messages: VecDeque::new(),
-            opponent_client: Some(client1.clone()),
-        };
+        let mut client2 = FakeboxClient::new("2");
+        client2.connect(client1.clone());
         let client2 = Rc::new(RefCell::new(client2));
 
-        (*client1).borrow_mut().opponent_client = Some(client2.clone());
+        (*client1).borrow_mut().connect(client2.clone());
 
         (client1, client2)
+    }
+
+    pub fn disconnect(&mut self) {
+        if let Some(opponent) = &self.opponent_client {
+            opponent.borrow_mut().opponent_client = None;
+        }
+        self.opponent_client = None;
+    }
+
+    pub fn connect(&mut self, other: Rc<RefCell<FakeboxClient>>) {
+        self.opponent_client = Some(other);
     }
 }
 

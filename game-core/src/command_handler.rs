@@ -77,7 +77,7 @@ impl CommandHandler {
             }
         } else {
             let action = GameController::handle_command(game, command)
-                .unwrap_or_else(|_| panic!("Could not handle command {:?}", command));
+                .unwrap_or_else(|e| panic!("Could not handle command {:?}: {:?}", command, e));
 
             self.undo_manager.push(action.clone());
             self.event_broker.dispatch(&action);

@@ -33,7 +33,7 @@ for arg in "$@"; do
 done
 
 # ── Assemble docker run arguments ─────────────────────────────────────────────
-DOCKER_ARGS=(--rm -it)
+DOCKER_ARGS=(--rm -it -e TERM)
 
 if [[ "$OFFLINE" -eq 1 ]]; then
     DOCKER_ARGS+=(--network none)

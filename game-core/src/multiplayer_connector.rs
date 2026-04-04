@@ -39,9 +39,20 @@ impl MultiplayerConector {
     }
 
     pub fn matchmaking(&mut self) {
-        for peer in self.client.accept_new_connections() {
-            info!("Found a peer {:?}", peer);
+        self.accept_connection();
+    }
+
+    /// Polls for new peer connections. Updates `opponent_id` when a new peer is found.
+    /// Should be called every frame — both during matchmaking and while a game is in progress
+    /// so that a reconnecting opponent is detected and can resume the game.
+    /// Returns `true` if a new peer was detected.
+    pub fn accept_connection(&mut self) -> bool {
+        if let Some(peer) = self.client.accept_new_connections().into_iter().next() {
+            info!("New peer connection detected: {}", peer);
             self.opponent_id = Some(peer);
+            true
+        } else {
+            false
         }
     }
 
@@ -68,6 +79,7 @@ impl MultiplayerConector {
     }
 
     pub fn try_recieve(&mut self) -> Vec<GameEventObject> {
+        self.accept_connection();
         let mut events = vec![];
         for event_object in self.client.recieved_events() {
             if self.register_event(&event_object) {
