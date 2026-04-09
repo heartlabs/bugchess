@@ -26,7 +26,7 @@ RUN apt-get update && apt-get install -y \
     # websockify \
     && rm -rf /var/lib/apt/lists/*
 
-# ── Layer 2: Node.js (LTS) + Claude Code ─────────────────────────────────────
+# ── Layer 2: Node.js (LTS) + Claude Code + Pi ─────────────────────────────────────
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
@@ -57,6 +57,11 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
 ARG WASM_BINDGEN_VERSION
 RUN cargo install just basic-http-server \
     && cargo install wasm-bindgen-cli --version "$WASM_BINDGEN_VERSION"
+
+# -- Pi
+RUN curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/pi_agent_rust/main/install.sh?$(date +%s)" \
+    | bash -s -- --yes --easy-mode
+ENV PATH="$HOME/.local/bin:$PATH"
 
 # ── Workspace ─────────────────────────────────────────────────────────────────
 WORKDIR /workspace

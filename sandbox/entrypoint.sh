@@ -3,7 +3,8 @@ set -euo pipefail
 
 # Start a virtual display so Playwright can run Chromium in headed mode.
 # The display is not visible on the host — it lives entirely inside the container.
-Xvfb :99 -screen 0 1280x1024x24 &
+# Ignores harmless warnings
+Xvfb :99 -screen 0 1280x1024x24 2>/dev/null &
 export DISPLAY=:99
 
 # --- Option B: VNC access ---
@@ -16,4 +17,4 @@ export DISPLAY=:99
 # x11vnc -display :99 -forever -shared -nopw -rfbport 5900 &
 # websockify 6080 localhost:5900 &
 
-exec claude "$@"
+exec "$@"
