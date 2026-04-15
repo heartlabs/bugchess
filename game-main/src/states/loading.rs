@@ -13,7 +13,7 @@ use game_core::{core_game::CoreGameSubstate, multiplayer_connector::MultiplayerC
 use game_model::{Point2, game::*};
 use game_render::{
     BoardRender,
-    constants::{BOARD_HEIGHT, BOARD_WIDTH},
+    constants::{BOARD_HEIGHT, BOARD_WIDTH, CELL_ABSOLUTE_WIDTH, FONT_SIZE},
     render_events::RenderEventConsumer,
 };
 use std::{
@@ -316,8 +316,8 @@ impl GameState for LoadingState {
         draw_text(
             &format!("Loading: {}... ", self.sub_state),
             10.,
-            400.,
-            60.,
+            CELL_ABSOLUTE_WIDTH * BOARD_HEIGHT as f32 / 2.,
+            FONT_SIZE * 1.5,
             GREEN,
         );
     }

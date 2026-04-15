@@ -1,21 +1,18 @@
-Missing
-    * Idle animations
-    * Tutorial
-    * Cheat-Sheet
-    * Reconnecting stopped working
-    * Handle player disconnect
-    * Player name
-==========
-
 Next Steps:
-    * Willkommensseite
-    * Doku und Screencasts
-    * UI for player/game creation
-        * Open vs Closed mit ID
-        * HTML/CSS statt egui
     * Tests
-    * Fehlende Animationen
+    * Multiplayer
+        * What do do it more than 2 players join a game?
+            * "watcher mode"?
+            * error?
+        * Find opponent doesn't work properly
+           * no Reconnecting
+           * If 3+ players want to play they all end up in the same room
+        * Player name
+        * Handle player disconnect
+    * Missing animations
         * Undo?
+        * Idle
+        * Redo all animations with AI
 
 
 ========
@@ -62,50 +59,3 @@ Commands
 
 
 =======
-
-Game Events
-1) "Atoms"
-2) Whole "Moves", composed of Atoms
-
-Event Consumers
-1) Board (consumes atoms AND moves)
-2) Matchbox/Nakama (consumes moves)
-3) Render (consumes moves)
-
-Event Producers
-1) Board (produces atoms)
-2) Matchbox/Nakama (produces moves)
-
-==
-
-Local events (clicks)
-=> Board ignores gets them directly before
-
-=> Matchbox needs to send
-=> Render needs to render
-=> EventBroker
-
-Remote events (recieved via network)
-=> Board needs
-=> Render needs
-
-=> Matchbox ignores
-
-=======
-
-Start game flow
-
-P1 & P2 connect
-P1 sends Connect(begin=false)
-P2 sends Connect(begin=true)
-P1 waits for P2
-P2 sends NewGame(P2, P1)
-P2 sends initial board setup events
-
-P2 disconnects
-P3 connects
-P3 sends Connect(begin=true/false)
-P3 waits for Connect or NewGame from P1
-P1 sends NewGame(P2, P1)
-P3 is now P2
-P1 sends all game events

@@ -30,7 +30,7 @@ impl CustomRenderContext {
     pub fn new() -> Self {
         CustomRenderContext {
             pieces_texture: Texture2D::from_file_with_format(
-                include_bytes!("../resources/sprites/insekten4.png"),
+                include_bytes!("../resources/sprites/bugchess_chalk_v4.png"),
                 None,
             ),
             special_texture: Texture2D::from_file_with_format(
@@ -43,7 +43,7 @@ impl CustomRenderContext {
             ),
             game_state: CoreGameSubstate::Place,
             button_next: Button::new(10., "End Turn".to_string()),
-            button_undo: Button::new(120., "Undo".to_string()),
+            button_undo: Button::new(FONT_SIZE * 2. + 10., "Undo".to_string()),
             animation_speed_factor: 0.,
         }
     }
@@ -102,12 +102,18 @@ impl BoardRender {
             let (upb_x, mut upb_y) = cell_coords_tuple(BOARD_WIDTH, BOARD_HEIGHT - 1);
             upb_y += CELL_ABSOLUTE_WIDTH / 4.;
 
-            (upb_x, upb_y - unused_pieces.len() as f32 * 32.)
+            (
+                upb_x,
+                upb_y - unused_pieces.len() as f32 * PIECE_SCALE / 2.5,
+            )
         } else {
             let (mut upb_x, upb_y) = cell_coords_tuple(0, 0);
-            upb_x -= CELL_ABSOLUTE_WIDTH / 1.25;
+            upb_x -= PIECE_SCALE;
 
-            (upb_x, upb_y + unused_pieces.len() as f32 * 32.)
+            (
+                upb_x,
+                upb_y + unused_pieces.len() as f32 * PIECE_SCALE / 2.5,
+            )
         };
 
         unused_pieces.push(SpriteRender::new(

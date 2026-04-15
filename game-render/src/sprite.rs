@@ -147,19 +147,19 @@ impl SpriteRender {
     pub fn piece_sprite_rect(piece_kind: PieceKind) -> Rect {
         let (sprite_x, sprite_y) = match piece_kind {
             PieceKind::Simple => (0, 0),
-            PieceKind::HorizontalBar => (2, 1),
-            PieceKind::VerticalBar => (2, 1),
-            PieceKind::Cross => (2, 0),
+            PieceKind::HorizontalBar => (1, 0),
+            PieceKind::VerticalBar => (1, 0),
+            PieceKind::Sniper => (2, 0),
+            PieceKind::Castle => (0, 1),
             PieceKind::Queen => (1, 1),
-            PieceKind::Castle => (0, 2),
-            PieceKind::Sniper => (0, 1),
+            PieceKind::Cross => (2, 1),
         };
 
         Rect {
-            x: sprite_x as f32 * 295. + 250.,
-            y: sprite_y as f32 * 255. + 100.,
-            w: 295.,
-            h: 255.,
+            x: sprite_x as f32 * 400.,
+            y: sprite_y as f32 * 400.,
+            w: 400.,
+            h: 400.,
         }
     }
 

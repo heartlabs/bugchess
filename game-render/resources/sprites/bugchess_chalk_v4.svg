@@ -1,0 +1,1704 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="750"
+   height="510"
+   viewBox="0 0 750 510"
+   version="1.1"
+   id="svg130"
+   sodipodi:docname="bugchess_chalk_v4.svg"
+   inkscape:version="1.4.3 (0d15f750, 2025-12-25)"
+   inkscape:export-filename="game-render/resources/sprites/bugchess_chalk_v4.png"
+   inkscape:export-xdpi="153.60001"
+   inkscape:export-ydpi="153.60001"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview130"
+     pagecolor="#000000"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="true"
+     inkscape:zoom="0.6503092"
+     inkscape:cx="321.38558"
+     inkscape:cy="312.92807"
+     inkscape:window-width="1371"
+     inkscape:window-height="806"
+     inkscape:window-x="209"
+     inkscape:window-y="25"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg130">
+    <inkscape:grid
+       id="grid130"
+       units="px"
+       originx="0"
+       originy="0"
+       spacingx="255"
+       spacingy="255"
+       empcolor="#0099e5"
+       empopacity="0.30196078"
+       color="#0099e5"
+       opacity="0.14901961"
+       empspacing="5"
+       enabled="true"
+       visible="true"
+       snapvisiblegridlinesonly="true"
+       dotted="false" />
+  </sodipodi:namedview>
+  <defs
+     id="defs2">
+    <color-profile
+       name="Generic-Gray-Gamma-2.2-Profile"
+       xlink:href="file:///System/Library/ColorSync/Profiles/Generic%20Gray%20Gamma%202.2%20Profile.icc"
+       id="color-profile1" />
+    <filter
+       id="ck"
+       x="-0.087036984"
+       y="-0.095740682"
+       width="1.174074"
+       height="1.1914814"
+       color-interpolation-filters="sRGB">
+      <feTurbulence
+         type="fractalNoise"
+         baseFrequency="0.80 0.85"
+         numOctaves="4"
+         seed="5"
+         result="n"
+         id="feTurbulence1" />
+      <feDisplacementMap
+         in="SourceGraphic"
+         in2="n"
+         scale="2.6"
+         xChannelSelector="R"
+         yChannelSelector="G"
+         result="d"
+         id="feDisplacementMap1" />
+      <feComponentTransfer
+         in="d"
+         id="feComponentTransfer1">
+        <feFuncA
+           type="table"
+           tableValues="0 0.5 0.76 0.88 0.94 0.97 1"
+           id="feFuncA1" />
+      </feComponentTransfer>
+    </filter>
+    <filter
+       id="ckt"
+       x="-0.063719574"
+       y="-0.05516152"
+       width="1.1274391"
+       height="1.1104975"
+       color-interpolation-filters="sRGB">
+      <feTurbulence
+         type="fractalNoise"
+         baseFrequency="0.88 0.92"
+         numOctaves="3"
+         seed="13"
+         result="n"
+         id="feTurbulence2" />
+      <feDisplacementMap
+         in="SourceGraphic"
+         in2="n"
+         scale="1.6"
+         xChannelSelector="R"
+         yChannelSelector="G"
+         result="d"
+         id="feDisplacementMap2" />
+      <feComponentTransfer
+         in="d"
+         id="feComponentTransfer2">
+        <feFuncA
+           type="table"
+           tableValues="0 0.35 0.68 0.84 0.93 0.98 1"
+           id="feFuncA2" />
+      </feComponentTransfer>
+    </filter>
+  </defs>
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- (0,0) BUG — rounder, more circular body               -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <g
+     transform="matrix(1.092968,0,0,0.99815856,128.2809,140.44915)"
+     style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.65925442;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+     id="g16">
+    <g
+       filter="url(#ck)"
+       style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.65925442;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+       id="g5">
+      <!-- rounder body: rx closer to ry -->
+      <ellipse
+         cx="0"
+         cy="10"
+         rx="38"
+         ry="42"
+         fill="none"
+         stroke="white"
+         stroke-width="7"
+         stroke-linecap="round"
+         opacity="0.93"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.93;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.65925442;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="ellipse2" />
+      <path
+         d="m -30,-10 q 30,-8 60,0"
+         fill="none"
+         stroke="white"
+         stroke-width="4"
+         stroke-linecap="round"
+         opacity="0.55"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.55;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.65925442;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path2" />
+      <path
+         d="M -34,12 Q 0,6 34,12"
+         fill="none"
+         stroke="white"
+         stroke-width="3"
+         stroke-linecap="round"
+         opacity="0.45"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.45;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.65925442;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path3" />
+      <path
+         d="M -32,32 Q 0,26 32,32"
+         fill="none"
+         stroke="white"
+         stroke-width="3"
+         stroke-linecap="round"
+         opacity="0.40"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.4;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.65925442;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path4" />
+      <path
+         d="m -12,50 q 12,6 24,0"
+         fill="none"
+         stroke="white"
+         stroke-width="3"
+         stroke-linecap="round"
+         opacity="0.42"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.42;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.65925442;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path5" />
+    </g>
+    <g
+       filter="url(#ck)"
+       style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.65925442;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+       id="g6">
+      <ellipse
+         cx="0"
+         cy="-46"
+         rx="22"
+         ry="20"
+         fill="none"
+         stroke="white"
+         stroke-width="6"
+         stroke-linecap="round"
+         opacity="0.91"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.91;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.65925442;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="ellipse5" />
+      <path
+         d="m -15,-28 q 15,4 30,0"
+         fill="none"
+         stroke="white"
+         stroke-width="5"
+         stroke-linecap="round"
+         opacity="0.70"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.7;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.65925442;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path6" />
+    </g>
+    <g
+       filter="url(#ckt)"
+       style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.65925442;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+       id="g15">
+      <path
+         d="M -9,-64 Q -23,-81 -31,-93"
+         fill="none"
+         stroke="white"
+         stroke-width="2.8"
+         stroke-linecap="round"
+         opacity="0.88"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.88;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.65925442;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path7" />
+      <circle
+         cx="-33"
+         cy="-95"
+         r="4"
+         fill="white"
+         opacity="0.82"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.82;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.65925442;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="circle7" />
+      <path
+         d="M 9,-64 Q 23,-81 31,-93"
+         fill="none"
+         stroke="white"
+         stroke-width="2.8"
+         stroke-linecap="round"
+         opacity="0.88"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.88;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.65925442;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path8" />
+      <circle
+         cx="33"
+         cy="-95"
+         r="4"
+         fill="white"
+         opacity="0.82"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.82;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.65925442;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="circle8" />
+      <circle
+         cx="-11"
+         cy="-50"
+         r="4"
+         fill="white"
+         opacity="0.92"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.92;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.65925442;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="circle9" />
+      <circle
+         cx="11"
+         cy="-50"
+         r="4"
+         fill="white"
+         opacity="0.92"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.92;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.65925442;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="circle10" />
+      <path
+         d="M -36,-16 -63,-26 -74,-8"
+         fill="none"
+         stroke="white"
+         stroke-width="4.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.83"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.83;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.65925442;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path10" />
+      <path
+         d="M 36,-16 63,-26 74,-8"
+         fill="none"
+         stroke="white"
+         stroke-width="4.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.83"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.83;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.65925442;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path11" />
+      <path
+         d="M -38,10 -66,6 -78,26"
+         fill="none"
+         stroke="white"
+         stroke-width="4.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.81"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.81;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.65925442;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path12" />
+      <path
+         d="M 38,10 66,6 78,26"
+         fill="none"
+         stroke="white"
+         stroke-width="4.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.81"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.81;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.65925442;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path13" />
+      <path
+         d="m -34,34 -24,12 -6,18"
+         fill="none"
+         stroke="white"
+         stroke-width="4.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.79"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.79;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.65925442;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path14" />
+      <path
+         d="m 34,34 24,12 6,18"
+         fill="none"
+         stroke="white"
+         stroke-width="4.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.79"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.79;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.65925442;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path15" />
+    </g>
+  </g>
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- (1,0) MAGGOT — unchanged, good                        -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <g
+     transform="matrix(0.99152256,0,0,1.2578742,375,117.05757)"
+     style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.16341451;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+     id="g26">
+    <g
+       filter="url(#ck)"
+       style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.16341451;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+       id="g21">
+      <path
+         d="m -20,-52 q -14,16 -16,44 -2,32 2,62 8,28 20,38 8,6 14,6 6,0 14,-6 Q 26,82 34,54 38,24 36,-8 34,-36 20,-52 Z"
+         fill="none"
+         stroke="white"
+         stroke-width="7"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.93"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.93;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.16341451;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path16" />
+      <path
+         d="m -32,-20 q 32,-6 64,0"
+         fill="none"
+         stroke="white"
+         stroke-width="3.5"
+         stroke-linecap="round"
+         opacity="0.50"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.5;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.16341451;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path17" />
+      <path
+         d="M -36,8 Q 0,2 36,8"
+         fill="none"
+         stroke="white"
+         stroke-width="3.5"
+         stroke-linecap="round"
+         opacity="0.50"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.5;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.16341451;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path18" />
+      <path
+         d="M -36,36 Q 0,30 36,36"
+         fill="none"
+         stroke="white"
+         stroke-width="3.5"
+         stroke-linecap="round"
+         opacity="0.48"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.48;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.16341451;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path19" />
+      <path
+         d="M -32,62 Q 0,56 32,62"
+         fill="none"
+         stroke="white"
+         stroke-width="3"
+         stroke-linecap="round"
+         opacity="0.44"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.44;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.16341451;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path20" />
+      <path
+         d="M -20,82 Q 0,76 20,82"
+         fill="none"
+         stroke="white"
+         stroke-width="2.5"
+         stroke-linecap="round"
+         opacity="0.40"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.4;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.16341451;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path21" />
+    </g>
+    <g
+       filter="url(#ckt)"
+       style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.16341451;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+       id="g25">
+      <path
+         d="m -10,-52 q 10,-4 20,0"
+         fill="none"
+         stroke="white"
+         stroke-width="6"
+         stroke-linecap="round"
+         opacity="0.85"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.85;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.16341451;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path22" />
+      <ellipse
+         cx="0"
+         cy="-70"
+         rx="18"
+         ry="16"
+         fill="none"
+         stroke="white"
+         stroke-width="6"
+         stroke-linecap="round"
+         opacity="0.90"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.9;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.16341451;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="ellipse22" />
+      <circle
+         cx="-9"
+         cy="-74"
+         r="3.5"
+         fill="white"
+         opacity="0.92"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.92;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.16341451;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="circle22" />
+      <circle
+         cx="9"
+         cy="-74"
+         r="3.5"
+         fill="white"
+         opacity="0.92"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.92;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.16341451;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="circle23" />
+      <path
+         d="m -5,-62 q 5,4 10,0"
+         fill="none"
+         stroke="white"
+         stroke-width="2.5"
+         stroke-linecap="round"
+         opacity="0.70"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.7;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.16341451;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path23" />
+      <path
+         d="M -36,10 -54,6 -58,20"
+         fill="none"
+         stroke="white"
+         stroke-width="3.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.68"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.68;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.16341451;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path24" />
+      <path
+         d="M 36,10 54,6 58,20"
+         fill="none"
+         stroke="white"
+         stroke-width="3.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.68"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.68;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.16341451;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path25" />
+    </g>
+  </g>
+  <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+  <!-- (2,0) DRAGONFLY — X-shaped wings, powerful wide thorax                    -->
+  <!-- Front wings: angle UPWARD ~30° from horizontal (leading edge goes up-out) -->
+  <!-- Rear wings: LARGER, broader, angle DOWNWARD ~20°                          -->
+  <!-- Wide muscular thorax, long thin abdomen                                   -->
+  <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+  <g
+     transform="matrix(1.1140514,0,0,1.3215264,630.33146,105.76917)"
+     style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#ffffff;stroke-width:6.5932486;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+     id="g64">
+    <!-- Wings behind body -->
+    <g
+       filter="url(#ckt)"
+       style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#ffffff;stroke-width:6.5932486;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+       id="g45">
+      <!-- REAR-LEFT wing: LARGER, root at lower thorax ~(-10,8)
+         Sweeps left and slightly DOWN. Leading (top) edge curves downward.
+         Wide at the base, broad oval tip reaching far out-down.
+         tip around (-100, 40), making a clear downward sweep -->
+      <path
+         d="m -10,8 q -20,-4 -48,2 -30,8 -44,24 -2,14 10,20 20,2 46,-8 22,-10 38,-24 z"
+         fill="white"
+         fill-opacity="0.13"
+         stroke="white"
+         stroke-width="2.8"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.80"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;fill-opacity:0"
+         id="path26" />
+      <!-- main vein -->
+      <path
+         d="m -10,10 q -42,8 -84,32"
+         fill="none"
+         stroke="white"
+         stroke-width="1.5"
+         stroke-linecap="round"
+         opacity="0.58"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path27" />
+      <!-- cross veins -->
+      <path
+         d="m -34,8 q -4,16 2,32"
+         fill="none"
+         stroke="white"
+         stroke-width="0.9"
+         stroke-linecap="round"
+         opacity="0.32"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path28" />
+      <path
+         d="m -60,14 q -4,16 0,32"
+         fill="none"
+         stroke="white"
+         stroke-width="0.9"
+         stroke-linecap="round"
+         opacity="0.30"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#4f4f4f;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path29" />
+      <path
+         d="m -82,24 q -2,14 2,26"
+         fill="none"
+         stroke="white"
+         stroke-width="0.9"
+         stroke-linecap="round"
+         opacity="0.26"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path30" />
+      <!-- REAR-RIGHT wing -->
+      <path
+         d="m 10,8 q 20,-4 48,2 30,8 44,24 2,14 -10,20 Q 72,56 46,46 24,36 8,22 Z"
+         fill="white"
+         fill-opacity="0.13"
+         stroke="white"
+         stroke-width="2.8"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.80"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;fill-opacity:0"
+         id="path31" />
+      <path
+         d="m 10,10 q 42,8 84,32"
+         fill="none"
+         stroke="white"
+         stroke-width="1.5"
+         stroke-linecap="round"
+         opacity="0.58"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path32" />
+      <path
+         d="m 34,8 q 4,16 -2,32"
+         fill="none"
+         stroke="white"
+         stroke-width="0.9"
+         stroke-linecap="round"
+         opacity="0.32"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path33" />
+      <path
+         d="m 60,14 q 4,16 0,32"
+         fill="none"
+         stroke="white"
+         stroke-width="0.9"
+         stroke-linecap="round"
+         opacity="0.30"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path34" />
+      <path
+         d="m 82,24 q 2,14 -2,26"
+         fill="none"
+         stroke="white"
+         stroke-width="0.9"
+         stroke-linecap="round"
+         opacity="0.26"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path35" />
+      <!-- FRONT-LEFT wing: SMALLER than rear, root at upper thorax ~(-8,-12)
+         Sweeps left and UPWARD ~30°. Tip around (-96,-52). Rounded tip. -->
+      <path
+         d="m -8,-12 q -20,-10 -48,-26 -26,-14 -42,-12 -8,6 -2,18 12,14 40,18 26,4 52,14 z"
+         fill="white"
+         fill-opacity="0.12"
+         stroke="white"
+         stroke-width="2.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.76"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;fill-opacity:0"
+         id="path36" />
+      <path
+         d="M -8,-10 Q -52,-28 -96,-44"
+         fill="none"
+         stroke="white"
+         stroke-width="1.4"
+         stroke-linecap="round"
+         opacity="0.55"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path37" />
+      <path
+         d="m -30,-28 q 4,14 8,26"
+         fill="none"
+         stroke="white"
+         stroke-width="0.8"
+         stroke-linecap="round"
+         opacity="0.30"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path38" />
+      <path
+         d="m -58,-40 q 4,14 6,26"
+         fill="none"
+         stroke="white"
+         stroke-width="0.8"
+         stroke-linecap="round"
+         opacity="0.28"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path39" />
+      <path
+         d="m -80,-46 q 2,12 4,24"
+         fill="none"
+         stroke="white"
+         stroke-width="0.8"
+         stroke-linecap="round"
+         opacity="0.24"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path40" />
+      <!-- FRONT-RIGHT wing -->
+      <path
+         d="m 8,-12 q 20,-10 48,-26 26,-14 42,-12 8,6 2,18 -12,14 -40,18 -26,4 -52,14 z"
+         fill="white"
+         fill-opacity="0.12"
+         stroke="white"
+         stroke-width="2.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.76"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;fill-opacity:0"
+         id="path41" />
+      <path
+         d="M 8,-10 Q 52,-28 96,-44"
+         fill="none"
+         stroke="white"
+         stroke-width="1.4"
+         stroke-linecap="round"
+         opacity="0.55"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path42" />
+      <path
+         d="m 30,-28 q -4,14 -8,26"
+         fill="none"
+         stroke="white"
+         stroke-width="0.8"
+         stroke-linecap="round"
+         opacity="0.30"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path43" />
+      <path
+         d="m 58,-40 q -4,14 -6,26"
+         fill="none"
+         stroke="white"
+         stroke-width="0.8"
+         stroke-linecap="round"
+         opacity="0.28"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path44" />
+      <path
+         d="m 80,-46 q -2,12 -4,24"
+         fill="none"
+         stroke="white"
+         stroke-width="0.8"
+         stroke-linecap="round"
+         opacity="0.24"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path45" />
+    </g>
+    <!-- Body on top -->
+    <g
+       filter="url(#ck)"
+       style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+       id="g49">
+      <!-- WIDE POWERFUL THORAX: much wider than abdomen, gives "shoulders" -->
+      <path
+         d="m -16,-18 q -2,10 2,24 4,8 14,10 10,-2 14,-10 4,-14 2,-24 -6,-10 -16,-12 -10,2 -16,12 z"
+         fill="none"
+         stroke="white"
+         stroke-width="7"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.95"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.95;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path46" />
+      <!-- thorax shoulder bumps: show the wide musculature -->
+      <path
+         d="m -16,-10 q -8,4 -6,14"
+         fill="none"
+         stroke="white"
+         stroke-width="4"
+         stroke-linecap="round"
+         opacity="0.55"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.55;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path47" />
+      <path
+         d="m 16,-10 q 8,4 6,14"
+         fill="none"
+         stroke="white"
+         stroke-width="4"
+         stroke-linecap="round"
+         opacity="0.55"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.55;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path48" />
+      <!-- abdomen: long, tapered needle -->
+      <path
+         d="m -8,16 q -2,30 0,56 3,20 6,30 2,6 4,0 Q 5,92 8,72 10,46 8,16 Z"
+         fill="none"
+         stroke="white"
+         stroke-width="5.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.91"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.91;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path49" />
+    </g>
+    <g
+       filter="url(#ckt)"
+       style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+       id="g63">
+      <!-- abdomen segments -->
+      <path
+         d="M -8,30 Q 0,27 8,30"
+         fill="none"
+         stroke="white"
+         stroke-width="2.5"
+         stroke-linecap="round"
+         opacity="0.48"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.48;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path50" />
+      <path
+         d="M -9,46 Q 0,43 9,46"
+         fill="none"
+         stroke="white"
+         stroke-width="2.5"
+         stroke-linecap="round"
+         opacity="0.46"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.46;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path51" />
+      <path
+         d="M -9,62 Q 0,59 9,62"
+         fill="none"
+         stroke="white"
+         stroke-width="2.3"
+         stroke-linecap="round"
+         opacity="0.43"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.43;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path52" />
+      <path
+         d="M -8,78 Q 0,75 8,78"
+         fill="none"
+         stroke="white"
+         stroke-width="2"
+         stroke-linecap="round"
+         opacity="0.40"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.4;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path53" />
+      <path
+         d="M -5,92 Q 0,89 5,92"
+         fill="none"
+         stroke="white"
+         stroke-width="1.8"
+         stroke-linecap="round"
+         opacity="0.36"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.36;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path54" />
+      <!-- head: large, round, dominates — bigger than wasp head -->
+      <ellipse
+         cx="0"
+         cy="-44"
+         rx="18"
+         ry="16"
+         fill="none"
+         stroke="white"
+         stroke-width="6.5"
+         stroke-linecap="round"
+         opacity="0.93"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.93;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="ellipse54" />
+      <!-- huge compound eyes, bulging dramatically to both sides -->
+      <ellipse
+         cx="-20"
+         cy="-46"
+         rx="11"
+         ry="12"
+         fill="none"
+         stroke="white"
+         stroke-width="3.8"
+         opacity="0.91"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.91;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="ellipse55" />
+      <ellipse
+         cx="20"
+         cy="-46"
+         rx="11"
+         ry="12"
+         fill="none"
+         stroke="white"
+         stroke-width="3.8"
+         opacity="0.91"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.91;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="ellipse56" />
+      <!-- tiny antennae -->
+      <path
+         d="m -6,-58 -4,-12"
+         fill="none"
+         stroke="white"
+         stroke-width="2"
+         stroke-linecap="round"
+         opacity="0.72"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.72;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path56" />
+      <path
+         d="m 6,-58 4,-12"
+         fill="none"
+         stroke="white"
+         stroke-width="2"
+         stroke-linecap="round"
+         opacity="0.72"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.72;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path57" />
+      <!-- 6 small legs from wide thorax -->
+      <path
+         d="m -16,-16 -18,-6 -4,12"
+         fill="none"
+         stroke="white"
+         stroke-width="3"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.65"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.65;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path58" />
+      <path
+         d="m 16,-16 18,-6 4,12"
+         fill="none"
+         stroke="white"
+         stroke-width="3"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.65"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.65;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path59" />
+      <path
+         d="M -16,-4 -34,-6 -38,8"
+         fill="none"
+         stroke="white"
+         stroke-width="3"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.62"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.62;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path60" />
+      <path
+         d="M 16,-4 34,-6 38,8"
+         fill="none"
+         stroke="white"
+         stroke-width="3"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.62"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.62;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path61" />
+      <path
+         d="m -14,8 -16,4 -2,12"
+         fill="none"
+         stroke="white"
+         stroke-width="3"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.58"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.58;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path62" />
+      <path
+         d="m 14,8 16,4 2,12"
+         fill="none"
+         stroke="white"
+         stroke-width="3"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.58"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.58;fill:#fcfcfc;stroke:#fefefe;stroke-width:6.5932486;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;fill-opacity:0;stroke-dasharray:none"
+         id="path63" />
+    </g>
+  </g>
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- (0,1) STAG BEETLE — unchanged                         -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <g
+     transform="translate(127.46067,410.26965)"
+     style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.99748744;fill:#fcfcfc;stroke:#ffffff;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+     id="g80">
+    <g
+       filter="url(#ck)"
+       style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#ffffff;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+       id="g67">
+      <path
+         d="m -54,-10 q -6,-44 12,-68 22,-18 42,-18 20,0 42,18 18,24 12,68 Q 50,36 32,56 16,66 0,66 -16,66 -32,56 -50,36 -54,-10 Z"
+         fill="none"
+         stroke="white"
+         stroke-width="8.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.94"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.94;fill:#fcfcfc;stroke:#ffffff;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path64" />
+      <line
+         x1="0"
+         y1="-94"
+         x2="0"
+         y2="64"
+         stroke="white"
+         stroke-width="3.5"
+         stroke-linecap="round"
+         opacity="0.52"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.52;fill:#fcfcfc;stroke:#ffffff;stroke-width:8;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="line64" />
+      <path
+         d="m -44,-68 q 44,-10 88,0"
+         fill="none"
+         stroke="white"
+         stroke-width="3.5"
+         stroke-linecap="round"
+         opacity="0.46"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.95979899;fill:#fcfcfc;stroke:#ffffff;stroke-width:8;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path65" />
+      <path
+         d="m -48,-30 q 24,-6 44,-2"
+         fill="none"
+         stroke="white"
+         stroke-width="2"
+         stroke-linecap="round"
+         opacity="0.28"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#ffffff;stroke-width:8;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path66" />
+      <path
+         d="m 4,-32 q 20,-4 44,2"
+         fill="none"
+         stroke="white"
+         stroke-width="2"
+         stroke-linecap="round"
+         opacity="0.28"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#ffffff;stroke-width:8;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path67" />
+    </g>
+    <g
+       filter="url(#ckt)"
+       style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#ffffff;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+       id="g79">
+      <ellipse
+         cx="0"
+         cy="-104"
+         rx="32"
+         ry="16"
+         fill="none"
+         stroke="white"
+         stroke-width="6"
+         opacity="0.91"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.91;fill:#fcfcfc;stroke:#ffffff;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="ellipse67" />
+      <path
+         d="m -18,-114 q -28,-28 -56,-14 -10,16 2,32 12,12 30,-2"
+         fill="none"
+         stroke="white"
+         stroke-width="6.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.94"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.94;fill:#fcfcfc;stroke:#ffffff;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path68" />
+      <path
+         d="m 18,-114 q 28,-28 56,-14 10,16 -2,32 -12,12 -30,-2"
+         fill="none"
+         stroke="white"
+         stroke-width="6.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.94"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.94;fill:#fcfcfc;stroke:#ffffff;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path70" />
+      <circle
+         cx="-16"
+         cy="-108"
+         r="4.5"
+         fill="white"
+         opacity="0.90"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.9;fill:#fcfcfc;stroke:#ffffff;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="circle71" />
+      <circle
+         cx="16"
+         cy="-108"
+         r="4.5"
+         fill="white"
+         opacity="0.90"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.9;fill:#fcfcfc;stroke:#ffffff;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="circle72" />
+      <path
+         d="m -10,-118 q -8,-12 -4,-22"
+         fill="none"
+         stroke="white"
+         stroke-width="2.5"
+         stroke-linecap="round"
+         opacity="0.75"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.75;fill:#fcfcfc;stroke:#ffffff;stroke-width:8;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path72" />
+      <path
+         d="m 10,-118 q 8,-12 4,-22"
+         fill="none"
+         stroke="white"
+         stroke-width="2.5"
+         stroke-linecap="round"
+         opacity="0.75"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.75;fill:#fcfcfc;stroke:#ffffff;stroke-width:8;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path73" />
+      <path
+         d="m -52,-42 -32,-12 -12,22"
+         fill="none"
+         stroke="white"
+         stroke-width="6"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.83"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.83;fill:#fcfcfc;stroke:#ffffff;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path74" />
+      <path
+         d="m 52,-42 32,-12 12,22"
+         fill="none"
+         stroke="white"
+         stroke-width="6"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.83"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.83;fill:#fcfcfc;stroke:#ffffff;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path75" />
+      <path
+         d="m -56,-6 -34,-2 -10,24"
+         fill="none"
+         stroke="white"
+         stroke-width="6"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.81"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.81;fill:#fcfcfc;stroke:#ffffff;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path76" />
+      <path
+         d="m 56,-6 34,-2 10,24"
+         fill="none"
+         stroke="white"
+         stroke-width="6"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.81"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.81;fill:#fcfcfc;stroke:#ffffff;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path77" />
+      <path
+         d="m -52,30 -30,12 -6,22"
+         fill="none"
+         stroke="white"
+         stroke-width="6"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.79"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.79;fill:#fcfcfc;stroke:#ffffff;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path78" />
+      <path
+         d="m 52,30 30,12 6,22"
+         fill="none"
+         stroke="white"
+         stroke-width="6"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.79"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.79;fill:#fcfcfc;stroke:#ffffff;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path79" />
+    </g>
+  </g>
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- (1,1) SPIDER — fills cell, legs at perimeter, + MANDIBLES added       -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <g
+     transform="matrix(1.1111451,0,0,1.0915755,380.74157,352.4941)"
+     style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:butt;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+     id="g101">
+    <g
+       filter="url(#ckt)"
+       style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:butt;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+       id="g87">
+      <!-- 8 legs from cephalothorax perimeter -->
+      <path
+         d="m -24,-32 q -40,-20 -80,-8 -8,18 6,32"
+         fill="none"
+         stroke="white"
+         stroke-width="4"
+         stroke-linecap="round"
+         opacity="0.87"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.87;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path80" />
+      <path
+         d="m -28,-18 q -40,-4 -78,12 -4,20 12,32"
+         fill="none"
+         stroke="white"
+         stroke-width="4"
+         stroke-linecap="round"
+         opacity="0.85"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.85;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path81" />
+      <path
+         d="m -28,-4 q -36,14 -68,36 0,20 16,30"
+         fill="none"
+         stroke="white"
+         stroke-width="4"
+         stroke-linecap="round"
+         opacity="0.83"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.83;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path82" />
+      <path
+         d="m -22,10 q -28,26 -44,56 6,18 20,24"
+         fill="none"
+         stroke="white"
+         stroke-width="4"
+         stroke-linecap="round"
+         opacity="0.81"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.81;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path83" />
+      <path
+         d="m 24,-32 q 40,-20 80,-8 8,18 -6,32"
+         fill="none"
+         stroke="white"
+         stroke-width="4"
+         stroke-linecap="round"
+         opacity="0.87"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.87;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path84" />
+      <path
+         d="m 28,-18 q 40,-4 78,12 4,20 -12,32"
+         fill="none"
+         stroke="white"
+         stroke-width="4"
+         stroke-linecap="round"
+         opacity="0.85"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.85;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path85" />
+      <path
+         d="M 28,-4 Q 64,10 96,32 96,52 80,62"
+         fill="none"
+         stroke="white"
+         stroke-width="4"
+         stroke-linecap="round"
+         opacity="0.83"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.83;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path86" />
+      <path
+         d="M 22,10 Q 50,36 66,66 60,84 46,90"
+         fill="none"
+         stroke="white"
+         stroke-width="4"
+         stroke-linecap="round"
+         opacity="0.81"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.81;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path87" />
+    </g>
+    <g
+       filter="url(#ck)"
+       style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:butt;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+       id="g89">
+      <ellipse
+         cx="0"
+         cy="46"
+         rx="50"
+         ry="54"
+         fill="none"
+         stroke="white"
+         stroke-width="7.5"
+         stroke-linecap="round"
+         opacity="0.93"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.93;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="ellipse87" />
+      <ellipse
+         cx="0"
+         cy="-18"
+         rx="28"
+         ry="26"
+         fill="none"
+         stroke="white"
+         stroke-width="7"
+         stroke-linecap="round"
+         opacity="0.92"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.92;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="ellipse88" />
+      <ellipse
+         cx="0"
+         cy="8"
+         rx="9"
+         ry="8"
+         fill="none"
+         stroke="white"
+         stroke-width="5.5"
+         stroke-linecap="round"
+         opacity="0.88"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.88;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="ellipse89" />
+    </g>
+    <g
+       filter="url(#ckt)"
+       style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:butt;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+       id="g100">
+      <!-- diamond on abdomen -->
+      <path
+         d="M 0,4 28,46 0,90 -28,46 Z"
+         fill="white"
+         fill-opacity="0.17"
+         stroke="white"
+         stroke-width="3.2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.92"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.92;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:round;stroke-linejoin:round;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path89" />
+      <circle
+         cx="0"
+         cy="46"
+         r="8"
+         fill="white"
+         opacity="0.28"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:butt;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="circle89" />
+      <!-- 8 eyes -->
+      <circle
+         cx="-16"
+         cy="-26"
+         r="3.8"
+         fill="white"
+         opacity="0.93"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.93;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:butt;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="circle90" />
+      <circle
+         cx="-5"
+         cy="-30"
+         r="3.2"
+         fill="white"
+         opacity="0.87"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.87;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:butt;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="circle91" />
+      <circle
+         cx="5"
+         cy="-30"
+         r="3.2"
+         fill="white"
+         opacity="0.87"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.87;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:butt;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="circle92" />
+      <circle
+         cx="16"
+         cy="-26"
+         r="3.8"
+         fill="white"
+         opacity="0.93"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.93;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:butt;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="circle93" />
+      <circle
+         cx="-9"
+         cy="-18"
+         r="2.8"
+         fill="white"
+         opacity="0.78"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.78;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:butt;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="circle94" />
+      <circle
+         cx="0"
+         cy="-20"
+         r="2.8"
+         fill="white"
+         opacity="0.78"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.78;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:butt;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="circle95" />
+      <circle
+         cx="9"
+         cy="-18"
+         r="2.8"
+         fill="white"
+         opacity="0.78"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.78;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:butt;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="circle96" />
+      <!-- CHELICERAE / MANDIBLES: two big curved fangs pointing forward-down from front of cephalothorax -->
+      <!-- they extend forward/below the head with bulbous fang tips -->
+      <path
+         d="m -12,-42 q -8,-10 -4,-22 6,-6 10,-2"
+         fill="none"
+         stroke="white"
+         stroke-width="4.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.90"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.9;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:round;stroke-linejoin:round;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path96" />
+      <path
+         d="m 12,-42 q 8,-10 4,-22 -6,-6 -10,-2"
+         fill="none"
+         stroke="white"
+         stroke-width="4.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.90"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.9;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:round;stroke-linejoin:round;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path97" />
+      <!-- fang bulb at tip -->
+      <circle
+         cx="-7"
+         cy="-67"
+         r="4.5"
+         fill="white"
+         opacity="0.86"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.86;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:butt;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="circle97" />
+      <circle
+         cx="7"
+         cy="-67"
+         r="4.5"
+         fill="white"
+         opacity="0.86"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.86;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:butt;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="circle98" />
+      <!-- pedipalps: smaller pair beside chelicerae -->
+      <path
+         d="m -18,-38 q -10,-8 -8,-18"
+         fill="none"
+         stroke="white"
+         stroke-width="2.5"
+         stroke-linecap="round"
+         opacity="0.72"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.72;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path98" />
+      <path
+         d="m 18,-38 q 10,-8 8,-18"
+         fill="none"
+         stroke="white"
+         stroke-width="2.5"
+         stroke-linecap="round"
+         opacity="0.72"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.72;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path99" />
+      <circle
+         cx="-26"
+         cy="-57"
+         r="2.5"
+         fill="white"
+         opacity="0.68"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.68;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:butt;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="circle99" />
+      <circle
+         cx="26"
+         cy="-57"
+         r="2.5"
+         fill="white"
+         opacity="0.68"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.68;fill:#fcfcfc;stroke:#fefefe;stroke-width:7.26403134;stroke-linecap:butt;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="circle100" />
+    </g>
+  </g>
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- (2,1) WASP — unchanged, already good with + shaped wings          -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <g
+     transform="translate(630.74157,375)"
+     style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+     id="g130">
+    <g
+       filter="url(#ckt)"
+       style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;fill-opacity:0;stroke-opacity:1"
+       id="g108">
+      <path
+         d="m -12,-30 q -38,-20 -78,-12 -22,8 -24,24 4,14 32,18 30,2 70,-14 z"
+         fill="white"
+         fill-opacity="0.14"
+         stroke="white"
+         stroke-width="2.6"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.84"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.84;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;fill-opacity:0;stroke-opacity:1"
+         id="path101" />
+      <path
+         d="m -12,-28 q -48,-18 -94,4"
+         fill="none"
+         stroke="white"
+         stroke-width="1.5"
+         stroke-linecap="round"
+         opacity="0.62"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.62;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;fill-opacity:0;stroke-opacity:1"
+         id="path102" />
+      <path
+         d="m 12,-30 q 38,-20 78,-12 22,8 24,24 Q 110,-4 82,0 52,2 12,-14 Z"
+         fill="white"
+         fill-opacity="0.14"
+         stroke="white"
+         stroke-width="2.6"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.84"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.84;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;fill-opacity:0;stroke-opacity:1"
+         id="path103" />
+      <path
+         d="m 12,-28 q 48,-18 94,4"
+         fill="none"
+         stroke="white"
+         stroke-width="1.5"
+         stroke-linecap="round"
+         opacity="0.62"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.62;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;fill-opacity:0;stroke-opacity:1"
+         id="path104" />
+      <path
+         d="m -12,-8 q -32,12 -70,8 -18,6 -16,18 6,10 32,10 26,-2 54,-18 z"
+         fill="white"
+         fill-opacity="0.11"
+         stroke="white"
+         stroke-width="2.2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.76"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.76;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;fill-opacity:0;stroke-opacity:1"
+         id="path105" />
+      <path
+         d="M -12,-6 Q -48,4 -84,12"
+         fill="none"
+         stroke="white"
+         stroke-width="1.2"
+         stroke-linecap="round"
+         opacity="0.50"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.5;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;fill-opacity:0;stroke-opacity:1"
+         id="path106" />
+      <path
+         d="M 12,-8 Q 44,4 82,0 100,6 98,18 92,28 66,28 40,26 12,10 Z"
+         fill="white"
+         fill-opacity="0.11"
+         stroke="white"
+         stroke-width="2.2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.76"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.76;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;fill-opacity:0;stroke-opacity:1"
+         id="path107" />
+      <path
+         d="M 12,-6 Q 48,4 84,12"
+         fill="none"
+         stroke="white"
+         stroke-width="1.2"
+         stroke-linecap="round"
+         opacity="0.50"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.5;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;fill-opacity:0;stroke-opacity:1"
+         id="path108" />
+    </g>
+    <g
+       filter="url(#ck)"
+       style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+       id="g113">
+      <ellipse
+         cx="0"
+         cy="-28"
+         rx="17"
+         ry="21"
+         fill="none"
+         stroke="white"
+         stroke-width="7"
+         stroke-linecap="round"
+         opacity="0.93"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.93;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="ellipse108" />
+      <path
+         d="M -6,-7 Q -8,2 -5,10 0,14 5,10 8,2 6,-7 Z"
+         fill="none"
+         stroke="white"
+         stroke-width="5"
+         stroke-linecap="round"
+         opacity="0.90"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.9;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path109" />
+      <path
+         d="m -21,12 q -5,32 1,60 10,20 20,22 10,-2 20,-22 6,-28 1,-60 z"
+         fill="none"
+         stroke="white"
+         stroke-width="7"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.93"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.93;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path110" />
+      <path
+         d="m 0,94 v 16"
+         fill="none"
+         stroke="white"
+         stroke-width="4.5"
+         stroke-linecap="round"
+         opacity="0.92"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.92;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path111" />
+      <path
+         d="m -2,110 q 2,6 4,0"
+         fill="none"
+         stroke="white"
+         stroke-width="2"
+         stroke-linecap="round"
+         opacity="0.80"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.8;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path112" />
+      <path
+         d="m -18,-50 q -2,-14 4,-22 8,-8 14,-8 6,0 14,8 6,8 4,22 -8,6 -18,6 -10,0 -18,-6 z"
+         fill="none"
+         stroke="white"
+         stroke-width="6.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.93"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.93;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path113" />
+    </g>
+    <g
+       filter="url(#ckt)"
+       style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:1;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+       id="g129">
+      <path
+         d="M -23,24 Q 0,18 23,24"
+         fill="none"
+         stroke="white"
+         stroke-width="5.5"
+         stroke-linecap="round"
+         opacity="0.70"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.7;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path114" />
+      <path
+         d="M -25,40 Q 0,34 25,40"
+         fill="none"
+         stroke="white"
+         stroke-width="5.5"
+         stroke-linecap="round"
+         opacity="0.65"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.65;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path115" />
+      <path
+         d="M -24,56 Q 0,50 24,56"
+         fill="none"
+         stroke="white"
+         stroke-width="5"
+         stroke-linecap="round"
+         opacity="0.60"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.6;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path116" />
+      <path
+         d="M -20,72 Q 0,66 20,72"
+         fill="none"
+         stroke="white"
+         stroke-width="4.5"
+         stroke-linecap="round"
+         opacity="0.54"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.54;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path117" />
+      <ellipse
+         cx="-15"
+         cy="-60"
+         rx="8"
+         ry="9"
+         fill="none"
+         stroke="white"
+         stroke-width="3.2"
+         opacity="0.90"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.9;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="ellipse117" />
+      <ellipse
+         cx="15"
+         cy="-60"
+         rx="8"
+         ry="9"
+         fill="none"
+         stroke="white"
+         stroke-width="3.2"
+         opacity="0.90"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.9;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="ellipse118" />
+      <path
+         d="m -8,-78 q -10,-10 -6,-18"
+         fill="none"
+         stroke="white"
+         stroke-width="4"
+         stroke-linecap="round"
+         opacity="0.88"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.88;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path118" />
+      <path
+         d="m 8,-78 q 10,-10 6,-18"
+         fill="none"
+         stroke="white"
+         stroke-width="4"
+         stroke-linecap="round"
+         opacity="0.88"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.88;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path119" />
+      <path
+         d="m -14,-96 q 6,-4 14,-2"
+         fill="none"
+         stroke="white"
+         stroke-width="3"
+         stroke-linecap="round"
+         opacity="0.80"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.8;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path120" />
+      <path
+         d="M 14,-96 Q 8,-100 0,-98"
+         fill="none"
+         stroke="white"
+         stroke-width="3"
+         stroke-linecap="round"
+         opacity="0.80"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.8;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:miter;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path121" />
+      <path
+         d="m -6,-79 -10,-17 8,-14"
+         fill="none"
+         stroke="white"
+         stroke-width="2.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.85"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.85;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path122" />
+      <path
+         d="M 6,-79 16,-96 8,-110"
+         fill="none"
+         stroke="white"
+         stroke-width="2.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.85"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.85;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path123" />
+      <path
+         d="m -15,-40 -31,-12 -8,18"
+         fill="none"
+         stroke="white"
+         stroke-width="4.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.79"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.79;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path124" />
+      <path
+         d="m 15,-40 31,-12 8,18"
+         fill="none"
+         stroke="white"
+         stroke-width="4.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.79"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.79;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path125" />
+      <path
+         d="m -17,-26 h -33 l -6,18"
+         fill="none"
+         stroke="white"
+         stroke-width="4.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.77"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.77;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path126" />
+      <path
+         d="m 17,-26 h 33 l 6,18"
+         fill="none"
+         stroke="white"
+         stroke-width="4.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.77"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.77;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path127" />
+      <path
+         d="m -16,-12 -30,4 -4,18"
+         fill="none"
+         stroke="white"
+         stroke-width="4.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.75"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.75;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path128" />
+      <path
+         d="m 16,-12 30,4 4,18"
+         fill="none"
+         stroke="white"
+         stroke-width="4.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         opacity="0.75"
+         style="color:#000000;font-weight:400;font-size:16px;font-family:'Anthropic Sans', '-apple-system', system-ui, 'Segoe UI', sans-serif;dominant-baseline:auto;text-anchor:start;opacity:0.75;fill:#fcfcfc;stroke:#fefefe;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;fill-opacity:0;stroke-opacity:1;stroke-dasharray:none"
+         id="path129" />
+    </g>
+  </g>
+</svg>

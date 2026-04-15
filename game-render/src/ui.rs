@@ -17,12 +17,12 @@ pub struct Button {
 
 impl Button {
     pub fn new(y: f32, text: String) -> Self {
-        let button_x = BOARD_WIDTH as f32 * CELL_ABSOLUTE_WIDTH + PIECE_SCALE * 2. + 10.;
+        let button_x = (BOARD_WIDTH as f32 + 1.25) * CELL_ABSOLUTE_WIDTH;
         Button {
             x: button_x,
             y,
-            width: 170.,
-            height: 60.,
+            width: FONT_SIZE * 4.,
+            height: FONT_SIZE * 1.5,
             text,
         }
     }
@@ -35,7 +35,13 @@ impl Button {
         };
 
         draw_rectangle(self.x, self.y, self.width, self.height, button_color);
-        draw_text(&self.text, self.x + 10., self.y + 40., 40., text_color);
+        draw_text(
+            &self.text,
+            self.x + 10.,
+            self.y + FONT_SIZE,
+            FONT_SIZE,
+            text_color,
+        );
     }
 
     pub fn hovered(&self, canvas: &Canvas2D) -> bool {

@@ -1,14 +1,16 @@
 use game_model::Point2;
 use macroquad_canvas::Canvas2D;
 
-pub const CELL_SCALE: f32 = 1.1875;
+pub const BASE_SCALE: f32 = 2.;
+
+pub const CELL_SCALE: f32 = 1.1875 * BASE_SCALE;
 pub const CELL_WIDTH: u32 = 64;
 pub const CELL_ABSOLUTE_WIDTH: f32 = CELL_WIDTH as f32 * CELL_SCALE;
 
-pub const PIECE_SCALE: f32 = 60.;
+pub const PIECE_SCALE: f32 = 60. * BASE_SCALE * 1.5;
 pub const SPRITE_WIDTH: f32 = 64.;
 
-pub const SHIFT_X: f32 = 60.;
+pub const SHIFT_X: f32 = PIECE_SCALE;
 pub const SHIFT_Y: f32 = 0.;
 
 pub const ANIMATION_SPEED: u64 = 400;
@@ -19,6 +21,8 @@ pub const ADD_UNUSED_SPEED: u64 = ANIMATION_SPEED / 3;
 
 pub const BOARD_WIDTH: u8 = 8;
 pub const BOARD_HEIGHT: u8 = 8;
+
+pub const FONT_SIZE: f32 = 50. * BASE_SCALE;
 
 pub fn cell_coords(point: &Point2) -> (f32, f32) {
     cell_coords_tuple(point.x, point.y)

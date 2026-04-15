@@ -10,7 +10,11 @@ use std::{
 use game_core::{core_game::CoreGameSubstate, multiplayer_connector::MultiplayerConector};
 use game_model::game::Game;
 
-use game_render::{BoardRender, CustomRenderContext, constants::cell_hovered, sprite::Colour};
+use game_render::{
+    BoardRender, CustomRenderContext,
+    constants::{BOARD_HEIGHT, CELL_ABSOLUTE_WIDTH, FONT_SIZE, cell_hovered},
+    sprite::Colour,
+};
 
 use crate::states::GameState;
 use game_core::{command_handler::CommandHandler, game_controller::GameCommand};
@@ -164,8 +168,8 @@ impl CoreGameState {
             draw_text(
                 text.as_str(),
                 10.,
-                670. + (i * 50) as f32,
-                50.,
+                BOARD_HEIGHT as f32 * CELL_ABSOLUTE_WIDTH + ((i + 1) as f32 * FONT_SIZE),
+                FONT_SIZE,
                 color.into(),
             );
         }
