@@ -20,3 +20,10 @@ Append-only log for all agent sessions. Each agent's file (`.agents/AGENTS-*.age
 - Fixed window title: "Makrochess" → "Bugchess"
 - Refreshed `README.md`: fixed broken GIF paths, added all 6 merge GIFs
 
+## 2026-04-15: Minion -- Matchmaking with matchbox `?next=2`
+
+- **Matchmaking support:** Added `?next=2` query parameter to matchbox URL when room_id is "common" (Find Opponent mode). This enables the matchbox server's rudimentary matching service, creating a new room for every 2 players.
+- **Refactored URL building:** Extracted `build_url` helper function with unit tests.
+- **Preserved existing behavior:** Create Game mode (random UUID room) and explicit room connections remain unchanged, ensuring reconnection still works.
+- **Tests added:** Three unit tests verify URL generation for common room, random room, and rooms with special characters.
+

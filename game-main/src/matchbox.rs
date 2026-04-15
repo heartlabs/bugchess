@@ -7,9 +7,24 @@ use matchbox_socket::{PeerId, PeerState, RtcIceServerConfig, WebRtcSocket};
 use nanoserde::{DeJson, SerJson};
 use urlencoding::encode;
 
+/// Build the signaling server URL for a given room ID.
+/// When the room ID is "common" (the Find Opponent matchmaking pool),
+/// we add `?next=2` to tell the matchbox server to create a new room
+/// for every two players that connect.
+/// For explicit rooms (Create Game or direct invite), the URL is unchanged.
+fn build_url(room_id: &str) -> String {
+    let encoded = encode(room_id);
+    if room_id == "common" {
+        format!("wss://heartlabs.eu:3537/{}?next=2", encoded)
+    } else {
+        format!("wss://heartlabs.eu:3537/{}", encoded)
+    }
+}
+
 fn connect(room_id: &str) -> MatchboxClient {
+    let url = build_url(room_id);
     let (mut socket, loop_fut) =
-        WebRtcSocket::builder(format!("wss://heartlabs.eu:3537/{}", encode(room_id)))
+        WebRtcSocket::builder(url)
             .ice_server(RtcIceServerConfig {
                 urls: vec![
                     "stun:heartlabs.eu:3478".to_string(),
