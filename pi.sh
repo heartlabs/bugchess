@@ -24,7 +24,8 @@ DOCKER_ARGS+=(
 
 # ── API key ───────────────────────────────────────────────────────────────────
 if [[ -n "${ANTHROPIC_API_KEY:-}" ]]; then
-    DOCKER_ARGS+=(-e ANTHROPIC_API_KEY)
+   # DOCKER_ARGS+=(-e ANTHROPIC_API_KEY)
+    DOCKER_ARGS+=(-e DEEPSEEK_API_KEY)
 else
     echo "Warning: ANTHROPIC_API_KEY is not set. Pi may ask you to /login."
     echo "Add 'export ANTHROPIC_API_KEY=sk-ant-...' to your ~/.zshrc to fix this."
