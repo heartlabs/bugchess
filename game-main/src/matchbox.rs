@@ -23,18 +23,17 @@ fn build_url(room_id: &str) -> String {
 
 fn connect(room_id: &str) -> MatchboxClient {
     let url = build_url(room_id);
-    let (mut socket, loop_fut) =
-        WebRtcSocket::builder(url)
-            .ice_server(RtcIceServerConfig {
-                urls: vec![
-                    "stun:heartlabs.eu:3478".to_string(),
-                    "turn:heartlabs.eu:3478".to_string(),
-                ],
-                username: Some("testuser".to_string()),
-                credential: Some("fyUTdD7dQjeSauYv".to_string()), // does it make sense to hide this better?
-            })
-            .add_reliable_channel()
-            .build();
+    let (mut socket, loop_fut) = WebRtcSocket::builder(url)
+        .ice_server(RtcIceServerConfig {
+            urls: vec![
+                "stun:heartlabs.eu:3478".to_string(),
+                "turn:heartlabs.eu:3478".to_string(),
+            ],
+            username: Some("testuser".to_string()),
+            credential: Some("fyUTdD7dQjeSauYv".to_string()), // does it make sense to hide this better?
+        })
+        .add_reliable_channel()
+        .build();
 
     info!("my id is {:?}", socket.id());
 
