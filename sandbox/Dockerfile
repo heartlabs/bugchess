@@ -59,9 +59,10 @@ RUN cargo install just basic-http-server \
     && cargo install wasm-bindgen-cli --version "$WASM_BINDGEN_VERSION"
 
 # -- Pi
-RUN curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/pi_agent_rust/main/install.sh?$(date +%s)" \
-    | bash -s -- --yes --easy-mode
-ENV PATH="$HOME/.local/bin:$PATH"
+# RUN curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/pi_agent_rust/main/install.sh?$(date +%s)" \
+#     | bash -s -- --yes --easy-mode
+# ENV PATH="$HOME/.local/bin:$PATH"
+RUN npm install -g @mariozechner/pi-coding-agent
 
 # ── Workspace ─────────────────────────────────────────────────────────────────
 WORKDIR /workspace

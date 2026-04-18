@@ -7,7 +7,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # --offline  disables all network access inside the container
 
 FLAGS=()
-PASSTHROUGH_ARGS=("/root/.local/bin/pi")
+#PASSTHROUGH_ARGS=("/root/.local/bin/pi")
+PASSTHROUGH_ARGS=("pi")
 
 for arg in "$@"; do
     case "$arg" in
