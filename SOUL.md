@@ -78,6 +78,16 @@ Animated merge GIFs for all 6 piece types live in `html/gifs/*-merge.gif` and ar
 
 **Capture scripts**: `automation/playwright/capture-*-gif.js` (one per piece). All use the same Canvas2D scaling approach and `page.mouse.click()` for instant clicks.
 
+## Player Onboarding
+
+The main menu (`html/index.htm`) is optimized for the "create game → copy invite link → join game" flow:
+
+- **Play with a friend** (formerly Create Game) is the primary online action.
+- **Find Opponent** is visually deemphasized (darker background, moved to bottom) to encourage playing with friends.
+- **Copy Invite & Start Room** combines copying the invite link and immediately entering the game board, reducing friction.
+
+Playwright automation scripts (`automation/playwright/start-game.js`, `webrtc-probe.js`) have been updated to reflect the new button texts.
+
 ## Game Mechanics Deep Knowledge
 
 Hard-won knowledge about how the game logic actually works. Future selves: this will save you hours.

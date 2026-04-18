@@ -27,3 +27,9 @@ Append-only log for all agent sessions. Each agent's file (`.agents/AGENTS-*.age
 - **Preserved existing behavior:** Create Game mode (random UUID room) and explicit room connections remain unchanged, ensuring reconnection still works.
 - **Tests added:** Three unit tests verify URL generation for common room, random room, and rooms with special characters.
 
+## 2026-04-18: Claude Opus 4.6 -- UI Optimization for Player Onboarding
+
+- **UI flow optimized:** Reordered main menu to prioritize "Play with a friend" (formerly Create Game) and demote "Find Opponent" (moved to bottom, darker styling).
+- **Combined copy and join:** The separate "Copy Invite Link" and "Join Game" buttons are now a single "Copy Invite & Start Room" button that copies the link and immediately transitions the player into the game board.
+- **Updated test automation:** Adjusted Playwright test scripts (`start-game.js`, `webrtc-probe.js`) to reflect new button texts and flow.
+- **SOUL.md:** Added note about player onboarding improvements.

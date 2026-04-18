@@ -111,13 +111,13 @@ async function main() {
   }
 
   await page1.goto(BASE_URL, { waitUntil: 'domcontentloaded' });
-  await page1.getByText('Create Game', { exact: true }).click();
+  await page1.getByText('Play with a friend', { exact: true }).click();
   const inviteUrl = (await page1.locator('#room_id_display').textContent())?.trim();
   if (!inviteUrl) throw new Error('No invite URL rendered');
   console.log(`INVITE ${inviteUrl}`);
 
   await page2.goto(inviteUrl, { waitUntil: 'domcontentloaded' });
-  await page1.getByText('Join Game', { exact: true }).click();
+  await page1.getByText('Copy Invite & Start Room', { exact: true }).click();
 
   await page1.waitForTimeout(WAIT_MS);
   await page2.waitForTimeout(WAIT_MS);

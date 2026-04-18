@@ -50,11 +50,11 @@ async function main() {
     console.log(`Opening host page: ${BASE_URL}`);
     await page1.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_MS });
 
-    await page1.getByText('Create Game', { exact: true }).click({ timeout: TIMEOUT_MS });
+    await page1.getByText('Play with a friend', { exact: true }).click({ timeout: TIMEOUT_MS });
     const inviteText = (await page1.locator('#room_id_display').textContent())?.trim();
 
     if (!inviteText) {
-      throw new Error('Invite URL was not rendered after clicking Create Game');
+      throw new Error('Invite URL was not rendered after clicking Play with a friend');
     }
 
     let inviteUrl;
@@ -70,7 +70,7 @@ async function main() {
 
     await waitForCanvas(page2, 'guest');
 
-    await page1.getByText('Join Game', { exact: true }).click({ timeout: TIMEOUT_MS });
+    await page1.getByText('Copy Invite & Start Room', { exact: true }).click({ timeout: TIMEOUT_MS });
     await waitForCanvas(page1, 'host');
 
     await page1.waitForTimeout(5000);

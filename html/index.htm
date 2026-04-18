@@ -54,9 +54,11 @@
         }
         .gameMenu a:hover { background-color: #777; color: #FFF; }
         .gameMenu a:active { background-color: #999; color: #444; }
+        .gameMenu .less-encouraged {
+            background-color: #222;
+        }
         #room_id_display { font-style: italic; font-size: 0.9em; display: block; padding-top: 0.5em; }
-        .linkCopied .gameMenu > *:nth-child(2) { color: #777; }
-        .linkCopied .gameMenu > *:nth-child(3) { color: yellow; }
+        .linkCopied .gameMenu > *:nth-child(2) { color: #4CAF50; }
 
         /* === Content area === */
         .content {
@@ -201,20 +203,20 @@
         <div id="select_game" hidden>
             <ul class="gameMenu">
                 <li><a onclick="runOffline()">Offline</a></li>
-                <li><a onclick="runMatchmaking()">Find Opponent</a></li>
-                <li><a onclick="createGame()">Create Game</a></li>
+                <li><a onclick="createGame()">Play with a friend</a></li>
+                <li class="less-encouraged"><a onclick="runMatchmaking()">Find Opponent</a></li>
             </ul>
         </div>
         <div id="create_game" hidden>
             <div class="gameMenu">
                 <span class="description">
-                    Please copy the invite link and send it to the other player <br>
-                    before joining the game yourself: <br>
+                    <b>Invite a friend to play:</b> <br>
+                    <b>Press the button below</b> to start the game.<br>
+                    Then <b>send the copied invite link to your friend</b> so they can join you. <br>
                     <span id="room_id_display"></span>
                 </span>
 
-                <div><a onclick="copyInviteLink()">Copy Invite Link</a></div>
-                <div> <a onclick="setProperty('delay_game', false)">Join Game</a></div>
+                <div><a onclick="copyInviteLink(); setProperty('delay_game', false)">Copy Invite & Start Room</a></div>
             </div>
         </div>
 
@@ -383,7 +385,7 @@
         <h2>Play Online</h2>
         <p>
             Once you know the basics, challenge a friend:
-            click <strong>Create Game</strong> above, copy the invite link, and send it to them.
+            click <strong>Play with a friend</strong> above, copy the invite link, and start the room.
             Or click <strong>Find Opponent</strong> to be matched with a random player.
         </p>
 
