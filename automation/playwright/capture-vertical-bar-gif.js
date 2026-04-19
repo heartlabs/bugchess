@@ -15,14 +15,30 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 const { chromium } = require('playwright');
 
+// Docker detection – exit with helpful message if inside container
+if (fs.existsSync('/.dockerenv')) {
+  console.error(`
+ERROR: Running inside Docker container. Screen recording will be too slow (≤0.5 fps).
+
+Please run this script locally on your host machine for smooth animations:
+
+  1. Build the game: bash build.sh
+  2. Serve HTML locally: python3 -m http.server 4000 --directory html
+  3. Run capture script: cd automation/playwright && BASE_URL=http://127.0.0.1:4000/index.htm HEADLESS=true node ${__filename}
+
+Exiting.
+`);
+  process.exit(1);
+}
+
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:4000/index.htm';
 const TIMEOUT_MS = Number(process.env.TIMEOUT_MS || 30000);
 const HEADLESS = process.env.HEADLESS !== 'false';
 
-const GAME_WIDTH = 900;
-const GAME_HEIGHT = 800;
-const CELL = 64 * 1.1875;
-const SHIFT_X = 60;
+const GAME_WIDTH = 1800;
+const GAME_HEIGHT = 1600;
+const CELL = 64 * 1.1875 * 2; // CELL_ABSOLUTE_WIDTH = 152
+const SHIFT_X = 60 * 2 * 1.5; // PIECE_SCALE = 180
 const SHIFT_Y = 0;
 
 const ROOT = path.join(__dirname, '../..');
@@ -72,6 +88,7 @@ function cropAndConvert(videoPath, crop, trimStart, trimDuration) {
     '-vf', [
       `crop=${crop.w}:${crop.h}:${crop.x}:${crop.y}`,
       `scale=${GIF_SIZE}:${GIF_SIZE}:flags=lanczos`,
+      'fps=30',
       'split[s0][s1]','[s0]palettegen=stats_mode=diff[p]','[s1][p]paletteuse=dither=sierra2_4a',
     ].join(','),
     OUTPUT_GIF,

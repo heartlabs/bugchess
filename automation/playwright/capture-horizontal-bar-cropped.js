@@ -1,13 +1,13 @@
 #!/usr/bin/env node
+const fs = require('fs');
 const { chromium } = require('playwright');
-
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:4000/index.htm';
 const OUTPUT = process.env.OUTPUT || 'html/gifs/horizontal-bar-after-cropped-3x3.png';
 const TIMEOUT_MS = Number(process.env.TIMEOUT_MS || 30000);
 const HEADLESS = process.env.HEADLESS !== 'false';
 
-const CELL = 64 * 1.1875;
-const SHIFT_X = 60;
+const CELL = 64 * 1.1875 * 2; // CELL_ABSOLUTE_WIDTH = 152
+const SHIFT_X = 60 * 2 * 1.5; // PIECE_SCALE = 180
 const SHIFT_Y = 0;
 const CROP_ADJUST_X = 54;
 const CROP_ADJUST_Y = 10;
