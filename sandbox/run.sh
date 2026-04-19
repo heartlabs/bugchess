@@ -32,6 +32,9 @@ PASSTHROUGH_ARGS=("$@")
 echo "docker args: ${DOCKER_ARGS[*]}"
 echo "passthrough args: ${PASSTHROUGH_ARGS[*]}"
 
+# -- Start docker if it's not running
+docker desktop start
+
 # ── Build image if it doesn't exist ───────────────────────────────────────────
 if [[ "$FORCE_REBUILD" == true ]] || ! docker image inspect "$IMAGE_TAG" > /dev/null 2>&1; then
     echo "Building sandbox image $IMAGE_TAG (first run or wasm-bindgen version changed)..."
