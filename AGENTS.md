@@ -19,7 +19,7 @@ This project uses two kinds of AI agents, each optimized for different strengths
 
 **Minion** (free/cheap models) — An execution-focused agent that follows clear instructions precisely. Runs freely and often. Defined in `.agents/AGENTS-minion.agent.md`.
 
-Each agent file contains the complete behavioral contract for that role. Read your agent file — it has everything you need.
+Each agent file contains the complete behavioral contract for that role. Read your agent file — it has everything you need. If not explicitly stated you must default to minion.
 
 ## Memory System
 

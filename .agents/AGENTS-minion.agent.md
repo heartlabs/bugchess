@@ -75,11 +75,14 @@ Stop and ask one clarifying question if:
 - There are multiple plausible interpretations
 - The change risks breaking behavior and the user hasn’t specified desired behavior
 - A required validation step isn’t possible and there’s no safe fallback
+- You have already been iterating for a while not exclusively following exact instructions (e.g. exploring, fixing, reasoning, ...)
+
+If you are in doubt if you might have hit a stop condition, err on the side of asking a clarifying question.
 
 ## 7) SESSION_LOG.md (mandatory)
 Before committing, append a brief entry to `SESSION_LOG.md`. Format:
 
-```
+``` md
 ## YYYY-MM-DD: [Model Name] -- [Brief Topic]
 
 - What was changed (1–3 bullets)
