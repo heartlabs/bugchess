@@ -19,7 +19,7 @@ use game_model::{
     game::{Game, Team},
     piece::PieceKind,
 };
-use game_render::{BoardRender, render_events::RenderEventConsumer};
+use game_render::{BoardRender, layout::compute_layout, render_events::RenderEventConsumer};
 
 pub struct TestGame {
     pub logs: Rc<RefCell<VecDeque<GameAction>>>,
@@ -120,7 +120,8 @@ pub fn create_singleplayer_game() -> TestGame {
     }));
     let game = Rc::new(RefCell::new(create_game_object()));
     event_broker.subscribe(Box::new(BoardEventConsumer::new(game.clone())));
-    let board_render = BoardRender::new(&game.borrow());
+    let layout = compute_layout(1080.0, 1920.0);
+    let board_render = BoardRender::new(&game.borrow(), &layout);
     event_broker.subscribe(Box::new(RenderEventConsumer::new(&Rc::new(RefCell::new(
         board_render,
     )))));

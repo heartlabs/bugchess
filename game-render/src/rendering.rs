@@ -1,4 +1,4 @@
-use crate::{animation::*, constants::*, sprite::*, ui::Button};
+use crate::{animation::*, constants::{CELL_WIDTH, PIECE_SCALE}, layout::LayoutConstants, sprite::*, ui::Button};
 use game_core::core_game::CoreGameSubstate;
 use game_model::{Point2, board::*, game::*, piece::*, ranges::*};
 use instant::{Duration, Instant};
@@ -9,6 +9,7 @@ use macroquad::{
 };
 use macroquad_canvas::Canvas2D;
 use std::collections::{HashMap, VecDeque};
+
 #[derive(Debug, Clone)]
 pub struct CustomRenderContext {
     pub pieces_texture: Texture2D,
@@ -20,14 +21,8 @@ pub struct CustomRenderContext {
     pub animation_speed_factor: f32, // smaller = faster
 }
 
-impl Default for CustomRenderContext {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl CustomRenderContext {
-    pub fn new() -> Self {
+    pub fn new(layout: &LayoutConstants) -> Self {
         CustomRenderContext {
             pieces_texture: Texture2D::from_file_with_format(
                 include_bytes!("../resources/sprites/bugchess_chalk_v4.png"),
@@ -42,14 +37,21 @@ impl CustomRenderContext {
                 None,
             ),
             game_state: CoreGameSubstate::Place,
-            button_next: Button::new(10., "End Turn".to_string()),
-            button_undo: Button::new(FONT_SIZE * 2. + 10., "Undo".to_string()),
+            button_next: Button::new(layout.button_end_turn, "End Turn".to_string()),
+            button_undo: Button::new(layout.button_undo, "Undo".to_string()),
             animation_speed_factor: 0.,
         }
+    }
+
+    /// Rebuild button rects after a layout change (called from handle_resize).
+    pub fn update_buttons(&mut self, layout: &LayoutConstants) {
+        self.button_next = Button::new(layout.button_end_turn, "End Turn".to_string());
+        self.button_undo = Button::new(layout.button_undo, "Undo".to_string());
     }
 }
 
 pub struct BoardRender {
+    pub(crate) layout: LayoutConstants,
     pub(crate) special_sprites: HashMap<u32, SpriteRender>,
     pub(crate) unused_pieces: Vec<Vec<SpriteRender>>,
     pub(crate) placed_pieces: HashMap<Point2, SpriteRender>,
@@ -60,7 +62,7 @@ pub struct BoardRender {
 }
 
 impl BoardRender {
-    pub fn new(game: &Game) -> Self {
+    pub fn new(game: &Game, layout: &LayoutConstants) -> Self {
         let unused_pieces = vec![vec![], vec![]];
         let mut placed_pieces = HashMap::new();
 
@@ -74,11 +76,12 @@ impl BoardRender {
         board.for_each_placed_piece(|point, piece| {
             placed_pieces.insert(
                 point,
-                SpriteRender::for_piece(&point, piece.piece_kind, team_colors[piece.team_id]),
+                SpriteRender::for_piece(&point, piece.piece_kind, team_colors[piece.team_id], layout),
             );
         });
 
         BoardRender {
+            layout: *layout,
             unused_pieces,
             placed_pieces,
             team_colors,
@@ -89,6 +92,53 @@ impl BoardRender {
         }
     }
 
+    pub fn get_layout(&self) -> &LayoutConstants {
+        &self.layout
+    }
+
+    pub fn set_layout(&mut self, new_layout: &LayoutConstants) {
+        self.layout = *new_layout;
+
+        // Snap all placed pieces to their cells in the new layout.
+        let keys: Vec<Point2> = self.placed_pieces.keys().copied().collect();
+        for point in &keys {
+            if let Some(sprite) = self.placed_pieces.get_mut(point) {
+                let (x, y) = self.layout.sprite_render_pos(sprite.to.sprite_width, point);
+                let now = Instant::now();
+                sprite.from = AnimationPoint {
+                    x_pos: x,
+                    y_pos: y,
+                    sprite_width: sprite.to.sprite_width,
+                    instant: now,
+                };
+                sprite.to = sprite.from;
+            }
+        }
+
+        // Rebuild unused pieces at new spare-slot positions.
+        for team_id in 0..self.unused_pieces.len() {
+            let count = self.unused_pieces[team_id].len();
+            self.unused_pieces[team_id].clear();
+            for _ in 0..count {
+                self.add_unused_piece(team_id);
+            }
+            for sprite in &mut self.unused_pieces[team_id] {
+                sprite.from = sprite.to;
+            }
+        }
+
+        // Snapshot special sprites (bullet, blast) in place.
+        // Active animations that own these sprites continue their
+        // timeline naturally; the visual snap is a one-frame jump.
+        for (_id, sprite) in self.special_sprites.iter_mut() {
+            sprite.from = sprite.to;
+        }
+
+        // DO NOT clear current_animations or next_animations.
+        // Destructive chains (bullet→die→remove) must complete
+        // to keep render state consistent with the game model.
+    }
+
     pub fn get_team_color(&self, index: usize) -> &Colour {
         self.team_colors
             .get(index)
@@ -97,24 +147,20 @@ impl BoardRender {
 
     pub fn add_unused_piece(&mut self, team_id: usize) {
         let unused_pieces = &mut self.unused_pieces[team_id];
+        let layout = &self.layout;
 
-        let (x_pos, y_pos) = if team_id == 0 {
-            let (upb_x, mut upb_y) = cell_coords_tuple(BOARD_WIDTH, BOARD_HEIGHT - 1);
-            upb_y += CELL_ABSOLUTE_WIDTH / 4.;
-
-            (
-                upb_x,
-                upb_y - unused_pieces.len() as f32 * PIECE_SCALE / 2.5,
-            )
+        // Compute next spare slot position
+        let (start_x, start_y) = if team_id == 0 {
+            layout.spare_start_team0
         } else {
-            let (mut upb_x, upb_y) = cell_coords_tuple(0, 0);
-            upb_x -= PIECE_SCALE;
-
-            (
-                upb_x,
-                upb_y + unused_pieces.len() as f32 * PIECE_SCALE / 2.5,
-            )
+            layout.spare_start_team1
         };
+
+        let count = unused_pieces.len() as u32;
+        let col = count % layout.spare_cols;
+        let row = count / layout.spare_cols;
+        let x_pos = start_x + col as f32 * layout.spare_step.0;
+        let y_pos = start_y + row as f32 * layout.spare_step.1;
 
         unused_pieces.push(SpriteRender::new(
             x_pos,
@@ -138,7 +184,7 @@ impl BoardRender {
         exhausted: bool,
     ) {
         let mut piece_render =
-            SpriteRender::for_piece(point, piece_kind, self.team_colors[team_id]);
+            SpriteRender::for_piece(point, piece_kind, self.team_colors[team_id], &self.layout);
         if exhausted {
             piece_render.override_color = Some(SpriteRender::greyed_out(&piece_render.color));
         }
@@ -207,17 +253,17 @@ impl BoardRender {
     }
 
     pub fn render(&self, board: &Board, render_context: &CustomRenderContext, canvas: &Canvas2D) {
-        //Self::render_cells(board, canvas, render_context);
+        let layout = &self.layout;
 
         draw_texture_ex(
             &render_context.background_texture,
-            SHIFT_X,
-            SHIFT_Y,
+            layout.shift_x,
+            layout.shift_y,
             WHITE,
             DrawTextureParams {
                 dest_size: Some(Vec2::new(
-                    CELL_ABSOLUTE_WIDTH * BOARD_WIDTH as f32,
-                    CELL_ABSOLUTE_WIDTH * BOARD_HEIGHT as f32,
+                    CELL_WIDTH * crate::constants::BOARD_WIDTH as f32,
+                    CELL_WIDTH * crate::constants::BOARD_HEIGHT as f32,
                 )),
                 source: None,
                 ..Default::default()
@@ -225,12 +271,11 @@ impl BoardRender {
         );
 
         for (point, effects) in &self.effects {
-            effects.iter().for_each(|e| e.render(point));
+            effects.iter().for_each(|e| e.render(point, layout));
         }
 
-        Self::render_highlights(board, render_context, canvas);
+        Self::render_highlights(board, render_context, canvas, layout);
 
-        //println!("rendered {:?}", self.unused_pieces.len());
         self.unused_pieces
             .iter()
             .flat_map(|p| p.iter())
@@ -250,8 +295,13 @@ impl BoardRender {
         render_context.button_undo.render(canvas);
     }
 
-    fn render_highlights(board: &Board, render_context: &CustomRenderContext, canvas: &Canvas2D) {
-        let hovered_point = cell_hovered(canvas);
+    fn render_highlights(
+        board: &Board,
+        render_context: &CustomRenderContext,
+        canvas: &Canvas2D,
+        layout: &LayoutConstants,
+    ) {
+        let hovered_point = layout.cell_hovered(canvas);
         if let Some(hovered_piece) = board.get_piece_at(&hovered_point) {
             let mut highlights = vec![];
 
@@ -269,6 +319,7 @@ impl BoardRender {
                     &hovered_point,
                     &range,
                     Colour::new(0.3, 0.9, 0.3, 0.4),
+                    layout,
                 )
             }
         }
@@ -307,14 +358,21 @@ impl BoardRender {
                     &selected_point,
                     &range,
                     Colour::new(0., 0.6, 0., 0.6),
+                    layout,
                 )
             }
         }
     }
 
-    fn highlight_range(board: &Board, source_point: &Point2, range: &Range, color: Colour) {
+    fn highlight_range(
+        board: &Board,
+        source_point: &Point2,
+        range: &Range,
+        color: Colour,
+        layout: &LayoutConstants,
+    ) {
         for point in range.reachable_points(source_point, board).iter() {
-            let (x_pos, y_pos) = cell_coords(point);
+            let (x_pos, y_pos) = layout.cell_coords(point.x, point.y);
 
             let mut used_color = color;
 
@@ -322,8 +380,8 @@ impl BoardRender {
                 draw_rectangle_lines(
                     x_pos - 2.5,
                     y_pos - 2.5,
-                    CELL_ABSOLUTE_WIDTH + 2.5,
-                    CELL_ABSOLUTE_WIDTH + 2.5,
+                    CELL_WIDTH + 2.5,
+                    CELL_WIDTH + 2.5,
                     5.,
                     Color::from_rgba(250, 130, 90, 255),
                 );
@@ -337,8 +395,8 @@ impl BoardRender {
             draw_rectangle(
                 x_pos,
                 y_pos,
-                CELL_ABSOLUTE_WIDTH,
-                CELL_ABSOLUTE_WIDTH,
+                CELL_WIDTH,
+                CELL_WIDTH,
                 used_color.into(),
             );
         }
@@ -353,24 +411,18 @@ pub struct EffectRender {
     pub towards_instant: Instant,
 }
 
-impl Default for EffectRender {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl EffectRender {
     pub fn new() -> Self {
         EffectRender {
             from_color: Colour::new(80., 0., 100., 0.0),
             towards_color: Colour::new(80., 0., 100., 0.6),
             from_instant: Instant::now(),
-            towards_instant: Instant::now() + Duration::from_millis(ANIMATION_SPEED * 3),
+            towards_instant: Instant::now() + Duration::from_millis(crate::constants::ANIMATION_SPEED * 3),
         }
     }
 
-    pub fn render(&self, at: &Point2) {
-        let (x_pos, y_pos) = cell_coords(at);
+    pub fn render(&self, at: &Point2, layout: &LayoutConstants) {
+        let (x_pos, y_pos) = layout.cell_coords(at.x, at.y);
         let progress = AnimationPoint::calculate_progress(
             &self.from_instant,
             &self.towards_instant,
@@ -379,8 +431,8 @@ impl EffectRender {
         draw_rectangle(
             x_pos,
             y_pos,
-            CELL_ABSOLUTE_WIDTH,
-            CELL_ABSOLUTE_WIDTH,
+            CELL_WIDTH,
+            CELL_WIDTH,
             Color {
                 r: AnimationPoint::interpolate_value(
                     self.from_color.r,

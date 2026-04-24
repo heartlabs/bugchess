@@ -47,10 +47,25 @@ async fn main() {
         .init();
     #[cfg(target_family = "wasm")]
     console_log::init_with_level(log::Level::Debug).expect("Could not initialize logger");
-    let canvas = Canvas2D::new(WINDOW_WIDTH as f32, WINDOW_HEIGHT as f32);
     let mut state = setup_game_state().await;
 
+    // Determine fixed logical canvas size based on orientation, then match the canvas to it.
+    let (canvas_w, canvas_h) = logical_canvas_size();
+    let mut canvas = Canvas2D::new(canvas_w, canvas_h);
+    let mut prev_orientation_is_landscape = canvas_w >= canvas_h;
+
     loop {
+        // Poll for orientation change (e.g. device rotation or viewport resize).
+        let curr_w = screen_width();
+        let curr_h = screen_height();
+        let is_landscape = curr_w >= curr_h;
+        if is_landscape != prev_orientation_is_landscape {
+            prev_orientation_is_landscape = is_landscape;
+            let (new_w, new_h) = logical_canvas_size();
+            canvas = Canvas2D::new(new_w, new_h);
+            state.handle_resize(new_w, new_h);
+        }
+
         srand((macroquad::time::get_time() * 100_000_000f64) as u64);
         set_camera(&canvas.camera);
         clear_background(BLACK);
@@ -93,7 +108,8 @@ async fn setup_game_state() -> Box<dyn GameState> {
     info!("Initial seed from {} is {}", seed_time, seed);
     srand(seed);
 
-    let mut loading_state = LoadingState::new();
+    let (canvas_w, canvas_h) = logical_canvas_size();
+    let mut loading_state = LoadingState::new(canvas_w, canvas_h);
     if let Some(room_id) = preconfigured_room_id.as_ref()
         && !room_id.is_empty()
     {

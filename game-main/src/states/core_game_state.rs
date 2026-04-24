@@ -12,7 +12,8 @@ use game_model::game::Game;
 
 use game_render::{
     BoardRender, CustomRenderContext,
-    constants::{BOARD_HEIGHT, CELL_ABSOLUTE_WIDTH, FONT_SIZE, cell_hovered},
+    constants::{FONT_SIZE, TEXT_LINE_SPACING},
+    layout::{compute_layout, LayoutConstants},
     sprite::Colour,
 };
 
@@ -43,6 +44,7 @@ impl CoreGameState {
         matchbox_events: Option<Rc<RefCell<MultiplayerConector>>>,
         is_multi_player: bool,
         team_names: Vec<String>,
+        layout: LayoutConstants,
     ) -> Self {
         let commands = Arc::new(Mutex::new(vec![]));
         let command_handler = CommandHandler::new(event_broker, commands.clone());
@@ -93,7 +95,7 @@ impl CoreGameState {
             command_handler,
             board_render,
             matchbox_events,
-            render_context: CustomRenderContext::new(),
+            render_context: CustomRenderContext::new(&layout),
             own_player_team_id: None,
             is_multi_player,
             team_names,
@@ -139,11 +141,13 @@ impl CoreGameState {
             }
             CoreGameSubstate::Won(_) => {}
             _ => {
+                let layout: LayoutConstants = *(*self.board_render).borrow().get_layout();
                 handle_player_input(
                     &mut self.game,
                     &mut self.command_handler,
                     &mut self.render_context,
                     canvas,
+                    &layout,
                 );
             }
         }
@@ -160,6 +164,7 @@ impl CoreGameState {
         let game = (*self.game).borrow();
         board_render.render(&(*self.game).borrow().board, &self.render_context, canvas);
 
+        let layout: LayoutConstants = *(*self.board_render).borrow().get_layout();
         for (i, text) in description(&self.render_context, &game, &self.team_names)
             .iter()
             .enumerate()
@@ -167,8 +172,8 @@ impl CoreGameState {
             let color: Colour = *board_render.get_team_color(game.current_team_index);
             draw_text(
                 text.as_str(),
-                10.,
-                BOARD_HEIGHT as f32 * CELL_ABSOLUTE_WIDTH + ((i + 1) as f32 * FONT_SIZE),
+                layout.text_x,
+                layout.text_y + (i as f32) * FONT_SIZE * TEXT_LINE_SPACING,
                 FONT_SIZE,
                 color.into(),
             );
@@ -214,6 +219,12 @@ impl GameState for CoreGameState {
 
     fn uses_egui(&self) -> bool {
         false
+    }
+
+    fn handle_resize(&mut self, new_width: f32, new_height: f32) {
+        let new_layout = compute_layout(new_width, new_height);
+        self.board_render.borrow_mut().set_layout(&new_layout);
+        self.render_context.update_buttons(&new_layout);
     }
 }
 
@@ -301,6 +312,7 @@ fn handle_player_input(
     command_handler: &mut CommandHandler,
     render_context: &mut CustomRenderContext,
     canvas: &Canvas2D,
+    layout: &LayoutConstants,
 ) {
     if is_key_pressed(KeyCode::U) || render_context.button_undo.clicked(canvas) {
         let game_clone = (**game).borrow().clone();
@@ -323,7 +335,7 @@ fn handle_player_input(
         let next_game_state =
             render_context
                 .game_state
-                .on_click(&cell_hovered(canvas), game_clone, command_handler);
+                .on_click(&layout.cell_hovered(canvas), game_clone, command_handler);
 
         info!("{:?} -> {:?}", render_context.game_state, next_game_state);
         render_context.game_state = next_game_state;

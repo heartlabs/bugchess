@@ -1,5 +1,5 @@
 use crate::{
-    constants::*,
+    constants::{ADD_UNUSED_SPEED, ANIMATION_SPEED, BULLET_SPEED, CELL_WIDTH, MOVE_PIECE_SPEED, PIECE_SCALE, PLACE_PIECE_SPEED},
     rendering::{BoardRender, EffectRender},
     sprite::*,
 };
@@ -364,7 +364,7 @@ impl AnimationExpert for PlacePieceAnimation {
         let mut unused = board_render.unused_pieces[self.team]
             .pop()
             .expect("No unused piece left in BoardRender");
-        unused.move_towards(&self.to, PLACE_PIECE_SPEED);
+        unused.move_towards(&self.to, PLACE_PIECE_SPEED, &board_render.layout);
         unused.override_color = Some(SpriteRender::greyed_out(&unused.color));
 
         //let color = board_render.team_colors[piece.team_id];
@@ -380,7 +380,7 @@ impl AnimationExpert for MovePieceAnimation {
             .remove(&self.from)
             .unwrap_or_else(|| panic!("No piece found at {:?}", self.from));
 
-        piece_render.move_towards(&self.to, MOVE_PIECE_SPEED);
+        piece_render.move_towards(&self.to, MOVE_PIECE_SPEED, &board_render.layout);
 
         board_render.placed_pieces.insert(self.to, piece_render);
     }
@@ -392,7 +392,7 @@ impl AnimationExpert for SwooshPieceAnimation {
             .get_mut(&self.from)
             .unwrap_or_else(|| panic!("No piece found at {:?}", self.from));
 
-        piece_render.move_towards(&self.to, MOVE_PIECE_SPEED);
+        piece_render.move_towards(&self.to, MOVE_PIECE_SPEED, &board_render.layout);
     }
 }
 
@@ -442,29 +442,33 @@ impl AnimationExpert for ExhaustAnimation {
 
 impl AnimationExpert for BulletAnimation {
     fn start(&self, board_render: &mut BoardRender) {
+        let layout = &board_render.layout;
         let mut sprite_render = SpriteRender::new_at_point(
             &self.from,
             PIECE_SCALE,
             Colour::WHITE,
             SpriteKind::Special,
             Rect::new(0., 0., SPRITE_WIDTH, SPRITE_WIDTH),
+            layout,
         );
-        sprite_render.move_towards(&self.to, BULLET_SPEED);
+        sprite_render.move_towards(&self.to, BULLET_SPEED, layout);
         board_render.special_sprites.insert(self.id, sprite_render);
     }
 }
 
 impl AnimationExpert for BlastAnimation {
     fn start(&self, board_render: &mut BoardRender) {
+        let layout = &board_render.layout;
         let mut sprite_render = SpriteRender::new_at_point(
             &self.from,
             0.,
             Colour::WHITE,
             SpriteKind::Special,
             Rect::new(SPRITE_WIDTH, 0., SPRITE_WIDTH, SPRITE_WIDTH),
+            layout,
         );
 
-        sprite_render.scale(self.span_cells * CELL_ABSOLUTE_WIDTH, BULLET_SPEED);
+        sprite_render.scale(self.span_cells * CELL_WIDTH, BULLET_SPEED);
 
         board_render.special_sprites.insert(self.id, sprite_render);
     }

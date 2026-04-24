@@ -1,5 +1,5 @@
-use crate::constants::*;
 use macroquad::{
+    math::Rect,
     prelude::{DARKGREEN, MouseButton, WHITE, is_mouse_button_pressed},
     shapes::draw_rectangle,
     text::draw_text,
@@ -8,23 +8,13 @@ use macroquad_canvas::Canvas2D;
 
 #[derive(Debug, Clone)]
 pub struct Button {
-    x: f32,
-    y: f32,
-    width: f32,
-    height: f32,
+    rect: Rect,
     text: String,
 }
 
 impl Button {
-    pub fn new(y: f32, text: String) -> Self {
-        let button_x = (BOARD_WIDTH as f32 + 1.25) * CELL_ABSOLUTE_WIDTH;
-        Button {
-            x: button_x,
-            y,
-            width: FONT_SIZE * 4.,
-            height: FONT_SIZE * 1.5,
-            text,
-        }
+    pub fn new(rect: Rect, text: String) -> Self {
+        Button { rect, text }
     }
 
     pub(crate) fn render(&self, canvas: &Canvas2D) {
@@ -34,12 +24,12 @@ impl Button {
             (WHITE, DARKGREEN)
         };
 
-        draw_rectangle(self.x, self.y, self.width, self.height, button_color);
+        draw_rectangle(self.rect.x, self.rect.y, self.rect.w, self.rect.h, button_color);
         draw_text(
             &self.text,
-            self.x + 10.,
-            self.y + FONT_SIZE,
-            FONT_SIZE,
+            self.rect.x + 10.,
+            self.rect.y + self.rect.h * 0.7,
+            self.rect.h * 0.65,
             text_color,
         );
     }
@@ -47,10 +37,10 @@ impl Button {
     pub fn hovered(&self, canvas: &Canvas2D) -> bool {
         let (mouse_x, mouse_y) = canvas.mouse_position();
 
-        mouse_x >= self.x
-            && mouse_x <= self.x + self.width
-            && mouse_y >= self.y
-            && mouse_y <= self.y + self.height
+        mouse_x >= self.rect.x
+            && mouse_x <= self.rect.x + self.rect.w
+            && mouse_y >= self.rect.y
+            && mouse_y <= self.rect.y + self.rect.h
     }
 
     pub fn clicked(&self, canvas: &Canvas2D) -> bool {

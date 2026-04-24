@@ -1,10 +1,13 @@
-use crate::{CustomRenderContext, animation::*, constants::*};
+use crate::{CustomRenderContext, animation::*, constants::{CELL_WIDTH, PIECE_SCALE}, layout::LayoutConstants};
 use game_model::{Point2, piece::*};
 use instant::{Duration, Instant};
 use macroquad::{
     prelude::{Color, Rect, Vec2, WHITE},
     texture::{DrawTextureParams, draw_texture_ex},
 };
+
+/// Width of one sprite in the sprite-sheet atlas (texture constant, not layout).
+pub const SPRITE_WIDTH: f32 = 64.;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Colour {
@@ -91,8 +94,9 @@ impl SpriteRender {
         color: Colour,
         sprite_kind: SpriteKind,
         rect_in_sprite: Rect,
+        layout: &LayoutConstants,
     ) -> SpriteRender {
-        let (x_pos, y_pos) = Self::render_pos(sprite_width, point);
+        let (x_pos, y_pos) = layout.sprite_render_pos(sprite_width, point);
 
         SpriteRender::new(
             x_pos,
@@ -104,13 +108,19 @@ impl SpriteRender {
         )
     }
 
-    pub(crate) fn for_piece(point: &Point2, piece_kind: PieceKind, color: Colour) -> SpriteRender {
+    pub(crate) fn for_piece(
+        point: &Point2,
+        piece_kind: PieceKind,
+        color: Colour,
+        layout: &LayoutConstants,
+    ) -> SpriteRender {
         let mut sprite_render = SpriteRender::new_at_point(
             point,
             PIECE_SCALE,
             color,
             SpriteKind::Piece,
             Self::piece_sprite_rect(piece_kind),
+            layout,
         );
 
         if piece_kind == PieceKind::HorizontalBar {
@@ -118,12 +128,6 @@ impl SpriteRender {
         }
 
         sprite_render
-    }
-
-    fn render_pos(sprite_width: f32, point: &Point2) -> (f32, f32) {
-        let (x_pos, y_pos) = cell_coords(point);
-        let shift = (CELL_ABSOLUTE_WIDTH - sprite_width) / 2.;
-        (x_pos + shift, y_pos + shift)
     }
 
     fn animated(
@@ -172,11 +176,11 @@ impl SpriteRender {
         )
     }
 
-    pub fn move_towards(&mut self, point: &Point2, speed_ms: u64) {
+    pub fn move_towards(&mut self, point: &Point2, speed_ms: u64, layout: &LayoutConstants) {
         self.from = self.to;
         self.from.instant = Instant::now();
 
-        let (x_pos, y_pos) = Self::render_pos(self.from.sprite_width, point);
+        let (x_pos, y_pos) = layout.sprite_render_pos(self.from.sprite_width, point);
 
         self.to = AnimationPoint {
             x_pos,
@@ -198,14 +202,14 @@ impl SpriteRender {
         animation_point: &AnimationPoint,
         sprite_width: f32,
     ) -> AnimationPoint {
-        let shift = (CELL_ABSOLUTE_WIDTH - sprite_width) / 2.;
+        let shift = (CELL_WIDTH - sprite_width) / 2.;
 
         AnimationPoint {
             x_pos: animation_point.x_pos + animation_point.sprite_width / 2.
-                - CELL_ABSOLUTE_WIDTH / 2.
+                - CELL_WIDTH / 2.
                 + shift,
             y_pos: animation_point.y_pos + animation_point.sprite_width / 2.
-                - CELL_ABSOLUTE_WIDTH / 2.
+                - CELL_WIDTH / 2.
                 + shift,
             sprite_width,
             instant: Instant::now(),

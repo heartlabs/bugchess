@@ -15,17 +15,36 @@
             line-height: 1.6;
         }
 
-        /* === Game canvas area (unchanged logic) === */
-        #game, #glcanvas {
+        /* === Game canvas area (responsive) === */
+        html, body {
+            overflow-x: hidden;
+        }
+        #game {
+            position: relative;
+            overflow: hidden;
             margin: 0;
             padding: 0;
-            width: min(100%, 100vw);
-            height: min(100%, 90vw);
-            max-height: 90vh;
-            aspect-ratio: 8/9;
+            background-color: black;
+            width: 100vw;
+        }
+        #glcanvas {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
             background-color: black;
         }
-        #game { position: relative; overflow: hidden; }
+        @media (orientation: portrait) {
+            #game {
+                height: 92dvh;
+            }
+        }
+        @media (orientation: landscape) {
+            #game {
+                height: 92dvh;
+            }
+        }
 
         #select_game, #create_game {
             position: absolute; inset: 0;
@@ -64,7 +83,6 @@
         .content {
             max-width: 720px;
             margin: 0 auto;
-            padding: 2em 1.5em 3em;
         }
         .content p { padding: 0; margin: 0.8em 0; }
         .content h1 { margin: 0 0 0.3em; font-size: 2em; }

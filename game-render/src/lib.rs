@@ -8,6 +8,7 @@
 
 mod animation;
 pub mod constants;
+pub mod layout;
 pub mod render_events;
 pub mod rendering;
 pub mod sprite;

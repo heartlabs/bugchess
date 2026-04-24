@@ -13,7 +13,8 @@ use game_core::{core_game::CoreGameSubstate, multiplayer_connector::MultiplayerC
 use game_model::{Point2, game::*};
 use game_render::{
     BoardRender,
-    constants::{BOARD_HEIGHT, BOARD_WIDTH, CELL_ABSOLUTE_WIDTH, FONT_SIZE},
+    constants::{BOARD_WIDTH, BOARD_HEIGHT, CELL_WIDTH, FONT_SIZE},
+    layout::compute_layout,
     render_events::RenderEventConsumer,
 };
 use std::{
@@ -66,12 +67,13 @@ impl Display for LoadingSubState {
 }
 
 impl LoadingState {
-    pub fn new() -> Self {
+    pub fn new(canvas_width: f32, canvas_height: f32) -> Self {
         let game = Rc::new(RefCell::new(init_game()));
         let mut event_broker = EventBroker::new();
         event_broker.subscribe(Box::new(BoardEventConsumer::new(Rc::clone(&game))));
 
-        let board_render = Rc::new(RefCell::new(BoardRender::new(&(*game).borrow())));
+        let layout = compute_layout(canvas_width, canvas_height);
+        let board_render = Rc::new(RefCell::new(BoardRender::new(&(*game).borrow(), &layout)));
         event_broker.subscribe(Box::new(RenderEventConsumer::new(&board_render)));
 
         let room_id = "standard_room".to_string();
@@ -84,6 +86,7 @@ impl LoadingState {
                 Option::None,
                 false,
                 vec!["Red".to_string(), "Yellow".to_string()],
+                layout,
             )),
             sub_state: LoadingSubState::GameMode,
             client: Option::None,
@@ -313,13 +316,15 @@ impl GameState for LoadingState {
     }
 
     fn render(&self, _canvas: &Canvas2D) {
-        draw_text(
-            &format!("Loading: {}... ", self.sub_state),
-            10.,
-            CELL_ABSOLUTE_WIDTH * BOARD_HEIGHT as f32 / 2.,
-            FONT_SIZE * 1.5,
-            GREEN,
-        );
+        if self.core_game_state.is_some() {
+            draw_text(
+                &format!("Loading: {}... ", self.sub_state),
+                10.,
+                CELL_WIDTH * BOARD_WIDTH as f32 / 2.,
+                FONT_SIZE * 1.5,
+                GREEN,
+            );
+        }
     }
 
     fn uses_egui(&self) -> bool {
