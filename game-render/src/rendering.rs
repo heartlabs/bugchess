@@ -25,6 +25,7 @@ pub struct CustomRenderContext {
     pub button_next: Button,
     pub button_undo: Button,
     pub animation_speed_factor: f32, // smaller = faster
+    pub show_debug_overlay: bool,
 }
 
 impl CustomRenderContext {
@@ -46,6 +47,7 @@ impl CustomRenderContext {
             button_next: Button::new(layout.button_end_turn, "End Turn".to_string()),
             button_undo: Button::new(layout.button_undo, "Undo".to_string()),
             animation_speed_factor: 0.,
+            show_debug_overlay: false,
         }
     }
 
@@ -304,6 +306,32 @@ impl BoardRender {
 
         render_context.button_next.render(canvas);
         render_context.button_undo.render(canvas);
+
+        if render_context.show_debug_overlay {
+            Self::render_debug_overlay(layout);
+        }
+    }
+
+    fn render_debug_overlay(layout: &LayoutConstants) {
+        let blue = Color::from_rgba(0, 119, 255, 200);
+        let green = Color::from_rgba(0, 255, 68, 150);
+        let lw = 3.0;
+
+        let regions = layout.debug_regions();
+
+        // Green regions first (board, spare areas, gaps)
+        for (x, y, w, h, is_blue) in &regions {
+            if !is_blue {
+                draw_rectangle_lines(*x, *y, *w, *h, lw, green);
+            }
+        }
+
+        // Blue regions on top (canvas outline)
+        for (x, y, w, h, is_blue) in &regions {
+            if *is_blue {
+                draw_rectangle_lines(*x, *y, *w, *h, lw * 2., blue);
+            }
+        }
     }
 
     fn render_highlights(

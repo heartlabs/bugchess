@@ -1,39 +1,42 @@
-use crate::constants::{CELL_WIDTH, ROW_HEIGHT};
+use crate::constants::{CELL_WIDTH, PIECE_SCALE, REF_CELL_WIDTH, ROW_HEIGHT};
 
 // ── Orientation-specific layout constants ─────────────────────────────────
 
-/// Gap between layout regions as a fraction of cell width (portrait)
+/// Scaling factor for constants that were designed at REF_CELL_WIDTH.
+/// Applies to all absolute-pixel values below.
+const SCALE: f32 = CELL_WIDTH / REF_CELL_WIDTH;
+
+/// Gap between layout regions as a fraction of cell width (portrait) — already relative.
 const PORTRAIT_GAP_FACTOR: f32 = 0.25;
-/// Height of interactive buttons in portrait mode
-const PORTRAIT_BTN_HEIGHT: f32 = 70.0;
-/// Width of the "End Turn" button in portrait mode
-const PORTRAIT_BTN0_WIDTH: f32 = 350.0;
-/// Width of the "Undo" button in portrait mode
-const PORTRAIT_BTN1_WIDTH: f32 = 300.0;
-/// Gap between the two side-by-side buttons in portrait mode
-const PORTRAIT_BTN_GAP: f32 = 30.0;
+/// Height of interactive buttons in portrait mode (scaled from 70 @ REF_CELL_WIDTH=135).
+const PORTRAIT_BTN_HEIGHT: f32 = 70.0 * SCALE;
+/// Width of the "End Turn" button in portrait mode (scaled from 350).
+const PORTRAIT_BTN0_WIDTH: f32 = 350.0 * SCALE;
+/// Width of the "Undo" button in portrait mode (scaled from 300).
+const PORTRAIT_BTN1_WIDTH: f32 = 300.0 * SCALE;
+/// Gap between the two side-by-side buttons in portrait mode (scaled from 30).
+const PORTRAIT_BTN_GAP: f32 = 30.0 * SCALE;
 /// Number of spare-piece columns in portrait (pieces spread across entire width)
 const PORTRAIT_SPARE_COLS: u32 = 20;
 
-/// Top of the button area in landscape mode
-const LANDSCAPE_BTN_TOP: f32 = 18.0;
-/// Height of each stacked button in landscape mode (independent of PIECE_SCALE)
-const LANDSCAPE_BTN_HEIGHT: f32 = 84.0;
-/// Horizontal padding from the left column edge in landscape mode
-const LANDSCAPE_BTN_PAD: f32 = 10.0;
-/// Gap between the two stacked buttons in landscape mode
-const LANDSCAPE_BTN_GAP: f32 = 10.0;
-/// Gap between buttons and the first spare row in landscape mode
-const LANDSCAPE_SPARE0_GAP: f32 = 24.0;
-/// Gap between spare row groups in landscape mode
-const LANDSCAPE_SPARE_GAP: f32 = 32.0;
-/// Gap before the text area in landscape mode
-const LANDSCAPE_TEXT_GAP: f32 = 50.0;
+/// Top of the button area in landscape mode (scaled from 18).
+const LANDSCAPE_BTN_TOP: f32 = 18.0 * SCALE;
+/// Height of each stacked button in landscape mode (scaled from 84).
+const LANDSCAPE_BTN_HEIGHT: f32 = 84.0 * SCALE;
+/// Horizontal padding from the left column edge in landscape mode (scaled from 10).
+const LANDSCAPE_BTN_PAD: f32 = 10.0 * SCALE;
+/// Gap between the two stacked buttons in landscape mode (scaled from 10).
+const LANDSCAPE_BTN_GAP: f32 = 10.0 * SCALE;
+/// Gap between buttons and the first spare row in landscape mode (scaled from 24).
+const LANDSCAPE_SPARE0_GAP: f32 = 24.0 * SCALE;
+/// Gap between spare row groups in landscape mode (scaled from 32).
+const LANDSCAPE_SPARE_GAP: f32 = 32.0 * SCALE;
+/// Gap before the text area in landscape mode (scaled from 50).
+const LANDSCAPE_TEXT_GAP: f32 = 50.0 * SCALE;
 /// Number of spare-piece columns per row in landscape (fits in left column)
 const LANDSCAPE_SPARE_COLS: u32 = 7;
 
-/// Amount to shift spare-piece starts toward top-left (same in both orientations).
-const SPARE_SHIFT: f32 = 20.0;
+
 use game_model::Point2;
 use macroquad::math::Rect;
 use macroquad_canvas::Canvas2D;
@@ -62,6 +65,10 @@ pub struct LayoutConstants {
     pub spare_step: (f32, f32),
     /// Number of columns per spare row (pieces wrap after this many)
     pub spare_cols: u32,
+    /// Logical canvas width (pixels)
+    pub canvas_w: f32,
+    /// Logical canvas height (pixels)
+    pub canvas_h: f32,
     /// "End Turn" button rectangle
     pub button_end_turn: Rect,
     /// "Undo" button rectangle
@@ -100,13 +107,79 @@ impl LayoutConstants {
         let shift = (CELL_WIDTH - sprite_width) / 2.0;
         (cx + shift, cy + shift)
     }
+
+    /// Return debug overlay rectangles: `(x, y, w, h, is_blue)`.
+    /// `is_blue = true` means the blue color (canvas boundary),
+    /// `is_blue = false` means the green color (structural regions).
+    pub fn debug_regions(&self) -> Vec<(f32, f32, f32, f32, bool)> {
+        let mut regions = Vec::new();
+        let bw = CELL_WIDTH * 8.0;
+        let bh = CELL_WIDTH * 8.0;
+
+        // ── Canvas outline (blue) ──
+        regions.push((0.0, 0.0, self.canvas_w, self.canvas_h, true));
+
+        // ── Board (green) ──
+        regions.push((self.shift_x, self.shift_y, bw, bh, false));
+
+        if self.shift_x == 0.0 {
+            // ── Portrait ──
+            let gap = CELL_WIDTH * PORTRAIT_GAP_FACTOR;
+            let board_top = self.shift_y;
+            let spare0_bot = ROW_HEIGHT;
+            let board_bot = board_top + bh;
+            let spare1_top = board_bot + gap;
+            let spare1_bot = spare1_top + ROW_HEIGHT;
+            let btn_top = spare1_bot + gap;
+            let btn_bot = btn_top + PORTRAIT_BTN_HEIGHT;
+            let w = self.canvas_w;
+
+            // Spare area team 0 (green) — the top row
+            regions.push((0.0, 0.0, w, spare0_bot, false));
+            // Gap 0→board (green)
+            regions.push((0.0, spare0_bot, w, board_top - spare0_bot, false));
+            // Spare area team 1 (green)
+            regions.push((0.0, spare1_top, w, spare1_bot - spare1_top, false));
+            // Gap board→spare1 (green)
+            regions.push((0.0, board_bot, w, spare1_top - board_bot, false));
+            // Gap spare1→buttons (green)
+            regions.push((0.0, spare1_bot, w, btn_top - spare1_bot, false));
+            // Button row (green) — full-width outline even though buttons don't fill it
+            regions.push((0.0, btn_top, w, btn_bot - btn_top, false));
+            // Gap buttons→text (green)
+            regions.push((0.0, btn_bot, w, self.text_y - btn_bot, false));
+        } else {
+            // ── Landscape ──
+            let lw = self.shift_x; // left column width
+            let buttons_bot = LANDSCAPE_BTN_TOP + LANDSCAPE_BTN_HEIGHT * 2.0 + LANDSCAPE_BTN_GAP;
+            let spare0_top = buttons_bot + LANDSCAPE_SPARE0_GAP;
+            let spare0_bot = spare0_top + ROW_HEIGHT * 3.0;
+            let spare1_top = spare0_bot + LANDSCAPE_SPARE_GAP;
+            let spare1_bot = spare1_top + ROW_HEIGHT * 3.0;
+
+            // Button group (green)
+            regions.push((0.0, LANDSCAPE_BTN_TOP, lw, buttons_bot - LANDSCAPE_BTN_TOP, false));
+            // Gap buttons→spare0 (green)
+            regions.push((0.0, buttons_bot, lw, spare0_top - buttons_bot, false));
+            // Spare row 0 (green) — 3 rows
+            regions.push((0.0, spare0_top, lw, ROW_HEIGHT * 3.0, false));
+            // Gap spare0→spare1 (green)
+            regions.push((0.0, spare0_bot, lw, spare1_top - spare0_bot, false));
+            // Spare row 1 (green) — 3 rows
+            regions.push((0.0, spare1_top, lw, ROW_HEIGHT * 3.0, false));
+            // Gap spare1→text (green)
+            regions.push((0.0, spare1_bot, lw, self.text_y - spare1_bot, false));
+        }
+
+        regions
+    }
 }
 
 /// Derive full layout from canvas logical size.
 /// Pure: same inputs always return the same output.
 pub fn compute_layout(canvas_width: f32, canvas_height: f32) -> LayoutConstants {
     if canvas_height > canvas_width {
-        compute_portrait_layout()
+        compute_portrait_layout(canvas_width, canvas_height)
     } else {
         compute_landscape_layout(canvas_width, canvas_height)
     }
@@ -114,7 +187,7 @@ pub fn compute_layout(canvas_width: f32, canvas_height: f32) -> LayoutConstants 
 
 // ── Portrait ───────────────────────────────────────────────────────────────
 
-fn compute_portrait_layout() -> LayoutConstants {
+fn compute_portrait_layout(canvas_w: f32, canvas_h: f32) -> LayoutConstants {
     let gap = CELL_WIDTH * PORTRAIT_GAP_FACTOR;
 
     let board_top = ROW_HEIGHT + gap;
@@ -130,14 +203,15 @@ fn compute_portrait_layout() -> LayoutConstants {
 
     // Spare step: PORTRAIT_SPARE_COLS pieces across full width
     let spare_step_x = w / PORTRAIT_SPARE_COLS as f32;
+    let spare_off = (CELL_WIDTH - PIECE_SCALE) / 2.0;
 
     LayoutConstants {
         shift_x: 0.0,
         shift_y: board_top,
         text_x: 10.0,
         text_y,
-        spare_start_team0: (-SPARE_SHIFT, -SPARE_SHIFT),
-        spare_start_team1: (-SPARE_SHIFT, spare1_top - SPARE_SHIFT),
+        spare_start_team0: (spare_off, spare_off),
+        spare_start_team1: (spare_off, spare1_top + spare_off),
         spare_step: (spare_step_x, 0.0),
         spare_cols: PORTRAIT_SPARE_COLS,
         button_end_turn: Rect::new(btn_start, btn_top, PORTRAIT_BTN0_WIDTH, PORTRAIT_BTN_HEIGHT),
@@ -147,6 +221,8 @@ fn compute_portrait_layout() -> LayoutConstants {
             PORTRAIT_BTN1_WIDTH,
             PORTRAIT_BTN_HEIGHT,
         ),
+        canvas_w,
+        canvas_h,
     }
 }
 
@@ -169,18 +245,21 @@ fn compute_landscape_layout(w: f32, _h: f32) -> LayoutConstants {
     let spare1_top = spare0_bot + LANDSCAPE_SPARE_GAP;
     let spare1_bot = spare1_top + ROW_HEIGHT * 3.0;
     let text_y = spare1_bot + LANDSCAPE_TEXT_GAP;
+    let spare_off = (CELL_WIDTH - PIECE_SCALE) / 2.0;
 
     LayoutConstants {
         shift_x: left_col,
         shift_y: 0.0,
         text_x: LANDSCAPE_BTN_PAD,
         text_y,
-        spare_start_team0: (0.0, spare0_top - SPARE_SHIFT),
-        spare_start_team1: (0.0, spare1_top - SPARE_SHIFT),
+        spare_start_team0: (spare_off, spare0_top + spare_off),
+        spare_start_team1: (spare_off, spare1_top + spare_off),
         spare_step: (step_x, ROW_HEIGHT),
         spare_cols: LANDSCAPE_SPARE_COLS,
         button_end_turn: btn_end_turn,
         button_undo: btn_undo,
+        canvas_w: w,
+        canvas_h: _h,
     }
 }
 
@@ -189,35 +268,45 @@ fn compute_landscape_layout(w: f32, _h: f32) -> LayoutConstants {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::constants::{
+        PORTRAIT_CANVAS_W, PORTRAIT_CANVAS_H,
+        LANDSCAPE_CANVAS_W, LANDSCAPE_CANVAS_H,
+    };
 
     #[test]
-    fn portrait_1080x1920() {
-        let l = compute_layout(1080.0, 1920.0);
+    fn portrait_layout() {
+        let l = compute_layout(PORTRAIT_CANVAS_W, PORTRAIT_CANVAS_H);
         assert_eq!(l.shift_x, 0.0, "portrait: shift_x should be 0");
-        // spare0 starts shifted top-left by SPARE_SHIFT
-        assert_eq!(l.spare_start_team0, (-SPARE_SHIFT, -SPARE_SHIFT));
-        // spare1 top should be below board
-        assert!(l.spare_start_team1.1 > 1200.0);
-        assert!(l.spare_start_team1.1 < 1300.0);
-        // buttons below spare1
-        assert!(l.button_end_turn.y > l.spare_start_team1.1 + 100.0);
+        // spare0 starts offset by half the piece overhang
+        let off = (CELL_WIDTH - PIECE_SCALE) / 2.0;
+        assert_eq!(l.spare_start_team0, (off, off));
+        // spare1 top should be below board + gap
+        let board_bot = ROW_HEIGHT + CELL_WIDTH * PORTRAIT_GAP_FACTOR + CELL_WIDTH * 8.0;
+        let expected_spare1_top = board_bot + CELL_WIDTH * PORTRAIT_GAP_FACTOR;
+        assert!((l.spare_start_team1.1 - (expected_spare1_top + off)).abs() < 0.1);
+        // buttons below spare1 (by at least ROW_HEIGHT, minus the piece offset)
+        assert!(l.button_end_turn.y > l.spare_start_team1.1 + ROW_HEIGHT * 0.5);
         // text below buttons
-        assert!(l.text_y > l.button_end_turn.y + 60.0);
+        assert!(l.text_y > l.button_end_turn.y + PORTRAIT_BTN_HEIGHT * 0.5);
     }
 
     #[test]
-    fn landscape_1920x1080() {
-        let l = compute_layout(1920.0, 1080.0);
+    fn landscape_layout() {
+        let l = compute_layout(LANDSCAPE_CANVAS_W, LANDSCAPE_CANVAS_H);
         assert!(l.shift_x > 0.0, "landscape: shift_x should be > 0");
-        assert!((l.shift_x - 840.0).abs() < 0.1, "shift_x should be 840");
-        // spare starts below the stacked buttons, shifted up by SPARE_SHIFT
-        assert!(l.spare_start_team0.1 >= 190.0);
-        assert!(l.spare_start_team0.1 < 250.0);
+        // left_col = w - board_width = LANDSCAPE_CANVAS_W - CELL_WIDTH * 8
+        let expected_shift_x = LANDSCAPE_CANVAS_W - CELL_WIDTH * 8.0;
+        assert!((l.shift_x - expected_shift_x).abs() < 0.1, "shift_x should be {}", expected_shift_x);
+        // spare starts below the stacked buttons, offset by half the piece overhang
+        let btn_bot = LANDSCAPE_BTN_TOP + LANDSCAPE_BTN_HEIGHT * 2.0 + LANDSCAPE_BTN_GAP;
+        let expected_spare0_top = btn_bot + LANDSCAPE_SPARE0_GAP;
+        let off = (CELL_WIDTH - PIECE_SCALE) / 2.0;
+        assert!((l.spare_start_team0.1 - (expected_spare0_top + off)).abs() < 0.1);
     }
 
     #[test]
     fn cell_roundtrip() {
-        let l = compute_layout(1080.0, 1920.0);
+        let l = compute_layout(PORTRAIT_CANVAS_W, PORTRAIT_CANVAS_H);
         let (x, y) = l.cell_coords(3, 5);
         let p = l.coords_to_cell(x + 1.0, y + 1.0);
         assert_eq!(p, Point2::new(3, 5));

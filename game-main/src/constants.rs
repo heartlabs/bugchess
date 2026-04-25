@@ -1,14 +1,10 @@
 use macroquad::prelude::{screen_height, screen_width};
 
-/// Fixed logical canvas width for portrait orientation (1080 = CELL_WIDTH × 8).
-pub const PORTRAIT_CANVAS_W: f32 = 1080.0;
-/// Fixed logical canvas height for portrait orientation.
-pub const PORTRAIT_CANVAS_H: f32 = 1800.0;
-
-/// Fixed logical canvas width for landscape orientation.
-pub const LANDSCAPE_CANVAS_W: f32 = 1920.0;
-/// Fixed logical canvas height for landscape orientation (1080 = CELL_WIDTH × 8).
-pub const LANDSCAPE_CANVAS_H: f32 = 1080.0;
+// Canvas dimensions live in game-render so CELL_WIDTH can derive from them.
+pub use game_render::constants::{
+    PORTRAIT_CANVAS_W, PORTRAIT_CANVAS_H,
+    LANDSCAPE_CANVAS_W, LANDSCAPE_CANVAS_H,
+};
 
 /// Default window width (used for Conf; portrait as the common orientation).
 pub const WINDOW_WIDTH: i32 = PORTRAIT_CANVAS_W as i32;
