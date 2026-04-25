@@ -1,41 +1,36 @@
-use crate::constants::{CELL_WIDTH, PIECE_SCALE, REF_CELL_WIDTH, ROW_HEIGHT};
+use crate::constants::{CELL_WIDTH, PIECE_SCALE, ROW_HEIGHT};
 
 // ── Orientation-specific layout constants ─────────────────────────────────
 
-/// Scaling factor for constants that were designed at REF_CELL_WIDTH.
-/// Applies to all absolute-pixel values below.
-const SCALE: f32 = CELL_WIDTH / REF_CELL_WIDTH;
-
-/// Gap between layout regions as a fraction of cell width (portrait) — already relative.
-const PORTRAIT_GAP_FACTOR: f32 = 0.25;
-/// Height of interactive buttons in portrait mode (scaled from 70 @ REF_CELL_WIDTH=135).
-const PORTRAIT_BTN_HEIGHT: f32 = 70.0 * SCALE;
-/// Width of the "End Turn" button in portrait mode (scaled from 350).
-const PORTRAIT_BTN0_WIDTH: f32 = 350.0 * SCALE;
-/// Width of the "Undo" button in portrait mode (scaled from 300).
-const PORTRAIT_BTN1_WIDTH: f32 = 300.0 * SCALE;
-/// Gap between the two side-by-side buttons in portrait mode (scaled from 30).
-const PORTRAIT_BTN_GAP: f32 = 30.0 * SCALE;
+/// Gap between layout regions
+const PORTRAIT_GAP_FACTOR: f32 = 0.4;
+/// Height of interactive buttons in portrait mode
+const PORTRAIT_BTN_HEIGHT: f32 = 0.5 * CELL_WIDTH;
+/// Width of the "End Turn" button in portrait mode
+const PORTRAIT_BTN0_WIDTH: f32 = 2.6 * CELL_WIDTH;
+/// Width of the "Undo" button in portrait mode
+const PORTRAIT_BTN1_WIDTH: f32 = 2.2 * CELL_WIDTH;
+/// Gap between the two side-by-side buttons in portrait mode
+const PORTRAIT_BTN_GAP: f32 = 0.2 * CELL_WIDTH;
 /// Number of spare-piece columns in portrait (pieces spread across entire width)
 const PORTRAIT_SPARE_COLS: u32 = 20;
 
-/// Top of the button area in landscape mode (scaled from 18).
-const LANDSCAPE_BTN_TOP: f32 = 18.0 * SCALE;
-/// Height of each stacked button in landscape mode (scaled from 84).
-const LANDSCAPE_BTN_HEIGHT: f32 = 84.0 * SCALE;
-/// Horizontal padding from the left column edge in landscape mode (scaled from 10).
-const LANDSCAPE_BTN_PAD: f32 = 10.0 * SCALE;
-/// Gap between the two stacked buttons in landscape mode (scaled from 10).
-const LANDSCAPE_BTN_GAP: f32 = 10.0 * SCALE;
-/// Gap between buttons and the first spare row in landscape mode (scaled from 24).
-const LANDSCAPE_SPARE0_GAP: f32 = 24.0 * SCALE;
-/// Gap between spare row groups in landscape mode (scaled from 32).
-const LANDSCAPE_SPARE_GAP: f32 = 32.0 * SCALE;
-/// Gap before the text area in landscape mode (scaled from 50).
-const LANDSCAPE_TEXT_GAP: f32 = 50.0 * SCALE;
+/// Top of the button area in landscape mode
+const LANDSCAPE_BTN_TOP: f32 = 0.1 * CELL_WIDTH;
+/// Height of each stacked button in landscape mode
+const LANDSCAPE_BTN_HEIGHT: f32 = 0.6 * CELL_WIDTH;
+/// Horizontal padding from the left column edge in landscape mode
+const LANDSCAPE_BTN_PAD: f32 = 0.1 * CELL_WIDTH;
+/// Gap between the two stacked buttons in landscape mode
+const LANDSCAPE_BTN_GAP: f32 = 0.1 * CELL_WIDTH;
+/// Gap between buttons and the first spare row in landscape mode
+const LANDSCAPE_SPARE0_GAP: f32 = 0.2 * CELL_WIDTH;
+/// Gap between spare row groups in landscape mode
+const LANDSCAPE_SPARE_GAP: f32 = 0.2 * CELL_WIDTH;
+/// Gap before the text area in landscape mode
+const LANDSCAPE_TEXT_GAP: f32 = 0.6 * CELL_WIDTH;
 /// Number of spare-piece columns per row in landscape (fits in left column)
-const LANDSCAPE_SPARE_COLS: u32 = 7;
-
+const LANDSCAPE_SPARE_COLS: u32 = 11;
 
 use game_model::Point2;
 use macroquad::math::Rect;
@@ -158,7 +153,13 @@ impl LayoutConstants {
             let spare1_bot = spare1_top + ROW_HEIGHT * 3.0;
 
             // Button group (green)
-            regions.push((0.0, LANDSCAPE_BTN_TOP, lw, buttons_bot - LANDSCAPE_BTN_TOP, false));
+            regions.push((
+                0.0,
+                LANDSCAPE_BTN_TOP,
+                lw,
+                buttons_bot - LANDSCAPE_BTN_TOP,
+                false,
+            ));
             // Gap buttons→spare0 (green)
             regions.push((0.0, buttons_bot, lw, spare0_top - buttons_bot, false));
             // Spare row 0 (green) — 3 rows
@@ -241,9 +242,9 @@ fn compute_landscape_layout(w: f32, _h: f32) -> LayoutConstants {
     let buttons_bot = undo_top + btn_h;
 
     let spare0_top = buttons_bot + LANDSCAPE_SPARE0_GAP;
-    let spare0_bot = spare0_top + ROW_HEIGHT * 3.0;
+    let spare0_bot = spare0_top + ROW_HEIGHT * 2.0;
     let spare1_top = spare0_bot + LANDSCAPE_SPARE_GAP;
-    let spare1_bot = spare1_top + ROW_HEIGHT * 3.0;
+    let spare1_bot = spare1_top + ROW_HEIGHT * 2.0;
     let text_y = spare1_bot + LANDSCAPE_TEXT_GAP;
     let spare_off = (CELL_WIDTH - PIECE_SCALE) / 2.0;
 
@@ -269,8 +270,7 @@ fn compute_landscape_layout(w: f32, _h: f32) -> LayoutConstants {
 mod tests {
     use super::*;
     use crate::constants::{
-        PORTRAIT_CANVAS_W, PORTRAIT_CANVAS_H,
-        LANDSCAPE_CANVAS_W, LANDSCAPE_CANVAS_H,
+        LANDSCAPE_CANVAS_H, LANDSCAPE_CANVAS_W, PORTRAIT_CANVAS_H, PORTRAIT_CANVAS_W,
     };
 
     #[test]
@@ -296,7 +296,11 @@ mod tests {
         assert!(l.shift_x > 0.0, "landscape: shift_x should be > 0");
         // left_col = w - board_width = LANDSCAPE_CANVAS_W - CELL_WIDTH * 8
         let expected_shift_x = LANDSCAPE_CANVAS_W - CELL_WIDTH * 8.0;
-        assert!((l.shift_x - expected_shift_x).abs() < 0.1, "shift_x should be {}", expected_shift_x);
+        assert!(
+            (l.shift_x - expected_shift_x).abs() < 0.1,
+            "shift_x should be {}",
+            expected_shift_x
+        );
         // spare starts below the stacked buttons, offset by half the piece overhang
         let btn_bot = LANDSCAPE_BTN_TOP + LANDSCAPE_BTN_HEIGHT * 2.0 + LANDSCAPE_BTN_GAP;
         let expected_spare0_top = btn_bot + LANDSCAPE_SPARE0_GAP;

@@ -33,6 +33,7 @@ fn window_conf() -> Conf {
             webgl_version: miniquad::conf::WebGLVersion::WebGL2,
             ..Default::default()
         },
+        high_dpi: true,
         ..Default::default()
     }
 }

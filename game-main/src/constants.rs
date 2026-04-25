@@ -2,8 +2,7 @@ use macroquad::prelude::{screen_height, screen_width};
 
 // Canvas dimensions live in game-render so CELL_WIDTH can derive from them.
 pub use game_render::constants::{
-    PORTRAIT_CANVAS_W, PORTRAIT_CANVAS_H,
-    LANDSCAPE_CANVAS_W, LANDSCAPE_CANVAS_H,
+    LANDSCAPE_CANVAS_H, LANDSCAPE_CANVAS_W, PORTRAIT_CANVAS_H, PORTRAIT_CANVAS_W,
 };
 
 /// Default window width (used for Conf; portrait as the common orientation).
