@@ -30,13 +30,29 @@ main loop (main.rs)
 
 All render and layout related code is in the `game-render` crate. The `game-main` crate owns the game loop and canvas creation, but delegates all layout and rendering logic to `game-render`. The HTML/CSS only handles canvas sizing and centering.
 
+## Canvas Dimensions (`game-render/src/constants.rs`)
+
+The logical canvas dimensions are defined as constants at the top of `constants.rs`. From these, `CELL_WIDTH` is derived:
+
+```rust
+pub const CELL_WIDTH: f32 = {
+    // Smaller dimension / 8 ensures the 8×8 board fills the smaller dimension
+    let min_dim = min(PORTRAIT_CANVAS_W, PORTRAIT_CANVAS_H);
+    min_dim / 8.0
+};
+```
+
+The board width is always exactly the smaller canvas dimension (`8 × CELL_WIDTH`). All layout constants are expressed as fractions of `CELL_WIDTH` (e.g., `0.5 * CELL_WIDTH`) — rounded to one decimal place.
+
+**Important**: When changing canvas dimensions, the CSS aspect-ratio values in `html/index.htm` must be updated to match (see CSS section below). All layout constants scale automatically since they're derived from `CELL_WIDTH`.
+
 ## Layout Subsystem (`layout.rs`)
 
-There are two main layout modes based on orientation: portrait (1080×1800) and landscape (1920×1080). The game renders to these logical fixed-size canvases. The Canvas2D struct handles the actual drawing, scaling, and coordinate transformations to the actual screen size. 
+There are two main layout modes based on orientation: portrait (`PORTRAIT_CANVAS_W × PORTRAIT_CANVAS_H`) and landscape (`LANDSCAPE_CANVAS_W × LANDSCAPE_CANVAS_H`). The game renders to these logical fixed-size canvases. The `Canvas2D` struct handles the actual drawing, scaling, and coordinate transformations to the actual screen size.
 
 Each layout mode has a different arrangement of the board, spare pieces, buttons, and text. The `LayoutConstants` struct stores all computed positions and dimensions for these elements, which are calculated in `compute_portrait_layout` and `compute_landscape_layout`.
 
-The main layout calculations are based on the `CELL_WIDTH`. This ensures that if for example the `PIECE_SCALE` changes, the layout will remain unchanged which ensures that you can freely adjust piece visuals without worrying about layout breakage. 
+The main layout calculations are based on the `CELL_WIDTH`. This ensures that if for example the `PIECE_SCALE` changes, the layout will remain unchanged which ensures that you can freely adjust piece visuals without worrying about layout breakage.
 
 The board width should always be exactly the smaller screen dimension so the board optimally fills the available space, and all other elements should be positioned based on that.
 
@@ -144,14 +160,27 @@ Macro-based dispatch. Animations queue in `next_animations` and get pushed to `c
 
 ## CSS / Canvas Sizing (`html/index.htm`)
 
-Only the `#game` container rules affect the canvas:
+### Required viewport meta tag
 
-The canvas element itself is created at the **logical** size (1080×1800 portrait, 1920×1080 landscape) via `Canvas2D::new(w, h)` in `main.rs`. CSS scales it to fit the viewport.
+The `<head>` **must** include this or `100vw` will use a virtual 980px viewport on mobile, making everything ~44% scale in portrait:
+
+```html
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+```
+
+### CSS aspect-ratio approach
+
+The `#game` container uses `aspect-ratio` to match the logical canvas aspect ratio. No fixed height — height is derived from `100vw × aspect-ratio`, so the canvas is always the correct shape and the documentation below remains scrollable:
+
+**CRITICAL: Keep the aspect-ratio values in sync with the Rust constants.** If you change `PORTRAIT_CANVAS_W` or `PORTRAIT_CANVAS_H` in `constants.rs`, the corresponding `aspect-ratio` in `index.htm` must be updated. Without this, the canvas element dimensions won't match the logical canvas, and the game will render at the wrong aspect ratio.
+
+The `#glcanvas` fills `#game` at 100% width/height. The `resize()` callback in `gl.js` sets the WebGL canvas resolution to `canvas.clientWidth × dpr`, so `screen_width()`/`screen_height()` return CSS pixel dimensions that match the logical canvas. `Canvas2D::draw()` additionally provides its own letterboxing via `get_size_and_padding()`, so even if a mismatch occurs, it centers correctly.
 
 ## Validation Checklist
 
 - [ ] `cargo check --all-targets` — 0 errors, 0 warnings
 - [ ] `cargo test -p game-render` — all 3 layout tests pass
 - [ ] If orientation constants changed: verify both `compute_portrait_layout` and `compute_landscape_layout` produce reasonable values
+- [ ] **If canvas constants changed**: update the matching `aspect-ratio` values in `html/index.htm`
 - [ ] Check main invariant: The board width should always be exactly the smaller screen dimension so the board optimally fills the available space.
 - [ ] You can optionally use the playwright screenshot skill to capture the canvas in both orientations and verify visually that layout changes are correct and no elements are misplaced or mis-scaled.
