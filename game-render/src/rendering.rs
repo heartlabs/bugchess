@@ -416,6 +416,12 @@ pub struct EffectRender {
     pub towards_instant: Instant,
 }
 
+impl Default for EffectRender {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl EffectRender {
     pub fn new() -> Self {
         EffectRender {
