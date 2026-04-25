@@ -24,7 +24,13 @@ impl Button {
             (WHITE, DARKGREEN)
         };
 
-        draw_rectangle(self.rect.x, self.rect.y, self.rect.w, self.rect.h, button_color);
+        draw_rectangle(
+            self.rect.x,
+            self.rect.y,
+            self.rect.w,
+            self.rect.h,
+            button_color,
+        );
         draw_text(
             &self.text,
             self.rect.x + 10.,

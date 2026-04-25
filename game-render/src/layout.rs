@@ -122,10 +122,10 @@ fn compute_portrait_layout() -> LayoutConstants {
     let spare1_top = board_bot + gap;
     let spare1_bot = spare1_top + ROW_HEIGHT;
     let btn_top = spare1_bot + gap;
-    let text_y = btn_top + PORTRAIT_BTN_HEIGHT + gap*2.0;
+    let text_y = btn_top + PORTRAIT_BTN_HEIGHT + gap * 2.0;
 
     // Two buttons centered side-by-side
-    let w = CELL_WIDTH * 8.0;           // total board width
+    let w = CELL_WIDTH * 8.0; // total board width
     let btn_start = 0.0;
 
     // Spare step: PORTRAIT_SPARE_COLS pieces across full width

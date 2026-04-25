@@ -13,7 +13,7 @@ use game_model::game::Game;
 use game_render::{
     BoardRender, CustomRenderContext,
     constants::{FONT_SIZE, TEXT_LINE_SPACING},
-    layout::{compute_layout, LayoutConstants},
+    layout::{LayoutConstants, compute_layout},
     sprite::Colour,
 };
 
@@ -332,10 +332,11 @@ fn handle_player_input(
         // BoardEventConsumer::flush_unsafe(game.as_ref().borrow_mut().borrow_mut(), &event_option);
     } else if is_mouse_button_pressed(MouseButton::Left) {
         let game_clone = (**game).borrow().clone();
-        let next_game_state =
-            render_context
-                .game_state
-                .on_click(&layout.cell_hovered(canvas), game_clone, command_handler);
+        let next_game_state = render_context.game_state.on_click(
+            &layout.cell_hovered(canvas),
+            game_clone,
+            command_handler,
+        );
 
         info!("{:?} -> {:?}", render_context.game_state, next_game_state);
         render_context.game_state = next_game_state;

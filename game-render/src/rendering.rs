@@ -1,4 +1,10 @@
-use crate::{animation::*, constants::{CELL_WIDTH, PIECE_SCALE}, layout::LayoutConstants, sprite::*, ui::Button};
+use crate::{
+    animation::*,
+    constants::{CELL_WIDTH, PIECE_SCALE},
+    layout::LayoutConstants,
+    sprite::*,
+    ui::Button,
+};
 use game_core::core_game::CoreGameSubstate;
 use game_model::{Point2, board::*, game::*, piece::*, ranges::*};
 use instant::{Duration, Instant};
@@ -76,7 +82,12 @@ impl BoardRender {
         board.for_each_placed_piece(|point, piece| {
             placed_pieces.insert(
                 point,
-                SpriteRender::for_piece(&point, piece.piece_kind, team_colors[piece.team_id], layout),
+                SpriteRender::for_piece(
+                    &point,
+                    piece.piece_kind,
+                    team_colors[piece.team_id],
+                    layout,
+                ),
             );
         });
 
@@ -392,13 +403,7 @@ impl BoardRender {
                 }
             }
 
-            draw_rectangle(
-                x_pos,
-                y_pos,
-                CELL_WIDTH,
-                CELL_WIDTH,
-                used_color.into(),
-            );
+            draw_rectangle(x_pos, y_pos, CELL_WIDTH, CELL_WIDTH, used_color.into());
         }
     }
 }
@@ -417,7 +422,8 @@ impl EffectRender {
             from_color: Colour::new(80., 0., 100., 0.0),
             towards_color: Colour::new(80., 0., 100., 0.6),
             from_instant: Instant::now(),
-            towards_instant: Instant::now() + Duration::from_millis(crate::constants::ANIMATION_SPEED * 3),
+            towards_instant: Instant::now()
+                + Duration::from_millis(crate::constants::ANIMATION_SPEED * 3),
         }
     }
 

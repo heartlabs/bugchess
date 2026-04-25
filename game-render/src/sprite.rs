@@ -1,4 +1,9 @@
-use crate::{CustomRenderContext, animation::*, constants::{CELL_WIDTH, PIECE_SCALE}, layout::LayoutConstants};
+use crate::{
+    CustomRenderContext,
+    animation::*,
+    constants::{CELL_WIDTH, PIECE_SCALE},
+    layout::LayoutConstants,
+};
 use game_model::{Point2, piece::*};
 use instant::{Duration, Instant};
 use macroquad::{
@@ -205,11 +210,9 @@ impl SpriteRender {
         let shift = (CELL_WIDTH - sprite_width) / 2.;
 
         AnimationPoint {
-            x_pos: animation_point.x_pos + animation_point.sprite_width / 2.
-                - CELL_WIDTH / 2.
+            x_pos: animation_point.x_pos + animation_point.sprite_width / 2. - CELL_WIDTH / 2.
                 + shift,
-            y_pos: animation_point.y_pos + animation_point.sprite_width / 2.
-                - CELL_WIDTH / 2.
+            y_pos: animation_point.y_pos + animation_point.sprite_width / 2. - CELL_WIDTH / 2.
                 + shift,
             sprite_width,
             instant: Instant::now(),

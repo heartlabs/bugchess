@@ -13,7 +13,7 @@ use game_core::{core_game::CoreGameSubstate, multiplayer_connector::MultiplayerC
 use game_model::{Point2, game::*};
 use game_render::{
     BoardRender,
-    constants::{BOARD_WIDTH, BOARD_HEIGHT, CELL_WIDTH, FONT_SIZE},
+    constants::{BOARD_HEIGHT, BOARD_WIDTH, CELL_WIDTH, FONT_SIZE},
     layout::compute_layout,
     render_events::RenderEventConsumer,
 };

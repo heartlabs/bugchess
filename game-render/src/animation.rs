@@ -1,5 +1,8 @@
 use crate::{
-    constants::{ADD_UNUSED_SPEED, ANIMATION_SPEED, BULLET_SPEED, CELL_WIDTH, MOVE_PIECE_SPEED, PIECE_SCALE, PLACE_PIECE_SPEED},
+    constants::{
+        ADD_UNUSED_SPEED, ANIMATION_SPEED, BULLET_SPEED, CELL_WIDTH, MOVE_PIECE_SPEED, PIECE_SCALE,
+        PLACE_PIECE_SPEED,
+    },
     rendering::{BoardRender, EffectRender},
     sprite::*,
 };
