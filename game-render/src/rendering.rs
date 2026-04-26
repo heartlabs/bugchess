@@ -24,6 +24,8 @@ pub struct CustomRenderContext {
     pub game_state: CoreGameSubstate,
     pub button_next: Button,
     pub button_undo: Button,
+    pub button_patterns: Button,
+    pub show_patterns: bool,
     pub animation_speed_factor: f32, // smaller = faster
     pub show_debug_overlay: bool,
 }
@@ -46,6 +48,8 @@ impl CustomRenderContext {
             game_state: CoreGameSubstate::Place,
             button_next: Button::new(layout.button_end_turn, "End Turn".to_string()),
             button_undo: Button::new(layout.button_undo, "Undo".to_string()),
+            button_patterns: Button::new(layout.button_patterns, "Patterns".to_string()),
+            show_patterns: false,
             animation_speed_factor: 0.,
             show_debug_overlay: false,
         }
@@ -55,6 +59,7 @@ impl CustomRenderContext {
     pub fn update_buttons(&mut self, layout: &LayoutConstants) {
         self.button_next = Button::new(layout.button_end_turn, "End Turn".to_string());
         self.button_undo = Button::new(layout.button_undo, "Undo".to_string());
+        self.button_patterns = Button::new(layout.button_patterns, "Patterns".to_string());
     }
 }
 
@@ -306,6 +311,7 @@ impl BoardRender {
 
         render_context.button_next.render(canvas);
         render_context.button_undo.render(canvas);
+        render_context.button_patterns.render(canvas);
 
         if render_context.show_debug_overlay {
             Self::render_debug_overlay(layout);

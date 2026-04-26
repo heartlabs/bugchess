@@ -61,27 +61,6 @@ impl Pattern {
             Pattern {
                 components: vec![
                     vec![
-                        PatternComponent::Any,
-                        PatternComponent::OwnPiece,
-                        PatternComponent::Any,
-                    ],
-                    vec![
-                        PatternComponent::OwnPiece,
-                        PatternComponent::OwnPiece,
-                        PatternComponent::OwnPiece,
-                    ],
-                    vec![
-                        PatternComponent::Any,
-                        PatternComponent::OwnPiece,
-                        PatternComponent::Any,
-                    ],
-                ],
-                turn_into: PieceKind::Cross,
-                new_piece_relative_position: Point2::new(1, 1),
-            },
-            Pattern {
-                components: vec![
-                    vec![
                         PatternComponent::Free,
                         PatternComponent::Free,
                         PatternComponent::Free,
@@ -119,6 +98,27 @@ impl Pattern {
                     ],
                 ],
                 turn_into: PieceKind::VerticalBar,
+                new_piece_relative_position: Point2::new(1, 1),
+            },
+            Pattern {
+                components: vec![
+                    vec![
+                        PatternComponent::Any,
+                        PatternComponent::OwnPiece,
+                        PatternComponent::Any,
+                    ],
+                    vec![
+                        PatternComponent::OwnPiece,
+                        PatternComponent::OwnPiece,
+                        PatternComponent::OwnPiece,
+                    ],
+                    vec![
+                        PatternComponent::Any,
+                        PatternComponent::OwnPiece,
+                        PatternComponent::Any,
+                    ],
+                ],
+                turn_into: PieceKind::Cross,
                 new_piece_relative_position: Point2::new(1, 1),
             },
             Pattern {

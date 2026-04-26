@@ -46,3 +46,19 @@ pub const ADD_UNUSED_SPEED: u64 = ANIMATION_SPEED / 3;
 
 pub const BOARD_WIDTH: u8 = 8;
 pub const BOARD_HEIGHT: u8 = 8;
+
+// ── Pattern infographic ──────────────────────────────────────────────────
+
+/// Size of one cell in the pattern mini-grid.
+pub const PATTERN_CELL_SIZE: f32 = 0.28 * CELL_WIDTH;
+/// Gap between elements within a pattern card (grid → sprite).
+/// Smaller = tighter visual grouping of each pattern with its result piece.
+pub const PATTERN_ELEMENT_GAP: f32 = 0.04 * CELL_WIDTH;
+/// Gap between rows of pattern cards.
+/// Larger = clearer separation between different pattern rows.
+pub const PATTERN_ROW_GAP: f32 = 0.80 * CELL_WIDTH;
+/// Gap between columns of pattern cards.
+/// Larger = clearer separation between different pattern columns.
+pub const PATTERN_COL_GAP: f32 = 1.30 * CELL_WIDTH;
+/// Size of the resulting piece sprite in the infographic.
+pub const PATTERN_PIECE_SIZE: f32 = 0.55 * CELL_WIDTH;

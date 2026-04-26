@@ -68,6 +68,8 @@ pub struct LayoutConstants {
     pub button_end_turn: Rect,
     /// "Undo" button rectangle
     pub button_undo: Rect,
+    /// "Patterns" button rectangle
+    pub button_patterns: Rect,
 }
 
 impl LayoutConstants {
@@ -146,7 +148,7 @@ impl LayoutConstants {
         } else {
             // ── Landscape ──
             let lw = self.shift_x; // left column width
-            let buttons_bot = LANDSCAPE_BTN_TOP + LANDSCAPE_BTN_HEIGHT * 2.0 + LANDSCAPE_BTN_GAP;
+            let buttons_bot = LANDSCAPE_BTN_TOP + LANDSCAPE_BTN_HEIGHT;
             let spare0_top = buttons_bot + LANDSCAPE_SPARE0_GAP;
             let spare0_bot = spare0_top + ROW_HEIGHT * 3.0;
             let spare1_top = spare0_bot + LANDSCAPE_SPARE_GAP;
@@ -222,6 +224,12 @@ fn compute_portrait_layout(canvas_w: f32, canvas_h: f32) -> LayoutConstants {
             PORTRAIT_BTN1_WIDTH,
             PORTRAIT_BTN_HEIGHT,
         ),
+        button_patterns: Rect::new(
+            btn_start + PORTRAIT_BTN0_WIDTH + PORTRAIT_BTN_GAP + PORTRAIT_BTN1_WIDTH + PORTRAIT_BTN_GAP,
+            btn_top,
+            PORTRAIT_BTN1_WIDTH,
+            PORTRAIT_BTN_HEIGHT,
+        ),
         canvas_w,
         canvas_h,
     }
@@ -233,13 +241,23 @@ fn compute_landscape_layout(w: f32, _h: f32) -> LayoutConstants {
     let left_col = w - CELL_WIDTH * 8.0;
     let step_x = left_col / LANDSCAPE_SPARE_COLS as f32;
 
-    // Buttons stacked vertically in the left column
-    let btn_w = left_col - LANDSCAPE_BTN_PAD * 2.0;
+    // Buttons side-by-side in one row in the left column
     let btn_h = LANDSCAPE_BTN_HEIGHT;
+    let btn_w = (left_col - LANDSCAPE_BTN_PAD * 2.0 - LANDSCAPE_BTN_GAP * 2.0) / 3.0;
     let btn_end_turn = Rect::new(LANDSCAPE_BTN_PAD, LANDSCAPE_BTN_TOP, btn_w, btn_h);
-    let undo_top = LANDSCAPE_BTN_TOP + btn_h + LANDSCAPE_BTN_GAP;
-    let btn_undo = Rect::new(LANDSCAPE_BTN_PAD, undo_top, btn_w, btn_h);
-    let buttons_bot = undo_top + btn_h;
+    let btn_undo = Rect::new(
+        LANDSCAPE_BTN_PAD + btn_w + LANDSCAPE_BTN_GAP,
+        LANDSCAPE_BTN_TOP,
+        btn_w,
+        btn_h,
+    );
+    let btn_patterns = Rect::new(
+        LANDSCAPE_BTN_PAD + (btn_w + LANDSCAPE_BTN_GAP) * 2.0,
+        LANDSCAPE_BTN_TOP,
+        btn_w,
+        btn_h,
+    );
+    let buttons_bot = LANDSCAPE_BTN_TOP + btn_h;
 
     let spare0_top = buttons_bot + LANDSCAPE_SPARE0_GAP;
     let spare0_bot = spare0_top + ROW_HEIGHT * 2.0;
@@ -259,6 +277,7 @@ fn compute_landscape_layout(w: f32, _h: f32) -> LayoutConstants {
         spare_cols: LANDSCAPE_SPARE_COLS,
         button_end_turn: btn_end_turn,
         button_undo: btn_undo,
+        button_patterns: btn_patterns,
         canvas_w: w,
         canvas_h: _h,
     }
@@ -301,8 +320,8 @@ mod tests {
             "shift_x should be {}",
             expected_shift_x
         );
-        // spare starts below the stacked buttons, offset by half the piece overhang
-        let btn_bot = LANDSCAPE_BTN_TOP + LANDSCAPE_BTN_HEIGHT * 2.0 + LANDSCAPE_BTN_GAP;
+        // spare starts below the single-row buttons (End Turn, Undo, Patterns side-by-side), offset by half the piece overhang
+        let btn_bot = LANDSCAPE_BTN_TOP + LANDSCAPE_BTN_HEIGHT;
         let expected_spare0_top = btn_bot + LANDSCAPE_SPARE0_GAP;
         let off = (CELL_WIDTH - PIECE_SCALE) / 2.0;
         assert!((l.spare_start_team0.1 - (expected_spare0_top + off)).abs() < 0.1);
