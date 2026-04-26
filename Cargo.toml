@@ -11,3 +11,16 @@ opt-level = 's'
 inherits = "release"
 lto = "thin"
 codegen-units = 16
+
+# Fast wasm build profile for local development.
+# Inherits from dev (no LTO, no optimization, incremental) but adds
+# thin LTO for smaller wasm output and max parallelism for fastest compilation.
+[profile.dev-wasm]
+inherits = "dev"
+lto = false
+opt-level = 0
+codegen-units = 256
+incremental = true
+# Strip debug info from wasm binary to keep it smaller (no effect on compile time)
+strip = "symbols"
+# Don't generate debuginfo for wasm target (speeds up codegen)

@@ -2,7 +2,9 @@
 set -euo pipefail
 
 # 1. Build
-bash build.sh
+# Fast dev-wasm profile by default (defined in Cargo.toml).
+# Override with: BUILD_PROFILE=release ./dev.sh
+BUILD_PROFILE=dev-wasm bash build.sh
 
 # 2. Serve the html/ directory with basic-http-server
 PORT=4000
