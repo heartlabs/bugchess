@@ -355,7 +355,10 @@ fn handle_player_input(
     }
 }
 
-use game_model::{pattern::{Pattern, PatternComponent}, piece::PieceKind};
+use game_model::{
+    pattern::{Pattern, PatternComponent},
+    piece::PieceKind,
+};
 use macroquad::texture::DrawTextureParams;
 
 /// Draw the pattern infographic in the text area.
@@ -363,7 +366,7 @@ use macroquad::texture::DrawTextureParams;
 fn draw_patterns(ctx: &CustomRenderContext, layout: &LayoutConstants) {
     let cols = 3;
     let start_x = layout.text_x;
-    let start_y = layout.text_y - FONT_SIZE/2.;
+    let start_y = layout.text_y - FONT_SIZE / 2.;
 
     let own_color = Color::from_rgba(60, 200, 60, 255);
     let free_color = WHITE;
@@ -418,7 +421,13 @@ fn draw_patterns(ctx: &CustomRenderContext, layout: &LayoutConstants) {
     // Free: filled white
     draw_rectangle(lx, ly, legend_cell, legend_cell, free_color);
     lx += legend_cell + legend_gap;
-    draw_text("free", lx, ly + legend_cell * 0.85, legend_label_size, WHITE);
+    draw_text(
+        "free",
+        lx,
+        ly + legend_cell * 0.85,
+        legend_label_size,
+        WHITE,
+    );
     lx += legend_label_size * 4.0 + PATTERN_ELEMENT_GAP;
 
     // Any: outlined gray
@@ -458,10 +467,24 @@ fn draw_patterns(ctx: &CustomRenderContext, layout: &LayoutConstants) {
                         draw_rectangle(x, y, PATTERN_CELL_SIZE, PATTERN_CELL_SIZE, free_color);
                     }
                     PatternComponent::Any => {
-                        draw_rectangle_lines(x, y, PATTERN_CELL_SIZE, PATTERN_CELL_SIZE, 2.0, any_color);
+                        draw_rectangle_lines(
+                            x,
+                            y,
+                            PATTERN_CELL_SIZE,
+                            PATTERN_CELL_SIZE,
+                            2.0,
+                            any_color,
+                        );
                     }
                 }
-                draw_rectangle_lines(x, y, PATTERN_CELL_SIZE, PATTERN_CELL_SIZE, 1.0, Color::from_rgba(60, 60, 60, 160));
+                draw_rectangle_lines(
+                    x,
+                    y,
+                    PATTERN_CELL_SIZE,
+                    PATTERN_CELL_SIZE,
+                    1.0,
+                    Color::from_rgba(60, 60, 60, 160),
+                );
             }
         }
 
@@ -470,7 +493,11 @@ fn draw_patterns(ctx: &CustomRenderContext, layout: &LayoutConstants) {
         let sprite_y = grid_y + (grid_h - PATTERN_PIECE_SIZE) / 2.0;
 
         let source_rect = SpriteRender::piece_sprite_rect(pattern.turn_into);
-        let rotation = if pattern.turn_into == PieceKind::HorizontalBar { 1.57 } else { 0. };
+        let rotation = if pattern.turn_into == PieceKind::HorizontalBar {
+            1.57
+        } else {
+            0.
+        };
         draw_texture_ex(
             &ctx.pieces_texture,
             sprite_x,

@@ -225,7 +225,11 @@ fn compute_portrait_layout(canvas_w: f32, canvas_h: f32) -> LayoutConstants {
             PORTRAIT_BTN_HEIGHT,
         ),
         button_patterns: Rect::new(
-            btn_start + PORTRAIT_BTN0_WIDTH + PORTRAIT_BTN_GAP + PORTRAIT_BTN1_WIDTH + PORTRAIT_BTN_GAP,
+            btn_start
+                + PORTRAIT_BTN0_WIDTH
+                + PORTRAIT_BTN_GAP
+                + PORTRAIT_BTN1_WIDTH
+                + PORTRAIT_BTN_GAP,
             btn_top,
             PORTRAIT_BTN1_WIDTH,
             PORTRAIT_BTN_HEIGHT,
