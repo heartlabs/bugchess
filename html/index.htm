@@ -2,7 +2,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Bugchess</title>
     <style>
         /* === Reset & base === */
@@ -17,23 +17,33 @@
             overflow-x: hidden;
         }
 
-        /* === Game canvas area (matches logical canvas aspect ratio, no forced height) === */
+        /* === Game canvas area (matches logical canvas aspect ratio) ===
+           Padding uses env(safe-area-inset-*) to keep content away from notches,
+           camera cutouts, and browser chrome on mobile. The aspect-ratio preserves
+           the exact logical canvas shape so Canvas2D::draw() won't letterbox. */
         #game {
             position: relative;
             overflow: hidden;
             margin: 0 auto;
-            padding: 0;
             background-color: black;
             width: 100vw;
+            box-sizing: border-box;
+            padding:
+                env(safe-area-inset-top, 0px)
+                env(safe-area-inset-right, 0px)
+                env(safe-area-inset-bottom, 0px)
+                env(safe-area-inset-left, 0px);
         }
         @media (orientation: portrait) {
             #game {
                 aspect-ratio: 430 / 840;
+                max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
             }
         }
         @media (orientation: landscape) {
             #game {
                 aspect-ratio: 932 / 387;
+                max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
             }
         }
         #glcanvas {
