@@ -148,6 +148,49 @@ Each named constant controls a specific visual relationship. Located in `layout.
 - Local const `SPRITE_WIDTH = CELL_WIDTH * 0.75` for internal sprite sizing
 - `render_pos()` field replaced by `layout.sprite_render_pos(layout, point)`
 
+## Patterns Infographic (`game-main/src/states/core_game_state.rs`)
+
+The patterns overlay is toggled by the **Patterns** button (or `P` key). It renders mini-grid cards showing each pattern a set of own pieces can form, and the resulting piece type. The function `draw_patterns()` handles all rendering.
+
+### Pattern order
+
+Pattern cards are displayed in the order returned by `Pattern::all_patterns()` in `game-model/src/pattern.rs`. Current display order:
+
+1. **Queen** (5×5 plus-shape grid)
+2. **HorizontalBar** (3×3 row of three own pieces)
+3. **VerticalBar** (3×3 column of three own pieces)
+4. **Cross** (3×3 plus-shape with center-free)
+5. **Sniper** (3×3 X-shape)
+6. **Castle** (3×3 diamond-shape)
+
+### Color coding
+
+| Component | Render style |
+|-----------|-------------|
+| `OwnPiece` | Filled green (`rgb(60, 200, 60)`)
+| `Free` | Filled white
+| `Any` | Outlined gray (`rgb(160, 160, 160)`)
+
+Every cell also has a thin semi-transparent dark border (`rgb(60, 60, 60, 160)`) drawn on top, ensuring the grid is always visible regardless of fill color.
+
+### Result piece sprite rotation
+
+Result piece sprites use `SpriteRender::piece_sprite_rect()` to select the atlas rect. The `HorizontalBar` result sprite is rotated by `1.57` rad (90°) to match how the game displays it on the board (see `SpriteRender::for_piece` in `sprite.rs`). `VerticalBar` uses the same atlas rect but is not rotated.
+
+### Layout constants reference
+
+Located in `game-render/src/constants.rs`:
+
+| Constant | Description |
+|----------|-------------|
+| `PATTERN_CELL_SIZE` | Size of one cell in the mini-grid (`0.28 × CELL_WIDTH`)
+| `PATTERN_ELEMENT_GAP` | Gap between grid and result sprite (`0.04 × CELL_WIDTH`)
+| `PATTERN_ROW_GAP` | Vertical gap between pattern card rows (`0.60 × CELL_WIDTH`)
+| `PATTERN_COL_GAP` | Horizontal gap between pattern card columns (`1.30 × CELL_WIDTH`)
+| `PATTERN_PIECE_SIZE` | Size of the result piece sprite (`0.55 × CELL_WIDTH`)
+
+The legend row is drawn above the cards using a scaled-down cell (`PATTERN_CELL_SIZE × 0.6`) and label font (`FONT_SIZE × 0.5`).
+
 ## Animations (`animation.rs`)
 
 Entry point bottleneck — `start(&self, board_render: &mut BoardRender)` gives access to the layout-owning `BoardRender` (via `board_render.layout`).
