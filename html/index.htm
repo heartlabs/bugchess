@@ -65,6 +65,26 @@
             background-color: black;
         }
 
+        #feedback_btn {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            z-index: 10;
+            padding: 0.6em 1.2em;
+            font-size: clamp(0.85rem, 1.8vw, 1.1rem);
+            font-family: inherit;
+            background: #4a6cf7;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transition: background 0.15s;
+        }
+        #feedback_btn:hover { background: #3b5de7; }
+        #feedback_btn:active { background: #2e4fd6; }
+        #feedback_btn[hidden] { display: none !important; }
+
         #select_game, #create_game {
             position: absolute; inset: 0;
             display: flex; align-items: center; justify-content: center;
@@ -259,6 +279,9 @@
         </div>
 
         <canvas id="glcanvas" tabindex='1' hidden></canvas>
+        <button id="feedback_btn"
+                onclick="window.open('https://docs.google.com/forms/d/e/1FAIpQLSfXyMKMhyV4FJt8ASSct6I_h3HX9L7TDKz-VqRwHEynvp8n1A/viewform?usp=dialog', '_blank');"
+                hidden>Provide Feedback</button>
     </div>
     </div>
     <div class="content">
@@ -518,7 +541,10 @@
 
         // Called from Rust/WASM when a game completes
         window.reportGameComplete = function() {
-            window.goatcounter.count({path: 'game-complete', title: 'Match Finished'});
+            if (window.goatcounter && window.goatcounter.count) {
+                window.goatcounter.count({path: 'game-complete', title: 'Match Finished'});
+            }
+            document.getElementById('feedback_btn').hidden = false;
         };
 
     </script>
