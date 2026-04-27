@@ -17,22 +17,32 @@
             overflow-x: hidden;
         }
 
-        /* === Game canvas area (matches logical canvas aspect ratio) ===
-           Padding uses env(safe-area-inset-*) to keep content away from notches,
-           camera cutouts, and browser chrome on mobile. The aspect-ratio preserves
-           the exact logical canvas shape so Canvas2D::draw() won't letterbox. */
-        #game {
-            position: relative;
-            overflow: hidden;
+        /* === Game container: fills viewport with safe-area padding ===
+           Flexbox centers the game div within. The canvas aspect-ratio is
+           preserved by sizing the #game element to fit inside this box. */
+        #game_container {
+            width: 100vw;
+            height: 92dvh;
             margin: 0 auto;
             background-color: black;
-            width: 100vw;
+            overflow: hidden;
             box-sizing: border-box;
             padding:
                 env(safe-area-inset-top, 0px)
                 env(safe-area-inset-right, 0px)
                 env(safe-area-inset-bottom, 0px)
                 env(safe-area-inset-left, 0px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #game {
+            position: relative;
+            overflow: hidden;
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
         }
         @media (orientation: portrait) {
             #game {
@@ -224,6 +234,7 @@
 </head>
 
 <body>
+    <div id="game_container">
     <div id="game">
         <div id="select_game" hidden>
             <ul class="gameMenu">
@@ -246,6 +257,7 @@
         </div>
 
         <canvas id="glcanvas" tabindex='1' hidden></canvas>
+    </div>
     </div>
     <div class="content">
         <!-- 1. HERO — What is this? (5 seconds) -->
