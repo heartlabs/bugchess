@@ -440,6 +440,13 @@ function resize(canvas, on_resize) {
 }
 
 function animation() {
+    // Sync canvas pixel buffer with CSS layout before every frame.
+    // Catches orientation changes where resize events fire mid-frame -
+    // the deferred resize would run too late, causing one frame of
+    // buffer/layout mismatch (CSS scaling = blur).
+    if (wasm_exports && wasm_exports.resize) {
+        resize(canvas, wasm_exports.resize);
+    }
     _wasm_running = true;
     try {
         wasm_exports.frame();

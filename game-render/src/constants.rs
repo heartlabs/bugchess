@@ -8,7 +8,7 @@ pub const PORTRAIT_CANVAS_H: f32 = 840.0 * 3.;
 /// Logical canvas width in landscape orientation (swapped).
 pub const LANDSCAPE_CANVAS_W: f32 = 932.0 * 3.;
 /// Logical canvas height in landscape orientation (swapped).
-pub const LANDSCAPE_CANVAS_H: f32 = 387.0 * 3.;
+pub const LANDSCAPE_CANVAS_H: f32 = 430.0 * 3.;
 
 // ── Layout-derived constants (identical in portrait & landscape) ──────────
 
