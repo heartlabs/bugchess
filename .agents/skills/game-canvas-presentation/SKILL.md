@@ -44,7 +44,19 @@ pub const CELL_WIDTH: f32 = {
 
 The board width is always exactly the smaller canvas dimension (`8 × CELL_WIDTH`). All layout constants are expressed as fractions of `CELL_WIDTH` (e.g., `0.5 * CELL_WIDTH`) — rounded to one decimal place.
 
-**Important**: When changing canvas dimensions, the CSS aspect-ratio values in `html/index.htm` must be updated to match (see CSS section below). All layout constants scale automatically since they're derived from `CELL_WIDTH`.
+All layout constants scale automatically since they're derived from `CELL_WIDTH`.
+
+**Critical invariant**: `CELL_WIDTH` must remain a global `pub const`. Do NOT make it orientation-dependent or a runtime value — it is referenced by `cell_coords()`, `sprite_render_pos()`, `LayoutConstants` methods, sprite animations (`animation.rs`), rendering code (`rendering.rs`), and sprite positioning (`sprite.rs`).
+
+### Landscape canvas height
+
+The landscape canvas height **must** be at least `CELL_WIDTH * 8.0` to fit the full board vertically. The current value satisfies this:
+
+```rust
+pub const LANDSCAPE_CANVAS_H: f32 = 430.0 * 3.;  // = 1290.0 ≥ CELL_WIDTH * 8
+```
+
+If `CELL_WIDTH` changes (e.g. via portrait dimension changes), verify `LANDSCAPE_CANVAS_H` is still large enough. The board starts at `y=0` in landscape with `shift_y = 0.0`.
 
 ## Layout Subsystem (`layout.rs`)
 
@@ -213,17 +225,25 @@ The `<head>` **must** include this or `100vw` will use a virtual 980px viewport 
 
 ### CSS aspect-ratio approach
 
-The `#game` container uses `aspect-ratio` to match the logical canvas aspect ratio. No fixed height — height is derived from `100vw × aspect-ratio`, so the canvas is always the correct shape and the documentation below remains scrollable:
+The `#game` container uses `aspect-ratio` to control on-screen sizing. No fixed height — height is derived from `100vw × aspect-ratio`, so the canvas is always the correct shape and the documentation below remains scrollable.
 
-**CRITICAL: Keep the aspect-ratio values in sync with the Rust constants.** If you change `PORTRAIT_CANVAS_W` or `PORTRAIT_CANVAS_H` in `constants.rs`, the corresponding `aspect-ratio` in `index.htm` must be updated. Without this, the canvas element dimensions won't match the logical canvas, and the game will render at the wrong aspect ratio.
+**The CSS `aspect-ratio` does NOT need to match the logical canvas aspect ratio.** `Canvas2D::draw()` uses `get_size_and_padding()` from the macroquad-canvas library to letterbox the logical canvas inside whatever screen area it receives. Black bars are added as needed. This means:
 
-The `#glcanvas` fills `#game` at 100% width/height. The `resize()` callback in `gl.js` sets the WebGL canvas resolution to `canvas.clientWidth × dpr`, so `screen_width()`/`screen_height()` return CSS pixel dimensions that match the logical canvas. `Canvas2D::draw()` additionally provides its own letterboxing via `get_size_and_padding()`, so even if a mismatch occurs, it centers correctly.
+- Portrait CSS `aspect-ratio` should match the portrait logical canvas ratio (430/840) for minimal letterboxing in portrait
+- Landscape CSS `aspect-ratio` (`932/387`) is wider than the landscape logical canvas ratio (`2796/1290 = 2.167`) — `Canvas2D` letterboxes, adding black bars on the sides
+- You can change landscape canvas dimensions without touching CSS, as long as the board fits vertically
+
+**However**, the portrait CSS `aspect-ratio` should still match `PORTRAIT_CANVAS_W / PORTRAIT_CANVAS_H` to avoid excessive letterboxing in the primary orientation.
+
+The `#glcanvas` fills `#game` at 100% width/height. The `resize()` callback in `gl.js` sets the WebGL canvas resolution to `canvas.clientWidth × dpr`, so `screen_width()`/`screen_height()` return CSS pixel dimensions. `Canvas2D::draw()` then provides its own letterboxing via `get_size_and_padding()`.
 
 ## Validation Checklist
 
 - [ ] `cargo check --all-targets` — 0 errors, 0 warnings
 - [ ] `cargo test -p game-render` — all 3 layout tests pass
 - [ ] If orientation constants changed: verify both `compute_portrait_layout` and `compute_landscape_layout` produce reasonable values
-- [ ] **If canvas constants changed**: update the matching `aspect-ratio` values in `html/index.htm`
+- [ ] **If canvas constants changed**: verify `LANDSCAPE_CANVAS_H ≥ CELL_WIDTH * 8.0` so the board fits vertically in landscape
+- [ ] **If portrait canvas constants changed**: the portrait CSS `aspect-ratio` should be updated to match for minimal letterboxing
+- [ ] **If landscape canvas constants changed**: no CSS change needed — `Canvas2D` handles letterboxing, but verify the board fits vertically
 - [ ] Check main invariant: The board width should always be exactly the smaller screen dimension so the board optimally fills the available space.
 - [ ] You can optionally use the playwright screenshot skill to capture the canvas in both orientations and verify visually that layout changes are correct and no elements are misplaced or mis-scaled.
