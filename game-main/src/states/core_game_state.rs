@@ -237,6 +237,10 @@ impl GameState for CoreGameState {
 }
 
 fn check_if_somebody_won(game: &Game, render_context: &mut CustomRenderContext) {
+    if let CoreGameSubstate::Won(_) = render_context.game_state {
+        return;
+    }
+
     let board = &game.board;
     let team_1_won = board.placed_pieces(0).is_empty() || game.num_unused_pieces_of(1) >= 20;
     let team_0_won = board.placed_pieces(1).is_empty() || game.num_unused_pieces_of(0) >= 20;
@@ -244,11 +248,24 @@ fn check_if_somebody_won(game: &Game, render_context: &mut CustomRenderContext) 
     if team_1_won && !team_0_won {
         info!("Team 1 won");
         render_context.game_state = CoreGameSubstate::Won(1);
+        #[cfg(target_family = "wasm")]
+        reportGameComplete();
     }
     if team_0_won && !team_1_won {
         info!("Team 0 won");
         render_context.game_state = CoreGameSubstate::Won(0);
+        #[cfg(target_family = "wasm")]
+        reportGameComplete();
     }
+}
+
+#[cfg(target_family = "wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
+#[cfg(target_family = "wasm")]
+#[wasm_bindgen]
+extern "C" {
+    fn reportGameComplete();
 }
 
 fn description(

@@ -3,6 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <script data-goatcounter="https://heartlabs.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
     <title>Bugchess</title>
     <style>
         /* === Reset & base === */
@@ -513,6 +515,11 @@
 
         setProperty("delay_game", !getProperty("room_id"))
         update()
+
+        // Called from Rust/WASM when a game completes
+        window.reportGameComplete = function() {
+            window.goatcounter.count({path: 'game-complete', title: 'Match Finished'});
+        };
 
     </script>
 </body>
