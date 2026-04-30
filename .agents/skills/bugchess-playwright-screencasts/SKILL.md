@@ -1,4 +1,3 @@
-```skill
 ---
 name: bugchess-playwright-screencasts
 description: Use this skill to capture animated GIFs or video clips of in-game animations (merges, attacks, movement) using Playwright video recording and ffmpeg. Covers coordinate mapping, timing, cropping, and conversion.
@@ -21,15 +20,24 @@ Capture animated GIFs (or video clips) of in-game events by recording Playwright
 **This is the #1 gotcha.** The game renders to an internal Canvas2D whose resolution differs from the browser viewport. You MUST map coordinates.
 
 ### How It Works
-1. The game has an internal resolution defined in `game-main/src/constants.rs` (`WINDOW_WIDTH`, `WINDOW_HEIGHT`).
-2. `macroquad_canvas` scales and letterboxes this to fit the actual browser viewport.
-3. Board cell positions are defined in `game-render/src/constants.rs` (`CELL_WIDTH`, `CELL_SCALE`, `SHIFT_X`, `SHIFT_Y`).
+1. The game uses fixed logical canvas dimensions defined in `game-render/src/constants.rs`: `PORTRAIT_CANVAS_W` (1290) × `PORTRAIT_CANVAS_H` (2520) for portrait mode.
+2. `WINDOW_WIDTH` / `WINDOW_HEIGHT` in `game-main/src/constants.rs` re-export these as `i32`.
+3. `macroquad_canvas` scales and letterboxes the logical canvas to fit the actual browser viewport.
+4. Board cell size: `CELL_WIDTH = PORTRAIT_CANVAS_W / 8` (= 161.25).
+5. Board position (`shift_x`, `shift_y`) is computed at runtime by `compute_layout()` in `game-render/src/layout.rs` — NOT global constants. In portrait mode: `shift_x = 0`, `shift_y = ROW_HEIGHT + gap` where `gap = CELL_WIDTH * 0.4`.
 
 ### How to Map (do this at runtime, never hardcode)
 ```javascript
 const box = await canvas.boundingBox();
-const GAME_W = /* read from game-main/src/constants.rs WINDOW_WIDTH */;
-const GAME_H = /* read from game-main/src/constants.rs WINDOW_HEIGHT */;
+// From game-render/src/constants.rs:
+const GAME_W = 1290;  // PORTRAIT_CANVAS_W = 430 * 3
+const GAME_H = 2520;  // PORTRAIT_CANVAS_H = 840 * 3
+const CELL = 161.25;  // CELL_WIDTH = PORTRAIT_CANVAS_W / 8
+const ROW_HEIGHT = 0.7 * CELL;  // from constants.rs
+const GAP = 0.4 * CELL;         // PORTRAIT_GAP_FACTOR in layout.rs
+const SHIFT_X = 0;               // portrait: board starts at left edge
+const SHIFT_Y = ROW_HEIGHT + GAP; // portrait: below spare row 0 + gap
+
 const scale = Math.min(box.width / GAME_W, box.height / GAME_H);
 const leftPad = box.x + (box.width - GAME_W * scale) / 2;
 const topPad = box.y + (box.height - GAME_H * scale) / 2;
@@ -40,9 +48,6 @@ function gameToViewport(gameX, gameY) {
 }
 
 // Cell center in viewport coords:
-const CELL = /* CELL_WIDTH * CELL_SCALE from constants.rs */;
-const SHIFT_X = /* from constants.rs */;
-const SHIFT_Y = /* from constants.rs */;
 function cellCenter(cellX, cellY) {
   const gx = SHIFT_X + cellX * CELL + CELL / 2;
   const gy = SHIFT_Y + cellY * CELL + CELL / 2;
@@ -139,4 +144,5 @@ ffmpeg -y -v error \
 
 ## Reference Implementation
 Study `automation/playwright/capture-castle-gif.js` as the canonical template. It demonstrates all patterns: coordinate mapping, timing, crop computation, and ffmpeg conversion.
-```
+
+**Note:** Existing capture scripts use hardcoded constants from a prior layout system (GAME_WIDTH=1800, CELL=152, SHIFT_X=180). These are stale — the current canvas is 1290×2520 with CELL_WIDTH=161.25 and shift computed by layout.rs. The scripts need updating before they can be re-run.

@@ -72,6 +72,7 @@ As the collaborator, you own this file. Treat it as a trusted record written by 
 Rules for SESSION_LOG.md:
 
 - Append only. Add new entries at the bottom. Never edit or delete existing entries.
+- **Exception:** The collaborator may delete entries as part of its curation duties (see "SESSION_LOG.md review" below).
 - Use the standard entry format already defined in that file.
 - Keep entries concise and factual. A few bullet points per session is ideal.
 
