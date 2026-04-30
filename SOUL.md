@@ -66,11 +66,11 @@ Agent behavioral contracts live in `.agents/AGENTS-*.agent.md`. Skills for file-
 
 ## Landing Page
 
-`html/index.htm` was restructured (2026-03-28) from a collapsed-sections manual into a flowing page optimized for first-time visitors: Hero GIF → Core Idea + merge gallery → CTA → Quick Start controls → Piece reference (expandable) → Multiplayer. Design principle: **show, don't tell — best content first.** The merge GIFs are the visual hook and appear above the fold. `piece_basic.png` is a placeholder screenshot.
+`html/index.html` was restructured (2026-03-28) from a collapsed-sections manual into a flowing page optimized for first-time visitors: Hero GIF → Core Idea + merge gallery → CTA → Quick Start controls → Piece reference (expandable) → Multiplayer. Design principle: **show, don't tell — best content first.** The merge GIFs are the visual hook and appear above the fold. `piece_basic.png` is a placeholder screenshot.
 
 ## Landing Page GIF Capture
 
-Animated merge GIFs for all 6 piece types live in `html/gifs/*-merge.gif` and are referenced in `html/index.htm`.
+Animated merge GIFs for all 6 piece types live in `html/gifs/*-merge.gif` and are referenced in `html/index.html`.
 
 **Skill**: See `.agents/skills/bugchess-playwright-screencasts/SKILL.md` for the full capture workflow (coordinate mapping, timing, crop, ffmpeg). The reference implementation is `automation/playwright/capture-castle-gif.js`.
 
@@ -80,7 +80,7 @@ Animated merge GIFs for all 6 piece types live in `html/gifs/*-merge.gif` and ar
 
 ## Player Onboarding
 
-The main menu (`html/index.htm`) is optimized for the "create game → copy invite link → join game" flow:
+The main menu (`html/index.html`) is optimized for the "create game → copy invite link → join game" flow:
 
 - **Play with a friend** (formerly Create Game) is the primary online action.
 - **Find Opponent** is visually deemphasized (darker background, moved to bottom) to encourage playing with friends.

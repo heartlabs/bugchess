@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 const { chromium } = require('playwright');
 
-const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:4001/index.htm';
+const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:4001/index.html';
 const WAIT_MS = Number(process.env.WAIT_MS || 15000);
 
 function installProbe(label) {

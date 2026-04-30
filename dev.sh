@@ -13,9 +13,9 @@ SERVER_PID=$!
 
 echo "Serving at http://localhost:$PORT"
 
-# 3. Open index.htm in the default browser
+# 3. Open index.html in the default browser
 sleep 1
-open "http://localhost:$PORT/index.htm"
+open "http://localhost:$PORT/index.html"
 
 # Wait for the server and clean up on exit
 trap "kill $SERVER_PID 2>/dev/null" EXIT

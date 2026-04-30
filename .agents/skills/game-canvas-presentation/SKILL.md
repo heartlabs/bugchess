@@ -213,7 +213,7 @@ Action → BulletAnimation → DieAnimation → RemovePieceAnimation (→ chain 
 ```
 Macro-based dispatch. Animations queue in `next_animations` and get pushed to `current_animations` when the previous chain stage finishes.
 
-## CSS / Canvas Sizing (`html/index.htm`)
+## CSS / Canvas Sizing (`html/index.html`)
 
 ### Required viewport meta tag
 

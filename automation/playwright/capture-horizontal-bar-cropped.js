@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 const fs = require('fs');
 const { chromium } = require('playwright');
-const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:4000/index.htm';
+const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:4000/index.html';
 const OUTPUT = process.env.OUTPUT || 'html/gifs/horizontal-bar-after-cropped-3x3.png';
 const TIMEOUT_MS = Number(process.env.TIMEOUT_MS || 30000);
 const HEADLESS = process.env.HEADLESS !== 'false';

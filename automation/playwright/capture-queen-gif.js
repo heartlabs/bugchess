@@ -27,14 +27,14 @@ Please run this script locally on your host machine for smooth animations:
 
   1. Build the game: bash build.sh
   2. Serve HTML locally: python3 -m http.server 4000 --directory html
-  3. Run capture script: cd automation/playwright && BASE_URL=http://127.0.0.1:4000/index.htm HEADLESS=true node ${__filename}
+  3. Run capture script: cd automation/playwright && BASE_URL=http://127.0.0.1:4000/index.html HEADLESS=true node ${__filename}
 
 Exiting.
 `);
   process.exit(1);
 }
 
-const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:4000/index.htm';
+const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:4000/index.html';
 const TIMEOUT_MS = Number(process.env.TIMEOUT_MS || 30000);
 const HEADLESS = process.env.HEADLESS !== 'false';
 

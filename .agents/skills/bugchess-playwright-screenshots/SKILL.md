@@ -26,7 +26,7 @@ Provide a repeatable workflow to run Bugchess locally and reach a reliable Playw
    - Install automation dependencies:
      - `npm --prefix automation/playwright install`
    - Use base URL:
-     - `BASE_URL=http://127.0.0.1:4000/index.htm`
+     - `BASE_URL=http://127.0.0.1:4000/index.html`
 
 4. **Open Game and Enter Playable Board State**
    - Launch a Playwright script that opens the page and clicks **Offline**.
