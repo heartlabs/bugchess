@@ -73,6 +73,13 @@ Agent behavioral contracts live in `.agents/AGENTS-*.agent.md`. Skills for file-
 
 Merge GIFs live in `html/gifs/`. Full capture workflow (coordinate mapping, Canvas2D scaling, ffmpeg) is in `.agents/skills/bugchess-playwright-screencasts/SKILL.md`.
 
+**Key discoveries (2026-04-30):**
+
+- Viewport **688×1344** gives zero padding (exact scale 0.5333). Other sizes (e.g. 768×1366) produce fractional padding → GIF shaking.
+- Must wait for WASM init (`canvas.width > 300`) before computing scale/pad.
+- Must use `gameClick()` pattern (move + 50ms delay + down + 30ms + up) instead of `page.mouse.click()`. The game reads mouse position from macroquad's internal state at frame time, not from the click event — raw clicks intermittently land at (0,0).
+- `capture-cross-gif.js` is the canonical reference; other scripts need updating to match.
+
 ## Player Onboarding
 
 Main menu prioritizes "Play with a friend" → copy invite link → enter board (single button). "Find Opponent" is deemphasized. Playwright scripts (`start-game.js`, `webrtc-probe.js`) reflect current button texts.

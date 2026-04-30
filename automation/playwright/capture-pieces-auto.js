@@ -17,9 +17,11 @@ const ROOT_DIR = path.join(__dirname, '../..');
 const FRAMES_ROOT = path.join(ROOT_DIR, 'html/gifs/frames');
 const OUTPUT_DIR = path.join(ROOT_DIR, 'html/gifs');
 
-const CELL_ABSOLUTE_WIDTH = 64 * 1.1875;
-const SHIFT_X = 60;
-const SHIFT_Y = 0;
+const CELL_ABSOLUTE_WIDTH = 161.25; // CELL_WIDTH = PORTRAIT_CANVAS_W / 8
+const SHIFT_X = 0; // portrait: board starts at left edge
+const SHIFT_Y = 0.7 * CELL_ABSOLUTE_WIDTH + 0.4 * CELL_ABSOLUTE_WIDTH; // ROW_HEIGHT + gap
+const GAME_W = 1290; // PORTRAIT_CANVAS_W = 430 * 3
+const GAME_H = 2520; // PORTRAIT_CANVAS_H = 840 * 3
 const BOARD_WIDTH = 8;
 const BOARD_HEIGHT = 8;
 
@@ -129,15 +131,24 @@ function cellCenter(cellX, cellY) {
 }
 
 async function clickCell(page, cellX, cellY) {
+  const canvas = page.locator('#glcanvas');
+  const box = await canvas.boundingBox();
+  const scale = Math.min(box.width / GAME_W, box.height / GAME_H);
+  const padX = (box.width - GAME_W * scale) / 2;
+  const padY = (box.height - GAME_H * scale) / 2;
   const { x, y } = cellCenter(cellX, cellY);
-  await page.locator('#glcanvas').click({ position: { x, y } });
+  await canvas.click({ position: { x: padX + x * scale, y: padY + y * scale } });
 }
 
 function getBoardOnlyZoomClip(canvasBox, focus) {
-  const boardLeft = canvasBox.x + SHIFT_X;
-  const boardTop = canvasBox.y + SHIFT_Y;
-  const boardWidthPx = CELL_ABSOLUTE_WIDTH * BOARD_WIDTH;
-  const boardHeightPx = CELL_ABSOLUTE_WIDTH * BOARD_HEIGHT;
+  const scale = Math.min(canvasBox.width / GAME_W, canvasBox.height / GAME_H);
+  const padX = (canvasBox.width - GAME_W * scale) / 2;
+  const padY = (canvasBox.height - GAME_H * scale) / 2;
+  const boardLeft = canvasBox.x + padX + SHIFT_X * scale;
+  const boardTop = canvasBox.y + padY + SHIFT_Y * scale;
+  const boardWidthPx = CELL_ABSOLUTE_WIDTH * BOARD_WIDTH * scale;
+  const boardHeightPx = CELL_ABSOLUTE_WIDTH * BOARD_HEIGHT * scale;
+  const cellPx = CELL_ABSOLUTE_WIDTH * scale;
 
   const padCells = 0.08;
   const minX = Math.max(0, focus.minX - padCells);
@@ -145,26 +156,22 @@ function getBoardOnlyZoomClip(canvasBox, focus) {
   const minY = Math.max(0, focus.minY - padCells);
   const maxY = Math.min(BOARD_HEIGHT, focus.maxY + 1 + padCells);
 
-  const x = boardLeft + minX * CELL_ABSOLUTE_WIDTH;
-  const y = boardTop + minY * CELL_ABSOLUTE_WIDTH;
-  const width = (maxX - minX) * CELL_ABSOLUTE_WIDTH;
-  const height = (maxY - minY) * CELL_ABSOLUTE_WIDTH;
+  const x = boardLeft + minX * cellPx;
+  const y = boardTop + minY * cellPx;
+  const width = (maxX - minX) * cellPx;
+  const height = (maxY - minY) * cellPx;
 
   const boardInsetPx = 2;
-  const leftGutterSafetyPx = 112;
 
   const rawX = Math.max(Math.floor(boardLeft + boardInsetPx), Math.floor(x));
   const rawY = Math.max(Math.floor(boardTop + boardInsetPx), Math.floor(y));
   const rawW = Math.min(Math.floor(boardWidthPx - boardInsetPx), Math.floor(width));
   const rawH = Math.min(Math.floor(boardHeightPx - boardInsetPx), Math.floor(height));
 
-  const clippedX = rawX + leftGutterSafetyPx;
-  const clippedW = Math.max(120, rawW - leftGutterSafetyPx);
-
   return {
-    x: clippedX,
+    x: rawX,
     y: rawY,
-    width: clippedW,
+    width: rawW,
     height: rawH,
   };
 }
@@ -271,7 +278,7 @@ async function main() {
 
   const browser = await chromium.launch({ headless: HEADLESS });
   const context = await browser.newContext({
-    viewport: { width: 1280, height: 1024 },
+    viewport: { width: 768, height: 1366 },
     deviceScaleFactor: 1,
   });
   const page = await context.newPage();

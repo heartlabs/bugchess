@@ -33,13 +33,13 @@ Exiting.
 
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:4000/index.html';
 const TIMEOUT_MS = Number(process.env.TIMEOUT_MS || 30000);
-const HEADLESS = process.env.HEADLESS !== 'false';
+const HEADLESS = process.env.HEADLESS === 'true';
 
-const GAME_WIDTH = 1800;
-const GAME_HEIGHT = 1600;
-const CELL = 64 * 1.1875 * 2; // CELL_ABSOLUTE_WIDTH = 152
-const SHIFT_X = 60 * 2 * 1.5; // PIECE_SCALE = 180
-const SHIFT_Y = 0;
+const GAME_WIDTH = 1290; // PORTRAIT_CANVAS_W = 430 * 3
+const GAME_HEIGHT = 2520; // PORTRAIT_CANVAS_H = 840 * 3
+const CELL = 161.25; // CELL_WIDTH = PORTRAIT_CANVAS_W / 8
+const SHIFT_X = 0; // portrait: board starts at left edge
+const SHIFT_Y = 0.7 * CELL + 0.4 * CELL; // ROW_HEIGHT + gap (portrait board_top)
 
 const ROOT = path.join(__dirname, '../..');
 const VIDEO_DIR = path.join(ROOT, 'html/gifs/video');
@@ -60,7 +60,7 @@ function ensureCommand(cmd) {
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 function makeCellCenter(scale, leftPad, topPad) {
-  return function(x, y) {
+  return function (x, y) {
     return {
       x: leftPad + (SHIFT_X + x * CELL + CELL / 2) * scale,
       y: topPad + (SHIFT_Y + y * CELL + CELL / 2) * scale,
@@ -81,22 +81,22 @@ function computeCrop(N, originCellX, originCellY, scale, leftPad, topPad) {
 }
 
 function cropAndConvert(videoPath, crop, trimStart, trimDuration) {
-  const probe = spawnSync('ffprobe', ['-v','error','-show_entries','format=duration','-of','csv=p=0',videoPath], {encoding:'utf8'});
-  console.log(`Video duration: ${parseFloat((probe.stdout||'').trim()).toFixed(2)}s`);
+  const probe = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', videoPath], { encoding: 'utf8' });
+  console.log(`Video duration: ${parseFloat((probe.stdout || '').trim()).toFixed(2)}s`);
   const ff = spawnSync('ffmpeg', [
-    '-y','-v','error','-ss',trimStart.toFixed(3),'-t',trimDuration.toFixed(3),'-i',videoPath,
+    '-y', '-v', 'error', '-ss', trimStart.toFixed(3), '-t', trimDuration.toFixed(3), '-i', videoPath,
     '-vf', [
       `crop=${crop.w}:${crop.h}:${crop.x}:${crop.y}`,
       `scale=${GIF_SIZE}:${GIF_SIZE}:flags=lanczos`,
       'fps=30',
-      'split[s0][s1]','[s0]palettegen=stats_mode=diff[p]','[s1][p]paletteuse=dither=sierra2_4a',
+      'split[s0][s1]', '[s0]palettegen=stats_mode=diff[p]', '[s1][p]paletteuse=dither=sierra2_4a',
     ].join(','),
     OUTPUT_GIF,
-  ], {encoding:'utf8'});
+  ], { encoding: 'utf8' });
   if (ff.status !== 0) throw new Error('ffmpeg failed: ' + (ff.stderr || ff.stdout));
-  const info = spawnSync('ffprobe', ['-v','error','-count_frames','-select_streams','v:0',
-    '-show_entries','stream=width,height,nb_read_frames,r_frame_rate','-of','default=noprint_wrappers=1',OUTPUT_GIF], {encoding:'utf8'});
-  console.log('GIF info:\n' + (info.stdout||'').trim());
+  const info = spawnSync('ffprobe', ['-v', 'error', '-count_frames', '-select_streams', 'v:0',
+    '-show_entries', 'stream=width,height,nb_read_frames,r_frame_rate', '-of', 'default=noprint_wrappers=1', OUTPUT_GIF], { encoding: 'utf8' });
+  console.log('GIF info:\n' + (info.stdout || '').trim());
 }
 
 async function main() {
@@ -106,17 +106,25 @@ async function main() {
 
   const browser = await chromium.launch({ headless: HEADLESS });
   const context = await browser.newContext({
-    viewport: { width: 1280, height: 1024 }, deviceScaleFactor: 1,
-    recordVideo: { dir: VIDEO_DIR, size: { width: 1280, height: 1024 } },
+    viewport: { width: 688, height: 1344 }, deviceScaleFactor: 1,
+    recordVideo: { dir: VIDEO_DIR, size: { width: 688, height: 1344 } },
   });
   const page = await context.newPage();
   const t0 = process.hrtime.bigint();
 
   try {
     await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_MS });
+    // Force integer pixel layout: remove 92dvh so game fills viewport exactly
+    await page.addStyleTag({ content: '#game_container { height: 100dvh !important; }' });
     await page.locator('a[onclick="runOffline()"]').click({ timeout: TIMEOUT_MS });
     const canvas = page.locator('#glcanvas');
     await canvas.waitFor({ state: 'visible', timeout: TIMEOUT_MS });
+
+    // Wait for WASM to fully initialize (canvas buffer resizes from default 300×150)
+    await page.waitForFunction(() => {
+      const c = document.querySelector('#glcanvas');
+      return c && c.width > 300;
+    }, { timeout: TIMEOUT_MS });
 
     const box = await canvas.boundingBox();
     const scale = Math.min(box.width / GAME_WIDTH, box.height / GAME_HEIGHT);
@@ -124,6 +132,17 @@ async function main() {
     const topPad = box.y + (box.height - GAME_HEIGHT * scale) / 2;
     console.log(`Scale: ${scale.toFixed(4)}, pad: (${leftPad.toFixed(1)}, ${topPad.toFixed(1)})`);
     const cellCenter = makeCellCenter(scale, leftPad, topPad);
+
+    // Game click helper: move mouse to position, wait one frame for the game
+    // engine to register the new position, then click. This avoids a race where
+    // macroquad's mouse_position() returns a stale value during click processing.
+    async function gameClick(x, y) {
+      await page.mouse.move(x, y);
+      await delay(50);  // ensure at least one game frame sees the new position
+      await page.mouse.down();
+      await delay(30);
+      await page.mouse.up();
+    }
 
     await page.mouse.move(5, 5);
     await delay(SETUP_SETTLE_MS);
@@ -135,13 +154,14 @@ async function main() {
     // Phase 1: Hold initial state
     await delay(INITIAL_HOLD_MS);
 
-    // Phase 2: Place (2,1) — top — fast click via mouse API
+    // Phase 2: Place (2,1) — top — need delay for game to process
     const c21 = cellCenter(2, 1);
-    await page.mouse.click(c21.x, c21.y);
+    await gameClick(c21.x, c21.y);
+    await delay(AFTER_PLACE_MS);
 
     // Phase 3: Place (2,3) — bottom → triggers merge
     const c23 = cellCenter(2, 3);
-    await page.mouse.click(c23.x, c23.y);
+    await gameClick(c23.x, c23.y);
     await page.mouse.move(5, 5);
     await delay(AFTER_MERGE_PLACE_MS);
 
@@ -155,7 +175,7 @@ async function main() {
     cropAndConvert(videoPath, crop, trimStart, trimDuration);
     console.log(`\nSaved ${OUTPUT_GIF}`);
   } catch (err) {
-    await page.close().catch(()=>{}); await context.close().catch(()=>{});
+    await page.close().catch(() => { }); await context.close().catch(() => { });
     throw err;
   } finally { await browser.close(); }
 }

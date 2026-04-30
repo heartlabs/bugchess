@@ -62,35 +62,66 @@ function cellCenter(cellX, cellY) {
 1. **Create browser context with video recording:**
    ```javascript
    const context = await browser.newContext({
-     viewport: { width: 1280, height: 1024 },
-     deviceScaleFactor: 1,
-     recordVideo: { dir: VIDEO_DIR, size: { width: 1280, height: 1024 } },
+     viewport: { width: 688, height: 1344 }, deviceScaleFactor: 1,
+     recordVideo: { dir: VIDEO_DIR, size: { width: 688, height: 1344 } },
    });
    ```
+   This viewport gives zero padding (exact fit: 688/1290 ≈ 0.5333 scale, 1344/2520 ≈ 0.5333). Zero padding eliminates GIF shaking artifacts caused by fractional-pixel padding.
 
-2. **Record a time reference** at context creation: `const t0 = process.hrtime.bigint();`
+2. **Force full-height layout** — The page uses `92dvh` by default (for mobile safe areas). Override it:
+   ```javascript
+   await page.addStyleTag({ content: '#game_container { height: 100dvh !important; }' });
+   ```
 
-3. **Navigate and enter game** (use bugchess-playwright-screenshots skill for setup).
+3. **Record a time reference** at context creation: `const t0 = process.hrtime.bigint();`
 
-4. **Wait for setup animations** — the game runs setup automatically (placing initial pieces, swoosh animations). Wait generously (currently ~4000ms) before interacting. This value may change if game setup changes.
+4. **Navigate and enter game** (use bugchess-playwright-screenshots skill for setup).
 
-5. **Mark trim-start** just before the interesting action begins:
+5. **Wait for WASM initialization** — The canvas buffer starts at default 300×150 and only resizes after WASM loads. You MUST wait:
+   ```javascript
+   await page.waitForFunction(() => {
+     const c = document.querySelector('#glcanvas');
+     return c && c.width > 300;
+   }, { timeout: TIMEOUT_MS });
+   ```
+
+6. **Wait for setup animations** — the game runs setup automatically (placing initial pieces, swoosh animations). Wait generously (currently ~4000ms) before interacting. This value may change if game setup changes.
+
+7. **Mark trim-start** just before the interesting action begins:
    ```javascript
    const trimStart = Number(process.hrtime.bigint() - t0) / 1e9;
    ```
 
-6. **Perform game interactions** (clicks, delays). Key rules:
+8. **Perform game interactions** (clicks, delays). Key rules:
+   - **Use `gameClick()` helper** (see below) — never use raw `page.mouse.click()`.
    - **Move mouse to (5,5) after every click** to prevent hover effects (green lines).
    - **Click fast for "boring" setup** (~50ms between non-final clicks).
    - **Wait generously after the final click** that triggers the animation you want to capture (~5000ms for 3×3 merges, more for larger patterns).
    - **Hold the final state** for ≥1 second so the viewer can register what happened.
 
-7. **Close page** to finalize video, then **crop + convert with ffmpeg:**
+9. **Close page** to finalize video, then **crop + convert with ffmpeg:**
    ```javascript
    // Crop coordinates also use the scale/padding mapping
    const crop = computeCrop(N, originCellX, originCellY, scale, leftPad, topPad);
    // ffmpeg pipeline: crop → scale → palette → GIF
    ```
+
+## The gameClick() Helper (CRITICAL)
+
+The game engine (macroquad) reads mouse position on every frame from its internal state. When `is_mouse_button_pressed` fires, it uses `cell_hovered(canvas)` which reads the **current** position — NOT the click event coordinates. If Playwright dispatches `mousemove` and `mousedown` in the same event loop tick, the game may not have processed the position yet, causing it to read a stale (0,0) position.
+
+**Always use this pattern:**
+```javascript
+async function gameClick(x, y) {
+  await page.mouse.move(x, y);
+  await delay(50);  // ensure at least one game frame sees the new position
+  await page.mouse.down();
+  await delay(30);
+  await page.mouse.up();
+}
+```
+
+This separates the move from the click, giving the game engine time to update its internal mouse position before the click is processed.
 
 ## Timing Guidelines
 
@@ -135,6 +166,10 @@ ffmpeg -y -v error \
 5. **Hover effects**: The game draws green lines when the mouse hovers over a cell. Always move the mouse to a safe corner (5,5) after every click.
 6. **End Turn accumulation**: If you need more unused pieces than the game provides at start, click the End Turn button (in game coordinates) twice per round trip. But beware: the game ends at 20 unused pieces.
 7. **Offline mode selector**: Use `a[onclick="runOffline()"]` — `getByText('Offline')` matches 2 elements.
+8. **GIF shaking/jitter**: Caused by fractional-pixel padding in the viewport. Use viewport 688×1344 which gives exact zero padding at scale 0.5333. Other viewport sizes (e.g., 768×1366) produce fractional padding that causes sub-pixel jitter between frames.
+9. **Race condition with `page.mouse.click()`**: The game reads mouse position from macroquad's internal state, NOT from the click event coords. If you use `page.mouse.click()` directly, the position may not be registered yet → piece placed at (0,0). Always use the `gameClick()` helper that separates move from click with a small delay.
+10. **WASM init timing**: The canvas buffer starts at 300×150 (HTML default) and resizes only after WASM loads. Wait for `c.width > 300` before computing scale/padding, otherwise your coordinate mapping will be wrong.
+11. **MUST run headed (not headless) on macOS.** `HEADLESS` defaults to `false`. Headless Chromium on macOS does NOT render WebGL canvases — video recording produces entirely black frames. Never set `HEADLESS=true` for these scripts.
 
 ## Validation
 - [ ] GIF file exists and has >10 frames (use `ffprobe -count_frames`).
@@ -143,6 +178,4 @@ ffmpeg -y -v error \
 - [ ] Clean up `html/gifs/video/` after each run.
 
 ## Reference Implementation
-Study `automation/playwright/capture-castle-gif.js` as the canonical template. It demonstrates all patterns: coordinate mapping, timing, crop computation, and ffmpeg conversion.
-
-**Note:** Existing capture scripts use hardcoded constants from a prior layout system (GAME_WIDTH=1800, CELL=152, SHIFT_X=180). These are stale — the current canvas is 1290×2520 with CELL_WIDTH=161.25 and shift computed by layout.rs. The scripts need updating before they can be re-run.
+Study `automation/playwright/capture-cross-gif.js` as the canonical template. It demonstrates all patterns: viewport sizing (688×1344), WASM init wait, `gameClick()` helper, coordinate mapping, timing, crop computation, and ffmpeg conversion.

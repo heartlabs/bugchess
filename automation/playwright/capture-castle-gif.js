@@ -13,8 +13,8 @@
  * Click plan: place (1,3), (3,3), (2,4). Last placement triggers merge.
  * Crop: 3×3 centered on (2,3).
  *
- * IMPORTANT: The game renders to a 1800×1600 Canvas2D which is scaled/letterboxed
- * to fit the browser viewport (1280×~922). All click positions and crop coordinates
+ * IMPORTANT: The game renders to a 1290×2520 Canvas2D which is scaled/letterboxed
+ * to fit the browser viewport (768×1366). All click positions and crop coordinates
  * must account for this scale + offset transformation.
  */
 const fs = require('fs');
@@ -40,16 +40,16 @@ Exiting.
 
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:4000/index.html';
 const TIMEOUT_MS = Number(process.env.TIMEOUT_MS || 30000);
-const HEADLESS = process.env.HEADLESS !== 'false';
+const HEADLESS = process.env.HEADLESS === 'true';
 
 // Game internal resolution (Canvas2D in game-main/src/constants.rs)
-const GAME_WIDTH = 1800;
-const GAME_HEIGHT = 1600;
+const GAME_WIDTH = 1290; // PORTRAIT_CANVAS_W = 430 * 3
+const GAME_HEIGHT = 2520; // PORTRAIT_CANVAS_H = 840 * 3
 
 // Board geometry (game-render/src/constants.rs)
-const CELL = 64 * 1.1875 * 2; // CELL_ABSOLUTE_WIDTH = 152
-const SHIFT_X = 60 * 2 * 1.5; // PIECE_SCALE = 180
-const SHIFT_Y = 0;
+const CELL = 161.25; // CELL_WIDTH = PORTRAIT_CANVAS_W / 8
+const SHIFT_X = 0; // portrait: board starts at left edge
+const SHIFT_Y = 0.7 * CELL + 0.4 * CELL; // ROW_HEIGHT + gap (portrait board_top)
 
 const ROOT = path.join(__dirname, '../..');
 const VIDEO_DIR = path.join(ROOT, 'html/gifs/video');
@@ -152,9 +152,9 @@ async function main() {
 
   const browser = await chromium.launch({ headless: HEADLESS });
   const context = await browser.newContext({
-    viewport: { width: 1280, height: 1024 },
+    viewport: { width: 688, height: 1344 },
     deviceScaleFactor: 1,
-    recordVideo: { dir: VIDEO_DIR, size: { width: 1280, height: 1024 } },
+    recordVideo: { dir: VIDEO_DIR, size: { width: 688, height: 1344 } },
   });
   const page = await context.newPage();
   const recordingStartedAt = process.hrtime.bigint();
@@ -162,10 +162,18 @@ async function main() {
   try {
     // Navigate and start offline game
     await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_MS });
+    // Force integer pixel layout: remove 92dvh so game fills viewport exactly
+    await page.addStyleTag({ content: '#game_container { height: 100dvh !important; }' });
     await page.locator('a[onclick="runOffline()"]').click({ timeout: TIMEOUT_MS });
 
     const canvas = page.locator('#glcanvas');
     await canvas.waitFor({ state: 'visible', timeout: TIMEOUT_MS });
+
+    // Wait for WASM to fully initialize (canvas buffer resizes from default 300×150)
+    await page.waitForFunction(() => {
+      const c = document.querySelector('#glcanvas');
+      return c && c.width > 300;
+    }, { timeout: TIMEOUT_MS });
 
     // Compute Canvas2D scale and padding from actual canvas bounding box
     const box = await canvas.boundingBox();
@@ -176,6 +184,17 @@ async function main() {
     console.log(`Scale: ${scale.toFixed(6)}, leftPad: ${leftPad.toFixed(1)}, topPad: ${topPad.toFixed(1)}`);
 
     const cellCenter = makeCellCenter(scale, leftPad, topPad);
+
+    // Game click helper: move mouse to position, wait one frame for the game
+    // engine to register the new position, then click. This avoids a race where
+    // macroquad's mouse_position() returns a stale value during click processing.
+    async function gameClick(x, y) {
+      await page.mouse.move(x, y);
+      await delay(50);  // ensure at least one game frame sees the new position
+      await page.mouse.down();
+      await delay(30);
+      await page.mouse.up();
+    }
 
     // Move mouse to safe corner
     await page.mouse.move(5, 5);
@@ -208,15 +227,16 @@ async function main() {
     // Phase 1: Show initial state
     await delay(INITIAL_HOLD_MS);
 
-    // Phase 2-3: Place (1,3) and (3,3) — fast clicks via mouse API
-    for (const [x, y] of [[1,3],[3,3]]) {
+    // Phase 2-3: Place (1,3) and (3,3) — need delay between clicks for game to process
+    for (const [x, y] of [[1, 3], [3, 3]]) {
       const c = cellCenter(x, y);
-      await page.mouse.click(c.x, c.y);
+      await gameClick(c.x, c.y);
+      await delay(AFTER_PLACE_MS);
     }
 
     // Phase 4: Place piece at (2,4) → triggers merge
     const cMerge = cellCenter(2, 4);
-    await page.mouse.click(cMerge.x, cMerge.y);
+    await gameClick(cMerge.x, cMerge.y);
     await page.mouse.move(5, 5);
 
     // Phase 5: Wait for merge animation
@@ -240,8 +260,8 @@ async function main() {
     cropAndConvert(videoPath, crop, trimStartSeconds, trimDurationSeconds);
     console.log(`\nSaved ${OUTPUT_GIF}`);
   } catch (err) {
-    await page.close().catch(() => {});
-    await context.close().catch(() => {});
+    await page.close().catch(() => { });
+    await context.close().catch(() => { });
     throw err;
   } finally {
     await browser.close();
