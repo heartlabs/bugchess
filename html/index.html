@@ -3,12 +3,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <script data-goatcounter="https://heartlabs.goatcounter.com/count"
-        async src="//gc.zgo.at/count.js"></script>
+    <script data-goatcounter="https://heartlabs.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
     <title>Bugchess</title>
     <style>
         /* === Reset & base === */
-        html, body {
+        html,
+        body {
             margin: 0;
             padding: 0;
             width: 100%;
@@ -30,14 +30,12 @@
             overflow: hidden;
             box-sizing: border-box;
             padding:
-                env(safe-area-inset-top, 0px)
-                env(safe-area-inset-right, 0px)
-                env(safe-area-inset-bottom, 0px)
-                env(safe-area-inset-left, 0px);
+                env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
             display: flex;
             align-items: center;
             justify-content: center;
         }
+
         #game {
             position: relative;
             overflow: hidden;
@@ -46,16 +44,19 @@
             width: auto;
             height: auto;
         }
+
         @media (orientation: portrait) {
             #game {
                 aspect-ratio: 430 / 840;
             }
         }
+
         @media (orientation: landscape) {
             #game {
                 aspect-ratio: 932 / 387;
             }
         }
+
         #glcanvas {
             margin: 0;
             padding: 0;
@@ -78,55 +79,131 @@
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
             transition: background 0.15s;
         }
-        #feedback_btn:hover { background: #3b5de7; }
-        #feedback_btn:active { background: #2e4fd6; }
-        #feedback_btn[hidden] { display: none !important; }
 
-        #select_game, #create_game {
-            position: absolute; inset: 0;
-            display: flex; align-items: center; justify-content: center;
-            padding: 16px; box-sizing: border-box;
+        #feedback_btn:hover {
+            background: #3b5de7;
         }
-        #select_game[hidden], #create_game[hidden] { display: none !important; }
+
+        #feedback_btn:active {
+            background: #2e4fd6;
+        }
+
+        #feedback_btn[hidden] {
+            display: none !important;
+        }
+
+        #select_game,
+        #create_game {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            box-sizing: border-box;
+        }
+
+        #select_game[hidden],
+        #create_game[hidden] {
+            display: none !important;
+        }
 
         .gameMenu {
-            list-style-type: none; margin: 0; padding: 0;
-            flex-direction: column; align-items: center; justify-content: center;
-            display: flex; gap: 12px; width: min(420px, 100%);
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            display: flex;
+            gap: 12px;
+            width: min(420px, 100%);
         }
-        .gameMenu > * {
-            width: 100%; font-size: clamp(1.5rem, 3vw, 2rem);
-            background-color: #444; color: #CCC;
+
+        .gameMenu>* {
+            width: 100%;
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            background-color: #444;
+            color: #CCC;
         }
-        .gameMenu li, .gameMenu div { width: 100%; }
+
+        .gameMenu li,
+        .gameMenu div {
+            width: 100%;
+        }
+
         .gameMenu a {
-            padding: 0.9em 1em; width: 100%; height: 100%;
-            min-height: 56px; display: block; box-sizing: border-box;
+            padding: 0.9em 1em;
+            width: 100%;
+            height: 100%;
+            min-height: 56px;
+            display: block;
+            box-sizing: border-box;
         }
+
         .gameMenu .description {
-            font-size: 1.5em; padding: 1em; color: #333;
-            background-color: #DDD; box-sizing: border-box;
+            font-size: 1.5em;
+            padding: 1em;
+            color: #333;
+            background-color: #DDD;
+            box-sizing: border-box;
         }
-        .gameMenu a:hover { background-color: #777; color: #FFF; }
-        .gameMenu a:active { background-color: #999; color: #444; }
+
+        .gameMenu a:hover {
+            background-color: #777;
+            color: #FFF;
+        }
+
+        .gameMenu a:active {
+            background-color: #999;
+            color: #444;
+        }
+
         .gameMenu .less-encouraged {
             background-color: #222;
         }
-        #room_id_display { font-style: italic; font-size: 0.9em; display: block; padding-top: 0.5em; }
-        .linkCopied .gameMenu > *:nth-child(2) { color: #4CAF50; }
+
+        #room_id_display {
+            font-style: italic;
+            font-size: 0.9em;
+            display: block;
+            padding-top: 0.5em;
+        }
+
+        .linkCopied .gameMenu>*:nth-child(2) {
+            color: #4CAF50;
+        }
 
         /* === Content area === */
         .content {
             max-width: 720px;
             margin: 0 auto;
         }
-        .content p { padding: 0; margin: 0.8em 0; }
-        .content h1 { margin: 0 0 0.3em; font-size: 2em; }
-        .content h2 { margin: 2em 0 0.5em; font-size: 1.4em; border-bottom: 1px solid #e0e0e0; padding-bottom: 0.3em; }
-        .content h3 { margin: 1.5em 0 0.4em; font-size: 1.15em; }
+
+        .content p {
+            padding: 0;
+            margin: 0.8em 0;
+        }
+
+        .content h1 {
+            margin: 0 0 0.3em;
+            font-size: 2em;
+        }
+
+        .content h2 {
+            margin: 2em 0 0.5em;
+            font-size: 1.4em;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 0.3em;
+        }
+
+        .content h3 {
+            margin: 1.5em 0 0.4em;
+            font-size: 1.15em;
+        }
 
         .tagline {
             font-size: 1.15em;
@@ -143,6 +220,7 @@
             border-radius: 6px;
             background-color: #000;
         }
+
         .hero-caption {
             text-align: center;
             font-size: 0.9em;
@@ -157,22 +235,26 @@
             gap: 1.2em;
             margin: 1em 0;
         }
+
         .merge-card {
             text-align: center;
             background: #f9f9f9;
             border-radius: 6px;
             padding: 0.8em;
         }
+
         .merge-card img {
             width: 100%;
             max-width: 220px;
             border-radius: 4px;
             background: #000;
         }
+
         .merge-card .merge-name {
             font-weight: bold;
             margin: 0.5em 0 0.2em;
         }
+
         .merge-card .merge-desc {
             font-size: 0.9em;
             color: #666;
@@ -193,7 +275,11 @@
             border: none;
             font-family: inherit;
         }
-        .cta:hover { background: #666; color: #fff; }
+
+        .cta:hover {
+            background: #666;
+            color: #fff;
+        }
 
         /* === Quick-start controls list === */
         .controls {
@@ -203,8 +289,15 @@
             margin: 1em 0;
             line-height: 1.8;
         }
-        .controls p { margin: 0.3em 0; }
-        .controls strong { color: #222; }
+
+        .controls p {
+            margin: 0.3em 0;
+        }
+
+        .controls strong {
+            color: #222;
+        }
+
         kbd {
             display: inline-block;
             padding: 0.15em 0.5em;
@@ -223,77 +316,94 @@
             border-radius: 4px;
             border-left: 4px solid #ddd;
         }
+
         .piece-ref summary {
             cursor: pointer;
             font-weight: bold;
             user-select: none;
             padding: 0.3em 0;
         }
+
         .piece-ref-body {
             display: flex;
             gap: 1.5em;
             align-items: flex-start;
             margin-top: 0.8em;
         }
+
         .piece-ref-gif {
             flex: 0 0 auto;
             min-width: 180px;
         }
+
         .piece-ref-gif img {
             width: 100%;
             max-width: 220px;
             border-radius: 4px;
             background: #000;
         }
-        .piece-ref-text { flex: 1; }
+
+        .piece-ref-text {
+            flex: 1;
+        }
 
         @media (max-width: 600px) {
-            .piece-ref-body { flex-direction: column; gap: 0.8em; }
-            .piece-ref-gif { min-width: auto; width: 100%; }
-            .merge-gallery { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+            .piece-ref-body {
+                flex-direction: column;
+                gap: 0.8em;
+            }
+
+            .piece-ref-gif {
+                min-width: auto;
+                width: 100%;
+            }
+
+            .merge-gallery {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
         }
     </style>
 </head>
 
 <body>
     <div id="game_container">
-    <div id="game">
-        <div id="select_game" hidden>
-            <ul class="gameMenu">
-                <li><a onclick="runOffline()">Offline</a></li>
-                <li><a onclick="createGame()">Play with a friend</a></li>
-                <li class="less-encouraged"><a onclick="runMatchmaking()">Find Opponent</a></li>
-            </ul>
-        </div>
-        <div id="create_game" hidden>
-            <div class="gameMenu">
-                <span class="description">
-                    <b>Invite a friend to play:</b> <br>
-                    <b>Press the button below</b> to start the game.<br>
-                    Then <b>send the copied invite link to your friend</b> so they can join you. <br>
-                    <span id="room_id_display"></span>
-                </span>
-
-                <div><a onclick="copyInviteLink(); setProperty('delay_game', false)">Copy Invite & Start Room</a></div>
+        <div id="game">
+            <div id="select_game" hidden>
+                <ul class="gameMenu">
+                    <li><a onclick="runOffline()">Offline</a></li>
+                    <li><a onclick="createGame()">Play with a friend</a></li>
+                    <li class="less-encouraged"><a onclick="runMatchmaking()">Find Opponent</a></li>
+                </ul>
             </div>
-        </div>
+            <div id="create_game" hidden>
+                <div class="gameMenu">
+                    <span class="description">
+                        <b>Invite a friend to play:</b> <br>
+                        <b>Press the button below</b> to start the game.<br>
+                        Then <b>send the copied invite link to your friend</b> so they can join you. <br>
+                        <span id="room_id_display"></span>
+                    </span>
 
-        <canvas id="glcanvas" tabindex='1' hidden></canvas>
-        <button id="feedback_btn"
+                    <div><a onclick="copyInviteLink(); setProperty('delay_game', false)">Copy Invite & Start Room</a>
+                    </div>
+                </div>
+            </div>
+
+            <canvas id="glcanvas" tabindex='1' hidden></canvas>
+            <button id="feedback_btn"
                 onclick="window.open('https://docs.google.com/forms/d/e/1FAIpQLSfXyMKMhyV4FJt8ASSct6I_h3HX9L7TDKz-VqRwHEynvp8n1A/viewform?usp=dialog', '_blank');"
                 hidden>Provide Feedback</button>
-    </div>
+        </div>
     </div>
     <div class="content">
         <!-- 1. HERO — What is this? (5 seconds) -->
-        <h1>Bugchess</h1>
+        <h1>Bugchess Instructions 👇</h1>
         <p class="tagline">
             A strategy game where simple pieces merge into powerful units — if you place them in the right pattern.
         </p>
 
-        <img src="gifs/cross-merge.gif"
-             alt="Five pieces placed in a plus pattern merge into a Wasp / Soldier"
-             class="hero-gif">
+        <img src="gifs/cross-merge.gif" alt="Five pieces placed in a plus pattern merge into a Wasp / Soldier"
+            class="hero-gif">
         <p class="hero-caption">Place pieces in a + pattern → they merge into a Wasp / Soldier</p>
 
         <!-- 2. THE MECHANIC — What makes it special? (10 seconds) -->
@@ -330,7 +440,8 @@
 
         <!-- 3. CTA — How do I try it? (2 seconds) -->
         <p style="text-align: center; margin: 2em 0;">
-            <a class="cta" onclick="document.getElementById('game').scrollIntoView({behavior:'smooth'}); setTimeout(runOffline, 400);">
+            <a class="cta"
+                onclick="document.getElementById('game').scrollIntoView({behavior:'smooth'}); setTimeout(runOffline, 400);">
                 ▶ Try it now — Offline mode
             </a>
         </p>
@@ -343,7 +454,8 @@
         <div class="controls">
             <p><strong>Place a piece</strong> — Click any empty square on the board (you get 2 per turn)</p>
             <p><strong>Move a piece</strong> — Click one of your pieces, then click where to move it</p>
-            <p><strong>Use an ability</strong> — Double-click a merged piece to activate its power</p>
+            <p><strong>Use an ability</strong> — Click a merged piece with abilities to see information about its power
+            </p>
             <p><strong>End your turn</strong> — Press <kbd>Return</kbd> or click "End Turn"</p>
             <p><strong>Undo</strong> — Press <kbd>U</kbd> to take back any action during your turn</p>
         </div>
@@ -362,8 +474,7 @@
             <summary>Basic Piece — your starting unit</summary>
             <div class="piece-ref-body">
                 <div class="piece-ref-gif">
-                    <img src="gifs/piece_basic.png" alt="Basic piece on the board"
-                         onerror="this.style.display='none'">
+                    <img src="gifs/piece_basic.png" alt="Basic piece on the board" onerror="this.style.display='none'">
                 </div>
                 <div class="piece-ref-text">
                     <p>Placed directly from your hand — you get 2 every turn.</p>
@@ -382,7 +493,8 @@
                 <div class="piece-ref-text">
                     <p><strong>Pattern:</strong> 3 pieces in a straight line (horizontal or vertical).</p>
                     <p><strong>Moves:</strong> Slides along the direction it's oriented.</p>
-                    <p><strong>Ability: Gunfire</strong> — Shoots bullets in both directions, destroying up to 2 enemy pieces.</p>
+                    <p><strong>Ability: Gunfire</strong> — Shoots bullets in both directions, destroying up to 2 enemy
+                        pieces.</p>
                 </div>
             </div>
         </details>
@@ -394,7 +506,8 @@
                     <img src="gifs/cross-merge.gif" alt="Wasp / Soldier merge animation">
                 </div>
                 <div class="piece-ref-text">
-                    <p><strong>Pattern:</strong> A + sign — 3 vertical + 3 horizontal, sharing the center (5 pieces).</p>
+                    <p><strong>Pattern:</strong> A + sign — 3 vertical + 3 horizontal, sharing the center (5 pieces).
+                    </p>
                     <p><strong>Moves:</strong> Slides horizontally and vertically.</p>
                     <p><strong>Ability: Shielded</strong> — Can't be captured by basic pieces.</p>
                 </div>
@@ -410,7 +523,8 @@
                 <div class="piece-ref-text">
                     <p><strong>Pattern:</strong> 4 pieces in a small rotated square (diamond).</p>
                     <p><strong>Moves:</strong> Stationary — it doesn't move.</p>
-                    <p><strong>Ability: Protection</strong> — Adjacent friendly pieces are shielded from enemy abilities.</p>
+                    <p><strong>Ability: Protection</strong> — Adjacent friendly pieces are shielded from enemy
+                        abilities.</p>
                 </div>
             </div>
         </details>
@@ -424,7 +538,8 @@
                 <div class="piece-ref-text">
                     <p><strong>Pattern:</strong> 5 pieces arranged in an X (diagonals).</p>
                     <p><strong>Moves:</strong> Stationary — it doesn't move.</p>
-                    <p><strong>Ability: Long Range Shot</strong> — Target and destroy <em>any</em> piece on the board (once per turn).</p>
+                    <p><strong>Ability: Long Range Shot</strong> — Target and destroy <em>any</em> piece on the board
+                        (once per turn).</p>
                 </div>
             </div>
         </details>
@@ -540,9 +655,9 @@
         update()
 
         // Called from Rust/WASM when a game completes
-        window.reportGameComplete = function() {
+        window.reportGameComplete = function () {
             if (window.goatcounter && window.goatcounter.count) {
-                window.goatcounter.count({path: 'game-complete', title: 'Match Finished'});
+                window.goatcounter.count({ path: 'game-complete', title: 'Match Finished' });
             }
             document.getElementById('feedback_btn').hidden = false;
         };
